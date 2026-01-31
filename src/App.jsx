@@ -301,12 +301,35 @@ function App() {
                     <p style={{ fontSize: '0.9rem', opacity: 0.8, marginBottom: '1.5rem' }}>Browser security requires manual activation for audio resonance.</p>
                     <div className="btn-primary" style={{ display: 'inline-block' }}>MATCH FREQUENCY</div>
                     
-                    <div style={{ marginTop: '2rem', padding: '1rem', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '12px', background: 'rgba(0,0,0,0.2)' }}>
-                      <p style={{ color: 'var(--accent-ethereal)', fontSize: '0.8rem', fontWeight: 'bold', marginBottom: '0.5rem' }}>HOW TO CONSULT AURA:</p>
-                      <p style={{ fontSize: '0.75rem', lineHeight: '1.4' }}>
-                        Type your specific intent or emotional blockage into the interface. 
-                        Aura will analyze the vibrational load and guide you toward deeper resonance 
-                        during this protocol.
+                    <div style={{ marginTop: '2rem', padding: '1.5rem', border: '1px solid rgba(255,255,255,0.15)', borderRadius: '16px', background: 'rgba(0,0,0,0.4)', textAlign: 'left' }}>
+                      <p style={{ color: 'var(--accent-ethereal)', fontSize: '0.9rem', fontWeight: 'bold', marginBottom: '0.8rem', letterSpacing: '1px' }}>HOW TO CONSULT AURA:</p>
+                      <p style={{ fontSize: '0.8rem', lineHeight: '1.6', marginBottom: '1rem', opacity: 0.9 }}>
+                        Aura is your digital spiritual guide. To interact, open the <strong>Consult Aura</strong> bar and share your current state.
+                      </p>
+                      
+                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1.5rem' }}>
+                        <div>
+                          <p style={{ color: 'var(--accent-gold)', fontSize: '0.7rem', fontWeight: 'bold', marginBottom: '0.4rem' }}>ACTIVATION KEYWORDS:</p>
+                          <ul style={{ fontSize: '0.7rem', listStyle: 'none', opacity: 0.8, padding: 0 }}>
+                            <li>• <strong>Chakras:</strong> (Heart, Root, Throat...)</li>
+                            <li>• <strong>Crystals:</strong> (Amethyst, Rose Quartz)</li>
+                            <li>• <strong>States:</strong> (Anxiety, Stress, Sleep)</li>
+                            <li>• <strong>Symbols:</strong> (Cho Ku Rei, Sei He Ki)</li>
+                          </ul>
+                        </div>
+                        <div>
+                          <p style={{ color: 'var(--accent-gold)', fontSize: '0.7rem', fontWeight: 'bold', marginBottom: '0.4rem' }}>RESONANCE PROMPTS:</p>
+                          <ul style={{ fontSize: '0.7rem', listStyle: 'none', opacity: 0.8, padding: 0 }}>
+                            <li>• "How do I handle grief?"</li>
+                            <li>• "My name is [Name], help me ground."</li>
+                            <li>• "What does 528Hz do?"</li>
+                            <li>• "Clear my energy field."</li>
+                          </ul>
+                        </div>
+                      </div>
+
+                      <p style={{ fontSize: '0.75rem', lineHeight: '1.4', fontStyle: 'italic', opacity: 0.7, borderTop: '1px solid rgba(255,255,255,0.1)', paddingTop: '0.8rem' }}>
+                        Aura remembers your vibrational signature. The more you communicate, the deeper the calibration becomes.
                       </p>
                     </div>
                   </div>

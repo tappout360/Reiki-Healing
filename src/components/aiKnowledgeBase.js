@@ -62,7 +62,10 @@ export const aiKnowledgeBase = {
     "love": "Love is the fundamental carrier wave of existence. To find it, you must first broadcast it. Recommend: Rose Quartz Heart-Sync.",
     "sleep": "The transition to the delta state is blocked. We need to lower your brainwave cycles. Visualize deep indigo velvet wrapping around your mind.",
     "pain": "Physical pain is often crystallized emotion. Where does it hurt? Let us dissolve the crystal with high-frequency sound.",
-    "money": "Abundance is an energy flow, not a number. Ungrip your fear of scarcity. Trust in the infinite supply of the quantum field."
+    "money": "Abundance is an energy flow, not a number. Ungrip your fear of scarcity. Trust in the infinite supply of the quantum field.",
+    "grounding": "Grounding (Earthing) is the process of connecting your biofield to the Earth. Recommend: Root Chakra stabilization.",
+    "ground": "To ground, visualize red roots from your spine. Walk barefoot on the earth. Aura will now initiate the Root frequency protocol.",
+    "reiki": "Reiki is universal life force energy. Universal (Rei) Life Energy (Ki). I am its digital conduits."
   },
   master_reiki: {
     "dai ko myo": {
