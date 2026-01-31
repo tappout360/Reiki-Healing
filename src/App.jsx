@@ -9,6 +9,7 @@ import AdminLogin from './components/AdminLogin'
 import { aiKnowledgeBase } from './components/aiKnowledgeBase'
 import { Toaster, toast } from 'react-hot-toast'
 import './App.css'
+import './components/AuraGuide.css'
 
 const protocols = [
   /* Protocols with sequence data and audio IDs */
@@ -93,12 +94,60 @@ function DailyFrequency() {
   );
 }
 
+function AuraGuide({ onClose }) {
+  return (
+    <div className="aura-guide-overlay" onClick={onClose}>
+      <div className="aura-guide-modal" onClick={e => e.stopPropagation()}>
+        <button className="aura-guide-close" onClick={onClose}>×</button>
+        
+        <h2 className="aura-guide-header">Consult Aura</h2>
+        <div style={{width: '60px', height: '2px', background: 'var(--accent-gold)', margin: '0.5rem auto 2rem'}}></div>
+        
+        <p style={{fontSize: '1rem', fontStyle: 'italic', opacity: 0.8, marginBottom: '2rem'}}>
+          "Your digital spiritual guide to resonance and clarity."
+        </p>
+
+        <div className="aura-keyword-grid">
+          <div className="keyword-card">
+            <div className="aura-section-title">Activation Keywords</div>
+            <ul className="prompt-list" style={{padding: 0, margin: 0}}>
+              <li><strong>Chakras:</strong> (Heart, Root, Throat...)</li>
+              <li><strong>Crystals:</strong> (Amethyst, Rose Quartz)</li>
+              <li><strong>States:</strong> (Anxiety, Stress, Sleep)</li>
+              <li><strong>Symbols:</strong> (Cho Ku Rei, Sei He Ki)</li>
+            </ul>
+          </div>
+          
+          <div className="keyword-card">
+            <div className="aura-section-title">Resonance Prompts</div>
+            <ul className="prompt-list" style={{padding: 0, margin: 0}}>
+              <li>"How do I handle grief?"</li>
+              <li>"My name is [Name], help me ground."</li>
+              <li>"What does 528Hz do?"</li>
+              <li>"Clear my energy field."</li>
+            </ul>
+          </div>
+        </div>
+
+        <button 
+          className="btn-primary" 
+          onClick={onClose}
+          style={{padding: '0.8rem 3rem', fontSize: '1rem'}}
+        >
+          Begin Consultation
+        </button>
+      </div>
+    </div>
+  );
+}
+
 function App() {
   const [theme, setTheme] = useState(localStorage.getItem('aura_theme') || 'dark');
   const [scrolled, setScrolled] = useState(false);
   const [selectedProtocol, setSelectedProtocol] = useState(null);
   const [showPortal, setShowPortal] = useState(false);
   const [showAIInterface, setShowAIInterface] = useState(false);
+  const [showAuraGuide, setShowAuraGuide] = useState(false);
   const [showDashboard, setShowDashboard] = useState(false); // Validated access
   const [showLogin, setShowLogin] = useState(false); // Login modal
   const [bookingType, setBookingType] = useState(null); 
@@ -301,35 +350,9 @@ function App() {
                     <p style={{ fontSize: '0.9rem', opacity: 0.8, marginBottom: '1.5rem' }}>Browser security requires manual activation for audio resonance.</p>
                     <div className="btn-primary" style={{ display: 'inline-block' }}>MATCH FREQUENCY</div>
                     
-                    <div style={{ marginTop: '2rem', padding: '1.5rem', border: '1px solid rgba(255,255,255,0.15)', borderRadius: '16px', background: 'rgba(0,0,0,0.4)', textAlign: 'left' }}>
-                      <p style={{ color: 'var(--accent-ethereal)', fontSize: '0.9rem', fontWeight: 'bold', marginBottom: '0.8rem', letterSpacing: '1px' }}>HOW TO CONSULT AURA:</p>
-                      <p style={{ fontSize: '0.8rem', lineHeight: '1.6', marginBottom: '1rem', opacity: 0.9 }}>
-                        Aura is your digital spiritual guide. To interact, open the <strong>Consult Aura</strong> bar and share your current state.
-                      </p>
-                      
-                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1.5rem' }}>
-                        <div>
-                          <p style={{ color: 'var(--accent-gold)', fontSize: '0.7rem', fontWeight: 'bold', marginBottom: '0.4rem' }}>ACTIVATION KEYWORDS:</p>
-                          <ul style={{ fontSize: '0.7rem', listStyle: 'none', opacity: 0.8, padding: 0 }}>
-                            <li>• <strong>Chakras:</strong> (Heart, Root, Throat...)</li>
-                            <li>• <strong>Crystals:</strong> (Amethyst, Rose Quartz)</li>
-                            <li>• <strong>States:</strong> (Anxiety, Stress, Sleep)</li>
-                            <li>• <strong>Symbols:</strong> (Cho Ku Rei, Sei He Ki)</li>
-                          </ul>
-                        </div>
-                        <div>
-                          <p style={{ color: 'var(--accent-gold)', fontSize: '0.7rem', fontWeight: 'bold', marginBottom: '0.4rem' }}>RESONANCE PROMPTS:</p>
-                          <ul style={{ fontSize: '0.7rem', listStyle: 'none', opacity: 0.8, padding: 0 }}>
-                            <li>• "How do I handle grief?"</li>
-                            <li>• "My name is [Name], help me ground."</li>
-                            <li>• "What does 528Hz do?"</li>
-                            <li>• "Clear my energy field."</li>
-                          </ul>
-                        </div>
-                      </div>
-
-                      <p style={{ fontSize: '0.75rem', lineHeight: '1.4', fontStyle: 'italic', opacity: 0.7, borderTop: '1px solid rgba(255,255,255,0.1)', paddingTop: '0.8rem' }}>
-                        Aura remembers your vibrational signature. The more you communicate, the deeper the calibration becomes.
+                    <div style={{ marginTop: '2rem', padding: '1rem', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '12px', background: 'rgba(0,0,0,0.2)' }}>
+                      <p style={{ color: 'var(--accent-ethereal)', fontSize: '0.9rem', fontStyle: 'italic' }}>
+                        "Resonance calibrated. You may now enter the field."
                       </p>
                     </div>
                   </div>
@@ -356,7 +379,23 @@ function App() {
             >
               {theme === 'dark' ? <Sun size={20} /> : <Moon size={20} />}
             </button>
-            <button className="btn btn-primary" style={{marginLeft: '2rem', padding: '0.6rem 1.5rem'}}>Get Started</button>
+            <button 
+              onClick={() => setShowAuraGuide(true)}
+              style={{
+                background: 'none', border: '1px solid var(--accent-ethereal)', cursor: 'pointer',
+                color: 'var(--accent-ethereal)', marginLeft: '1.5rem', padding: '0.4rem 1rem', borderRadius: '20px',
+                fontSize: '0.8rem', letterSpacing: '1px'
+              }}
+            >
+              CONSULT AURA
+            </button>
+            <button 
+              onClick={() => document.getElementById('mobile-service').scrollIntoView({ behavior: 'smooth' })}
+              className="btn btn-primary" 
+              style={{marginLeft: '1.5rem', padding: '0.6rem 1.5rem'}}
+            >
+              Set Appointment
+            </button>
           </div>
         </div>
       </nav>
@@ -745,7 +784,11 @@ function App() {
 
       {/* AI Healer Components */}
       <HealingActionBar onActivate={() => setShowAIInterface(true)} />
+      <HealingActionBar onActivate={() => setShowAIInterface(true)} />
       {showAIInterface && <AIHealerInterface onClose={() => setShowAIInterface(false)} />}
+      
+      {/* Aura Consultation Guide Modal */}
+      {showAuraGuide && <AuraGuide onClose={() => setShowAuraGuide(false)} />}
       
       {/* Booking Interface */}
       {bookingType && (
