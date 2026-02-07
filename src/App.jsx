@@ -27,6 +27,7 @@ const JoinPortalModal = lazy(() => import('./components/JoinPortalModal'));
 const MyStoriesPortal = lazy(() => import('./components/MyStoriesPortal'));
 const SubscriptionPage = lazy(() => import('./components/SubscriptionPage'));
 import DuckingAudioPlayer from './components/DuckingAudioPlayer';
+import BillingForm from './components/BillingForm';
 
 // Loading Fallback
 const LoadingSpinner = () => (
@@ -195,7 +196,7 @@ const protocols = [
     audio: 'thRVM2ZcuaY', // 852Hz Awakening Intuition (Fixed)
     voice: '/assets/lapis_meditation_voice.mp3',
     desc: 'Advanced 10-minute intuition awakening. Deep-field synchronization for intellectual clarity, inner truth, and higher dimensional awareness.',
-    tier: 'advanced'
+    tier: 'basic'
   },
   {
     id: 'citrine',
@@ -448,6 +449,7 @@ const [showLivePortal, setShowLivePortal] = useState(false);
 const [showJoinPortalModal, setShowJoinPortalModal] = useState(false);
 const [showMyStories, setShowMyStories] = useState(false);
 const [healerAppsEnabled, setHealerAppsEnabled] = useState(localStorage.getItem('aura_applications_enabled') !== 'false');
+const [showCheckoutModal, setShowCheckoutModal] = useState(false);
 
 
   useEffect(() => {
@@ -718,13 +720,13 @@ const [healerAppsEnabled, setHealerAppsEnabled] = useState(localStorage.getItem(
             </div>
             <div className="healing-ui">
               <div className="glass healing-status">
-                <div style={{color: currentProtocol.color, fontSize: '1.5rem', fontWeight: '700', marginBottom: '0.5rem'}}>
+                <div style={{color: currentProtocol.color, fontSize: '1rem', fontWeight: '700', marginBottom: '0.25rem', letterSpacing: '1px'}}>
                   {currentProtocol.name} ACTIVE
                 </div>
                 
                 {/* Volume Control */}
-                <div style={{marginTop: '1rem', width: '100%', maxWidth: '200px', margin: '1rem auto'}}>
-                  <label style={{fontSize: '0.8rem', opacity: 0.7, marginBottom: '5px', display: 'block'}}>
+                <div style={{marginTop: '0.5rem', width: '100%', maxWidth: '160px', margin: '0.5rem auto'}}>
+                  <label style={{fontSize: '0.7rem', opacity: 0.7, marginBottom: '3px', display: 'block'}}>
                     Resonance Intensity
                   </label>
                   <input 
@@ -822,8 +824,8 @@ const [healerAppsEnabled, setHealerAppsEnabled] = useState(localStorage.getItem(
                   }}
                 >
                   <div style={{ pointerEvents: 'none' }}>
-                    <h3 style={{ color: 'var(--accent-gold)', marginBottom: '1rem' }}>Initiating Protocol...</h3>
-                    <p style={{ fontSize: '0.9rem', opacity: 0.8, marginBottom: '1.5rem' }}>Browser security requires manual activation for audio resonance.</p>
+                    <h3 style={{ color: 'var(--accent-gold)', marginBottom: '0.5rem', fontSize: '1.1rem' }}>Initiating Protocol...</h3>
+                    <p style={{ fontSize: '0.75rem', opacity: 0.8, marginBottom: '1rem' }}>Browser security requires manual activation for audio resonance.</p>
                     <div className="btn-primary" style={{ display: 'inline-block' }}>MATCH FREQUENCY</div>
                     
                     <div style={{ marginTop: '2rem', padding: '1rem', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '12px', background: 'rgba(0,0,0,0.2)' }}>
@@ -892,11 +894,19 @@ const [healerAppsEnabled, setHealerAppsEnabled] = useState(localStorage.getItem(
               ) : (
                   <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px' }}>
                     <button 
-                      onClick={() => setShowUserFullDashboard(true)}
+                      onClick={() => {
+                        if (user.subscription === 'healing' || user.role === 'owner') {
+                          setShowUserFullDashboard(true);
+                        } else {
+                          toast.error("Guardian status required for Full Dashboard view.");
+                          setShowSubscriptionPage(true);
+                        }
+                      }}
                       style={{
                         background: 'none', border: '1px solid var(--accent-gold)', cursor: 'pointer',
                         color: 'var(--accent-gold)', padding: '0.4rem 1rem', borderRadius: '20px',
-                        fontSize: '0.75rem', letterSpacing: '1px', display: 'inline-flex', alignItems: 'center', gap: '8px'
+                        fontSize: '0.75rem', letterSpacing: '1px', display: 'inline-flex', alignItems: 'center', gap: '8px',
+                        opacity: (user.subscription === 'healing' || user.role === 'owner') ? 1 : 0.6
                       }}
                     >
                       <Sparkles size={14} /> {user.username || user.email}
@@ -1078,7 +1088,14 @@ const [healerAppsEnabled, setHealerAppsEnabled] = useState(localStorage.getItem(
       {/* User Dashboard Inline - Appears after login */}
       <UserDashboardInline 
         user={user}
-        onOpenFullDashboard={() => setShowUserFullDashboard(true)}
+        onOpenFullDashboard={() => {
+          if (user.subscription === 'healing' || user.role === 'owner') {
+            setShowUserFullDashboard(true);
+          } else {
+            toast.error("Guardian status required for Full Dashboard view.");
+            setShowSubscriptionPage(true);
+          }
+        }}
         onUpdateUser={handleUpdateUser}
         onNavigateToBooking={() => document.getElementById('mobile-service')?.scrollIntoView({ behavior: 'smooth' })}
         onNavigateToProtocols={() => document.getElementById('protocols-section')?.scrollIntoView({ behavior: 'smooth' })}
@@ -1347,11 +1364,11 @@ const [healerAppsEnabled, setHealerAppsEnabled] = useState(localStorage.getItem(
             <SubscriptionPage 
                 onClose={() => setShowSubscriptionPage(false)}
                 onUpgrade={() => {
-                    setShowSubscriptionPage(false);
-                    // Check if logged in
                     if (user) {
-                        setShowSubscriptionPage(true);
+                        setShowSubscriptionPage(false);
+                        setShowCheckoutModal(true);
                     } else {
+                        setShowSubscriptionPage(false);
                         setShowSignupFlow(true);
                         toast.error("Please create an account to upgrade.");
                     }
@@ -1359,6 +1376,65 @@ const [healerAppsEnabled, setHealerAppsEnabled] = useState(localStorage.getItem(
             />
         )}
       </Suspense>
+
+      {/* Sacred Energy Exchange Checkout Modal */}
+      <AnimatePresence>
+        {showCheckoutModal && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            style={{
+              position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
+              background: 'rgba(0,0,0,0.9)', zIndex: 11000,
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              backdropFilter: 'blur(20px)'
+            }}
+          >
+            <motion.div
+              initial={{ scale: 0.9, y: 30 }}
+              animate={{ scale: 1, y: 0 }}
+              exit={{ scale: 0.9, y: 30 }}
+              style={{
+                width: '100%', maxWidth: '500px', background: '#0a0a0f',
+                padding: '3rem', borderRadius: '32px', border: '1px solid rgba(212, 175, 55, 0.3)',
+                position: 'relative'
+              }}
+            >
+              <button 
+                onClick={() => setShowCheckoutModal(false)}
+                style={{ position: 'absolute', top: '1.5rem', right: '1.5rem', background: 'none', border: 'none', color: 'white', cursor: 'pointer', opacity: 0.5 }}
+              >
+                ✕
+              </button>
+              <BillingForm 
+                buttonText="ACTIVATE RESONANCE"
+                onSubmit={(data) => {
+                  toast.loading("Verifying energetic credentials...");
+                  setTimeout(() => {
+                    const updatedUser = { 
+                      ...user, 
+                      subscription: 'healing',
+                      role: user.role || 'user' // Ensure role exists
+                    };
+                    setUser(updatedUser);
+                    localStorage.setItem('user_profile', JSON.stringify(updatedUser));
+                    
+                    // Update client list for healers
+                    const clients = JSON.parse(localStorage.getItem('aura_clients') || '[]');
+                    const updatedClients = clients.map(c => c.email === user.email ? updatedUser : c);
+                    localStorage.setItem('aura_clients', JSON.stringify(updatedClients));
+                    
+                    setShowCheckoutModal(false);
+                    toast.dismiss();
+                    toast.success("Resonance Field Expanded. Welcome, Guardian.");
+                  }, 2500);
+                }}
+              />
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {user && (user.role === 'admin' || user.role === 'owner') && (
         <div 

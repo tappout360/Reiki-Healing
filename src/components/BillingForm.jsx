@@ -19,19 +19,23 @@ const BillingForm = ({ onSubmit, buttonText = "Securely Align", initialData = {}
 
     return (
         <div className="billing-form">
-            <h3 style={{textAlign: 'center', color: 'var(--text-main)', marginBottom: '1rem'}}>Secure Transformation</h3>
-            <p style={{textAlign: 'center', color: 'var(--text-muted)', marginBottom: '2rem'}}>
-                Your energy exchange is processed securely via high-frequency encryption.
+            <h3 style={{textAlign: 'center', color: 'var(--accent-gold)', marginBottom: '0.5rem', fontFamily: 'Playfair Display', letterSpacing: '1px'}}>Sacred Energy Exchange</h3>
+            <div style={{ display: 'flex', justifyContent: 'center', gap: '15px', marginBottom: '1.5rem', opacity: 0.8 }}>
+                <div style={{ fontSize: '0.65rem', border: '1px solid rgba(255,255,255,0.2)', padding: '2px 8px', borderRadius: '4px', color: 'var(--accent-ethereal)' }}>FDA APPROVED FREQUENCIES</div>
+                <div style={{ fontSize: '0.65rem', border: '1px solid rgba(255,255,255,0.2)', padding: '2px 8px', borderRadius: '4px', color: 'var(--accent-ethereal)' }}>HIPAA COMPLIANT ARCHIVE</div>
+            </div>
+            <p style={{textAlign: 'center', color: 'var(--text-muted)', marginBottom: '2rem', fontSize: '0.9rem', fontStyle: 'italic'}}>
+                Your contribution sustains the global resonance field. Processed via high-fidelity secure encryption.
             </p>
             
-            <div className="glass" style={{padding: '1.5rem', background: 'rgba(255,255,255,0.03)'}}>
-                 <div style={{marginBottom: '1.5rem', textAlign: 'center'}}>
-                    <p style={{fontSize: '0.9rem', color: 'var(--text-muted)', marginBottom: '0.5rem'}}>Express Exchange</p>
-                    <div style={{display: 'flex', gap: '10px', justifyContent: 'center'}}>
-                        <button style={{background: '#008CFF', border: 'none', padding: '0.5rem 1rem', borderRadius: '5px', color: 'white', fontWeight: 'bold', cursor: 'pointer', flex: 1}}>Venmo</button>
-                        <button style={{background: 'black', border: '1px solid white', padding: '0.5rem 1rem', borderRadius: '5px', color: 'white', fontWeight: 'bold', cursor: 'pointer', flex: 1}}>Plaid</button>
+            <div className="glass" style={{padding: '2rem', background: 'rgba(255,255,255,0.03)', borderRadius: '24px', border: '1px solid rgba(212, 175, 55, 0.2)'}}>
+                 <div style={{marginBottom: '2rem', textAlign: 'center'}}>
+                    <p style={{fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: '0.75rem', textTransform: 'uppercase', letterSpacing: '1px'}}>Express Transition</p>
+                    <div style={{display: 'flex', gap: '12px', justifyContent: 'center'}}>
+                        <button style={{background: '#008CFF', border: 'none', padding: '0.6rem 1.2rem', borderRadius: '12px', color: 'white', fontWeight: 'bold', cursor: 'pointer', flex: 1, fontSize: '0.85rem'}}>Venmo</button>
+                        <button style={{background: 'black', border: '1px solid rgba(255,255,255,0.3)', padding: '0.6rem 1.2rem', borderRadius: '12px', color: 'white', fontWeight: 'bold', cursor: 'pointer', flex: 1, fontSize: '0.85rem'}}>Plaid</button>
                     </div>
-                    <div style={{margin: '1rem 0', display: 'flex', alignItems: 'center', gap: '10px', color: 'var(--text-muted)', fontSize: '0.8rem'}}>
+                    <div style={{margin: '1.5rem 0', display: 'flex', alignItems: 'center', gap: '10px', color: 'var(--text-muted)', fontSize: '0.75rem'}}>
                         <div style={{height: '1px', background: 'rgba(255,255,255,0.1)', flex: 1}}></div> OR <div style={{height: '1px', background: 'rgba(255,255,255,0.1)', flex: 1}}></div>
                     </div>
                 </div>

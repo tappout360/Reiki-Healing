@@ -526,21 +526,23 @@ export const UserDashboardInline = ({ user, onUpdateUser, onOpenFullDashboard, o
               justifyContent: 'center'
             }}
           >
-            <motion.button
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              className="btn"
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '0.5rem',
-                background: 'rgba(255, 255, 255, 0.05)',
-                border: '1px solid var(--glass-border)'
-              }}
-              onClick={onOpenFullDashboard}
-            >
-              <Activity size={18} /> View Full Dashboard
-            </motion.button>
+            {(user.subscription === 'healing' || user.role === 'owner') && (
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                className="btn"
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.5rem',
+                  background: 'rgba(255, 255, 255, 0.05)',
+                  border: '1px solid var(--glass-border)'
+                }}
+                onClick={onOpenFullDashboard}
+              >
+                <Activity size={18} /> View Full Dashboard
+              </motion.button>
+            )}
             <motion.button
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}

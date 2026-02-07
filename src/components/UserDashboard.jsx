@@ -3,7 +3,9 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Toaster, toast } from 'react-hot-toast';
 import {
   Activity, Calendar, CheckCircle, ChevronRight, Heart, Key, Send, Settings, Shield, Sparkles, Star, X, Zap,
-  Compass, TrendingUp, Clock, Flame, Award
+  Compass, TrendingUp, Clock, Flame, Award, Sun, Moon, Cloud, Leaf, Flower, Droplets, Wind, Waves, Snowflake,
+  Bird, Bug, Fish, Trees, Mountain, Sunrise, Sunset, Microscope, FlaskConical, Binary, Fingerprint, Focus, Ghost,
+  Gift, GlassWater, GraduationCap, Headphones, Landmark, Languages, Layout, LifeBuoy, Anchor, Aperture, Battery, Mic
 } from 'lucide-react';
 import { getZodiacSign, getAdvancedHoroscope } from '../utils/horoscopes';
 
@@ -27,6 +29,53 @@ const UserDashboard = ({ user, onClose, onUpdateUser, onNavigateToBooking, onNav
   // Settings States
   const [tempBirthDate, setTempBirthDate] = useState(user?.birthDate || '');
   const [isUpdatingAlignment, setIsUpdatingAlignment] = useState(false);
+  const [isIconPickerOpen, setIsIconPickerOpen] = useState(false);
+  const [isHandbookOpen, setIsHandbookOpen] = useState(false);
+
+  const availableIcons = [
+    { name: 'Heart', Component: Heart, color: '#ff7675' },
+    { name: 'Sparkles', Component: Sparkles, color: 'var(--accent-gold)' },
+    { name: 'Zap', Component: Zap, color: '#f1c40f' },
+    { name: 'Activity', Component: Activity, color: '#e74c3c' },
+    { name: 'Shield', Component: Shield, color: '#3498db' },
+    { name: 'Compass', Component: Compass, color: '#e67e22' },
+    { name: 'Sun', Component: Sun, color: '#fbc531' },
+    { name: 'Moon', Component: Moon, color: '#f5f6fa' },
+    { name: 'Cloud', Component: Cloud, color: '#dcdde1' },
+    { name: 'Leaf', Component: Leaf, color: '#44bd32' },
+    { name: 'Flower', Component: Flower, color: '#e84393' },
+    { name: 'Droplets', Component: Droplets, color: '#00a8ff' },
+    { name: 'Wind', Component: Wind, color: '#9c88ff' },
+    { name: 'Waves', Component: Waves, color: '#487eb0' },
+    { name: 'Snowflake', Component: Snowflake, color: '#00d2d3' },
+    { name: 'Bird', Component: Bird, color: '#9c88ff' },
+    { name: 'Bug', Component: Bug, color: '#4cd137' },
+    { name: 'Fish', Component: Fish, color: '#40739e' },
+    { name: 'Trees', Component: Trees, color: '#2f3640' },
+    { name: 'Mountain', Component: Mountain, color: '#718093' },
+    { name: 'Sunrise', Component: Sunrise, color: '#e1b12c' },
+    { name: 'Sunset', Component: Sunset, color: '#e84118' },
+    { name: 'Microscope', Component: Microscope, color: '#8c7ae6' },
+    { name: 'FlaskConical', Component: FlaskConical, color: '#c23616' },
+    { name: 'Binary', Component: Binary, color: '#44bd32' },
+    { name: 'Fingerprint', Component: Fingerprint, color: '#0097e6' },
+    { name: 'Focus', Component: Focus, color: '#273c75' },
+    { name: 'Ghost', Component: Ghost, color: '#f5f6fa' },
+    { name: 'Gift', Component: Gift, color: '#e84118' },
+    { name: 'GlassWater', Component: GlassWater, color: '#00a8ff' },
+    { name: 'GraduationCap', Component: GraduationCap, color: '#8c7ae6' },
+    { name: 'Headphones', Component: Headphones, color: '#2f3640' },
+    { name: 'Landmark', Component: Landmark, color: '#dcdde1' },
+    { name: 'Languages', Component: Languages, color: '#9c88ff' },
+    { name: 'Layout', Component: Layout, color: '#38ada9' },
+    { name: 'LifeBuoy', Component: LifeBuoy, color: '#eb4d4b' },
+    { name: 'Anchor', Component: Anchor, color: '#718093' },
+    { name: 'Aperture', Component: Aperture, color: '#f0932b' },
+    { name: 'Battery', Component: Battery, color: '#6ab04c' },
+    { name: 'Award', Component: Award, color: '#f9ca24' },
+    { name: 'Flame', Component: Flame, color: '#eb4d4b' },
+    { name: 'Star', Component: Star, color: '#ffbe76' }
+  ];
   
   useEffect(() => {
     if (user?.birthDate) setTempBirthDate(user.birthDate);
@@ -103,6 +152,7 @@ const UserDashboard = ({ user, onClose, onUpdateUser, onNavigateToBooking, onNav
         story: newStory,
         rating: newRating,
         status: 'pending',
+        audioUrl: null, // Future integration hook for voice recordings
         timestamp: new Date().toISOString()
       };
       
@@ -118,7 +168,8 @@ const UserDashboard = ({ user, onClose, onUpdateUser, onNavigateToBooking, onNav
   };
 
   return (
-    <motion.div 
+    <>
+      <motion.div 
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
@@ -225,7 +276,31 @@ const UserDashboard = ({ user, onClose, onUpdateUser, onNavigateToBooking, onNav
                 )}
               </button>
             ))}
-          </div>
+           </div>
+          
+          <motion.button
+            whileHover={{ scale: 1.1, background: 'rgba(212, 175, 55, 0.1)' }}
+            whileTap={{ scale: 0.9 }}
+            onClick={() => setIsHandbookOpen(true)}
+            style={{
+              background: 'none',
+              border: '1px solid rgba(212, 175, 55, 0.3)',
+              borderRadius: '20px',
+              padding: '6px 15px',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px',
+              cursor: 'pointer',
+              color: 'var(--accent-gold)',
+              fontSize: '0.75rem',
+              fontWeight: '600',
+              marginRight: '1rem'
+            }}
+          >
+            <Compass size={14} />
+            HANDBOOK
+          </motion.button>
+
           <motion.button
             whileHover={{ rotate: 90, scale: 1.1 }}
             whileTap={{ scale: 0.9 }}
@@ -266,35 +341,42 @@ const UserDashboard = ({ user, onClose, onUpdateUser, onNavigateToBooking, onNav
               margin: '0 auto 1.5rem',
               padding: '6px',
               border: '2px solid rgba(212, 175, 55, 0.2)',
-              position: 'relative'
+              position: 'relative',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center'
             }}>
-              <div style={{
-                width: '100%',
-                height: '100%',
-                borderRadius: '50%',
-                overflow: 'hidden',
-                background: 'rgba(212, 175, 55, 0.1)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center'
-              }}>
-                <img 
-                  src={`https://api.dicebear.com/7.x/bottts/svg?seed=${user.name}`}
-                  alt="Avatar"
-                  style={{ width: '80%', height: '80%' }}
+                {user.selectedIcon ? (() => {
+                  const iconData = availableIcons.find(i => i.name === user.selectedIcon);
+                  const IconComp = iconData?.Component || Sparkles;
+                  const iconColor = iconData?.color || 'var(--accent-gold)';
+                  return <IconComp size={60} color={iconColor} style={{ filter: `drop-shadow(0 0 10px ${iconColor}66)` }} />;
+                })() : (
+                  <img 
+                    src={`https://api.dicebear.com/7.x/bottts/svg?seed=${user.name}`}
+                    alt="Avatar"
+                    style={{ width: '80%', height: '80%' }}
+                  />
+                )}
+                
+                <motion.div 
+                  whileHover={{ scale: 1.2 }}
+                  onClick={() => setIsIconPickerOpen(true)}
+                  style={{
+                    position: 'absolute',
+                    bottom: '5px',
+                    right: '5px',
+                    width: '16px',
+                    height: '16px',
+                    borderRadius: '50%',
+                    background: '#00b894',
+                    border: '2px solid #111',
+                    cursor: 'pointer',
+                    zIndex: 2,
+                    boxShadow: '0 0 10px #00b894'
+                  }} 
                 />
               </div>
-              <div style={{
-                position: 'absolute',
-                bottom: '5px',
-                right: '5px',
-                width: '12px',
-                height: '12px',
-                borderRadius: '50%',
-                background: '#00b894',
-                border: '2px solid #111'
-              }} />
-            </div>
             <h3 style={{ fontSize: '1.4rem', margin: '0 0 0.5rem 0' }}>{user.name}</h3>
             <span style={{ 
               fontSize: '0.75rem', 
@@ -421,8 +503,36 @@ const UserDashboard = ({ user, onClose, onUpdateUser, onNavigateToBooking, onNav
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '3rem' }}>
                   <div>
                     <h1 style={{ fontSize: '2.5rem', margin: '0 0 0.5rem 0', fontFamily: "'Playfair Display', serif" }}>
-                      Welcome Back, Seeker.
+                      Welcome back seeker.
                     </h1>
+                    <div style={{ display: 'flex', gap: '0.8rem', marginBottom: '1.5rem' }}>
+                      {[
+                        { icon: <Flame size={14} />, label: `${user.streak || 0}-Day Streak`, color: '#e17055' },
+                        { icon: <Zap size={14} />, label: 'Peak Frequency', color: 'var(--accent-gold)' },
+                        { icon: <Shield size={14} />, label: 'Field Protected', color: '#00b894' }
+                      ].map((achievement, idx) => (
+                        <motion.div
+                          key={idx}
+                          initial={{ opacity: 0, scale: 0.8 }}
+                          animate={{ opacity: 1, scale: 1 }}
+                          transition={{ delay: 0.5 + (idx * 0.1) }}
+                          style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '6px',
+                            background: `${achievement.color}15`,
+                            border: `1px solid ${achievement.color}44`,
+                            padding: '4px 10px',
+                            borderRadius: '20px',
+                            fontSize: '0.75rem',
+                            color: achievement.color,
+                            fontWeight: '600'
+                          }}
+                        >
+                          {achievement.icon} {achievement.label}
+                        </motion.div>
+                      ))}
+                    </div>
                     <p style={{ fontSize: '1.1rem', color: 'rgba(255,255,255,0.5)', maxWidth: '600px' }}>
                       Your bio-field is showing exceptional resonance today. The galactic current is flowing through your heart chakra.
                     </p>
@@ -760,7 +870,24 @@ const UserDashboard = ({ user, onClose, onUpdateUser, onNavigateToBooking, onNav
                                    fontFamily: 'inherit'
                                 }}
                              />
-                          </div>
+                           </div>
+
+                           <div style={{ 
+                              marginBottom: '1.5rem', 
+                              padding: '1rem', 
+                              borderRadius: '12px', 
+                              background: 'rgba(255,255,255,0.02)', 
+                              border: '1px dashed rgba(255,255,255,0.1)',
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'space-between'
+                           }}>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                                 <Mic size={18} color="rgba(255,255,255,0.3)" />
+                                 <span style={{ fontSize: '0.8rem', color: 'rgba(255,255,255,0.3)' }}>Voice Resonance (Coming Soon)</span>
+                              </div>
+                              <div style={{ fontSize: '0.7rem', color: 'var(--accent-gold)', opacity: 0.5, fontStyle: 'italic' }}>Ready for future audio hooks...</div>
+                           </div>
                           <button 
                              type="submit"
                              disabled={isSubmittingStory}
@@ -1049,9 +1176,247 @@ const UserDashboard = ({ user, onClose, onUpdateUser, onNavigateToBooking, onNav
            LAST SYNC: JUST NOW
         </div>
       </div>
-    </motion.div>
-  );
-};
 
+      <AnimatePresence>
+        {isIconPickerOpen && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            style={{
+              position: 'fixed',
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              zIndex: 20000,
+              background: 'rgba(0,0,0,0.85)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              backdropFilter: 'blur(10px)'
+            }}
+          >
+            <motion.div
+              initial={{ scale: 0.9, y: 20 }}
+              animate={{ scale: 1, y: 0 }}
+              exit={{ scale: 0.9, y: 20 }}
+              style={{
+                width: '90%',
+                maxWidth: '500px',
+                background: '#0a0a0f',
+                border: '1px solid rgba(255,255,255,0.1)',
+                borderRadius: '24px',
+                padding: '2rem',
+                boxShadow: '0 20px 50px rgba(0,0,0,0.5)'
+              }}
+            >
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
+                <h3 style={{ margin: 0, fontSize: '1.5rem', fontFamily: "'Playfair Display', serif" }}>Select Resonance Icon</h3>
+                <motion.button
+                  whileHover={{ rotate: 90 }}
+                  onClick={() => setIsIconPickerOpen(false)}
+                  style={{ background: 'none', border: 'none', color: '#fff', cursor: 'pointer' }}
+                >
+                  <X />
+                </motion.button>
+              </div>
+
+              <div style={{ 
+                display: 'grid', 
+                gridTemplateColumns: 'repeat(6, 1fr)', 
+                gap: '1rem',
+                maxHeight: '350px',
+                overflowY: 'auto',
+                paddingRight: '0.5rem'
+              }}>
+                {availableIcons.map((icon, idx) => (
+                  <motion.button
+                    key={idx}
+                    whileHover={{ scale: 1.1, background: 'rgba(212, 175, 55, 0.1)' }}
+                    whileTap={{ scale: 0.95 }}
+                    onClick={() => {
+                      onUpdateUser({ ...user, selectedIcon: icon.name });
+                      setIsIconPickerOpen(false);
+                      toast.success(`Resonance icon tuned to ${icon.name}.`);
+                    }}
+                    style={{
+                      aspectRatio: '1',
+                      background: user.selectedIcon === icon.name ? `${icon.color}22` : 'rgba(255,255,255,0.03)',
+                      border: user.selectedIcon === icon.name ? `1px solid ${icon.color}` : '1px solid rgba(255,255,255,0.05)',
+                      borderRadius: '12px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      cursor: 'pointer',
+                      color: icon.color,
+                      boxShadow: user.selectedIcon === icon.name ? `0 0 15px ${icon.color}44` : 'none'
+                    }}
+                  >
+                    <icon.Component size={24} color={icon.color} />
+                  </motion.button>
+                ))}
+              </div>
+              
+              <button
+                className="btn"
+                onClick={() => {
+                  onUpdateUser({ ...user, selectedIcon: null });
+                  setIsIconPickerOpen(false);
+                  toast.success("Reverted to base terrestrial avatar.");
+                }}
+                style={{ width: '100%', marginTop: '2rem', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)' }}
+              >
+                RESET TO BASE AVATAR
+              </button>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {isHandbookOpen && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            style={{
+              position: 'fixed',
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              zIndex: 30000,
+              background: 'rgba(5, 5, 12, 0.98)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              backdropFilter: 'blur(30px)'
+            }}
+          >
+            <motion.div
+              initial={{ scale: 0.9, y: 30 }}
+              animate={{ scale: 1, y: 0 }}
+              exit={{ scale: 0.9, y: 30 }}
+              style={{
+                width: '95%',
+                maxWidth: '700px',
+                maxHeight: '85vh',
+                background: '#0a0a0f',
+                border: '1px solid rgba(212, 175, 55, 0.2)',
+                borderRadius: '32px',
+                padding: '3rem',
+                boxShadow: '0 30px 100px rgba(0,0,0,0.8)',
+                overflowY: 'auto',
+                position: 'relative'
+              }}
+            >
+              <motion.button
+                whileHover={{ rotate: 90, scale: 1.1 }}
+                onClick={() => setIsHandbookOpen(false)}
+                style={{
+                  position: 'absolute',
+                  top: '2rem',
+                  right: '2rem',
+                  background: 'rgba(255,255,255,0.05)',
+                  border: 'none',
+                  borderRadius: '50%',
+                  width: '40px',
+                  height: '40px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  cursor: 'pointer',
+                  color: '#fff'
+                }}
+              >
+                <X size={20} />
+              </motion.button>
+
+              <div style={{ textAlign: 'center', marginBottom: '3rem' }}>
+                <div style={{ 
+                  display: 'inline-flex', 
+                  padding: '12px', 
+                  borderRadius: '16px', 
+                  background: 'linear-gradient(135deg, var(--accent-gold), #e67e22)',
+                  marginBottom: '1.5rem',
+                  boxShadow: '0 0 30px rgba(212, 175, 55, 0.4)'
+                }}>
+                  <Compass size={32} color="#000" />
+                </div>
+                <h2 style={{ fontSize: '2.5rem', margin: 0, fontFamily: "'Playfair Display', serif" }}>Sanctuary Handbook</h2>
+                <p style={{ color: 'rgba(255,255,255,0.4)', marginTop: '0.5rem', textTransform: 'uppercase', letterSpacing: '2px', fontSize: '0.8rem' }}>
+                  Codex of Ethereal Laws
+                </p>
+              </div>
+
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '2.5rem' }}>
+                {[
+                  {
+                    icon: <Activity size={24} color="#00cec9" />,
+                    title: "Bio-Field Resonance",
+                    desc: "Every healing protocol engagement elevates your base frequency. Consistency purifies your aura, unlocking deeper levels of insight and higher-order vibrational stats."
+                  },
+                  {
+                    icon: <Flame size={24} color="#e17055" />,
+                    title: "Healing Streaks",
+                    desc: "Maintaining a daily resonance practice triggers exponential growth. Streaks of 3, 7, and 30 days grant 'Flame of Awareness' multipliers, intensifying your healing potency."
+                  },
+                  {
+                    icon: <Award size={24} color="var(--accent-gold)" />,
+                    title: "Ascension Badges",
+                    desc: "As your total frequency reaches critical mass, you ascend through the five tiers: First Light, Seeker, Adept, Master, and ultimately, The Architect."
+                  },
+                  {
+                    icon: <Send size={24} color="#9c88ff" />,
+                    title: "Community Echoes",
+                    desc: "Sharing your soul reflections in the public sanctuary feeds the collective aura. Approved stories grant 'Global Resonance' points, connecting your field to others."
+                  },
+                  {
+                    icon: <Sparkles size={24} color="#fbc531" />,
+                    title: "Vibrational Tuning",
+                    desc: "Click your avatar's life-signal (green dot) to tune your visual representation. Choose an icon that matches your current energetic intention."
+                  }
+                ].map((rule, idx) => (
+                  <motion.div 
+                    key={idx}
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: 0.2 + (idx * 0.1) }}
+                    style={{ display: 'flex', gap: '1.5rem', alignItems: 'flex-start' }}
+                  >
+                    <div style={{ 
+                      padding: '12px', 
+                      borderRadius: '12px', 
+                      background: 'rgba(255,255,255,0.03)',
+                      border: '1px solid rgba(255,255,255,0.05)'
+                    }}>
+                      {rule.icon}
+                    </div>
+                    <div>
+                      <h4 style={{ margin: '0 0 0.5rem 0', fontSize: '1.2rem', color: '#fff' }}>{rule.title}</h4>
+                      <p style={{ margin: 0, lineHeight: '1.6', color: 'rgba(255,255,255,0.6)', fontSize: '0.95rem' }}>
+                        {rule.desc}
+                      </p>
+                    </div>
+                  </motion.div>
+                ))}
+              </div>
+
+              <button
+                className="btn-primary"
+                onClick={() => setIsHandbookOpen(false)}
+                style={{ width: '100%', marginTop: '4rem', padding: '1.2rem' }}
+              >
+                I ASCEND
+              </button>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </motion.div>
+  </>
+);
+};
 
 export default UserDashboard;

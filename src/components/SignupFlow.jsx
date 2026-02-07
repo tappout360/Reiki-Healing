@@ -586,7 +586,7 @@ const SignupFlow = ({ onComplete, onCancel }) => {
             {currentStep === 5 && (
               <div>
                 <h2 style={{ color: '#1abc9c', marginBottom: '2rem', textAlign: 'center' }}>
-                  💳 Secure Energy Exchange
+                  💳 Sacred Energy Exchange
                 </h2>
                 <div style={{ maxWidth: '400px', margin: '0 auto' }}>
                   <BillingForm 
