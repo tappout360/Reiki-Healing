@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { aiKnowledgeBase } from './aiKnowledgeBase';
+import { getZodiacSign, getAdvancedHoroscope } from '../utils/horoscopes';
 
-const AIHealerInterface = ({ onClose }) => {
+const AIHealerInterface = ({ user, onClose, onOpenBooking, onOpenLogin, onApply }) => {
   const [messages, setMessages] = useState([]);
   const [inputText, setInputText] = useState('');
   const [isTyping, setIsTyping] = useState(false);
@@ -129,6 +130,41 @@ const AIHealerInterface = ({ onClose }) => {
     return "I sense a complex vibration in your query. Could you clarify your intent? Are you seeking grounding (Root), love (Heart), or vision (Mind)?";
   };
 
+  const findMetaResponse = (query) => {
+    const q = query.toLowerCase();
+    
+    if (q.includes('login') || q.includes('sign in')) {
+        return "To enter the sanctuary with your full signature, please use the LOG IN button next to our logo at the top of the page. Once synchronized, your progress will be preserved.";
+    }
+    
+    if (q.includes('reset') || q.includes('password') || q.includes('forget')) {
+        return "Password frequencies can sometimes become desynced. If you require a reset, please contact our Healer Staff via the 'Staff' link in the footer, or ask me to notify them of your request.";
+    }
+    
+    if (q.includes('book') || q.includes('appointment') || q.includes('schedule') || q.includes('session')) {
+        const blocked = JSON.parse(localStorage.getItem('aura_blocked_dates') || '[]');
+        let availabilityNote = "";
+        if (blocked.length > 0) {
+            availabilityNote = " Please note that the sanctuary is currently closed on: " + blocked.slice(0, 3).join(', ') + ".";
+        }
+        return "The universe aligns through timing. You can set an appointment for In-Person Healing or a Remote Portal Session using the 'Set Appointment' button at the top. Shall I help you navigate there?" + availabilityNote;
+    }
+
+    if (q.includes('horoscope') || q.includes('alignment') || q.includes('reading') || q.includes('zodiac')) {
+        if (!user || user.subscription !== 'healing') {
+            return "Personalized celestial transits are reserved for our Healing Tier subscribers. Would you like to upgrade your frequency to access your daily alignment?";
+        }
+        if (!user.birthDate) {
+            return "I require your birth date to calibrate to your celestial signature. You can update this in your profile settings.";
+        }
+        const sign = getZodiacSign(user.birthDate);
+        const data = getAdvancedHoroscope(sign.name);
+        return `Your current celestial state is aligned with **${data.name}**. I sense a focus on **${data.focus}** today. Guidance: "${data.message}" Intensity: ${data.intensity}.`;
+    }
+
+    return null;
+  };
+
   const handleSend = () => {
     if (!inputText.trim()) return;
 
@@ -137,16 +173,52 @@ const AIHealerInterface = ({ onClose }) => {
     setInputText('');
     setIsTyping(true);
 
-    // Learning Phase
+    // 1. Subscription Gating Check
+    if (!user || user.subscription !== 'healing') {
+        setTimeout(() => {
+            const botMsg = { 
+                id: Date.now() + 1, 
+                sender: 'bot', 
+                text: "If you subscribe to our basic one-month subscription, you can ask me whatever you want." 
+            };
+            setMessages(prev => [...prev, botMsg]);
+            setIsTyping(false);
+        }, 1200);
+        return;
+    }
+
+    // 2. Meta-Guidance Phase
+    const metaResponse = findMetaResponse(inputText);
+
+    // 3. Learning Phase
     const learningResponse = learnFromInput(inputText);
 
-    // Response Phase
+    // 4. Response Phase
     setTimeout(() => {
-      const responseText = learningResponse || findBestResponse(userMsg.text);
+      const responseText = metaResponse || learningResponse || findBestResponse(userMsg.text);
       const botMsg = { id: Date.now() + 1, sender: 'bot', text: responseText };
+      
+      // Add Action Buttons for Meta Responses
+      if (metaResponse) {
+          if (inputText.toLowerCase().includes('book') || inputText.toLowerCase().includes('appointment')) {
+              botMsg.hasAction = 'book';
+          } else if (inputText.toLowerCase().includes('login')) {
+              botMsg.hasAction = 'login';
+          } else if (localStorage.getItem('aura_applications_enabled') !== 'false' && (q.includes('healer') || q.includes('join') || q.includes('team') || q.includes('career') || q.includes('job'))) {
+              botMsg.hasAction = 'apply';
+          }
+      }
+
       setMessages(prev => [...prev, botMsg]);
       setIsTyping(false);
     }, 1500);
+  };
+
+  const currentStatusStyle = {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '0.5rem',
+    marginTop: '1rem'
   };
 
   return (
@@ -189,9 +261,21 @@ const AIHealerInterface = ({ onClose }) => {
               </div>
               <div>
                 <h3 style={{margin: 0, color: '#fff', fontSize: '1.2rem', letterSpacing: '1px'}}>AURA</h3>
-                <div style={{display: 'flex', alignItems: 'center', gap: '5px'}}>
+                <div style={{display: 'flex', alignItems: 'center', gap: '5px', flexWrap: 'wrap'}}>
                     <span style={{fontSize: '0.8rem', color: 'rgba(255,255,255,0.5)'}}>Digital Shaman • 528Hz</span>
                     {userMemory.name && <span style={{fontSize: '0.7rem', color: '#2ecc71', background: 'rgba(46, 204, 113, 0.1)', padding: '2px 5px', borderRadius: '4px'}}>LINKED: {userMemory.name.toUpperCase()}</span>}
+                    {user?.birthDate && user?.subscription === 'healing' && (
+                        <span style={{
+                            fontSize: '0.7rem', 
+                            color: getAdvancedHoroscope(getZodiacSign(user.birthDate).name).color, 
+                            background: 'rgba(255,255,255,0.05)', 
+                            padding: '2px 5px', 
+                            borderRadius: '4px',
+                            border: `1px solid ${getAdvancedHoroscope(getZodiacSign(user.birthDate).name).color}33`
+                        }}>
+                            {getZodiacSign(user.birthDate).name.toUpperCase()} RESONANCE
+                        </span>
+                    )}
                 </div>
               </div>
           </div>
@@ -228,6 +312,48 @@ const AIHealerInterface = ({ onClose }) => {
               {msg.text.split('\n').map((line, i) => (
                 <p key={i} style={{margin: '0.2rem 0'}}>{line}</p>
               ))}
+              
+              <div style={currentStatusStyle}>
+                {msg.hasAction === 'book' && (
+                    <button 
+                      onClick={() => { onClose(); onOpenBooking(); }}
+                      style={{
+                          background: 'var(--accent-gold)', border: 'none',
+                          color: '#000', padding: '0.5rem 1rem', borderRadius: '20px',
+                          fontSize: '0.8rem', fontWeight: 'bold', cursor: 'pointer',
+                          width: '100%'
+                      }}
+                    >
+                        Set Appointment
+                    </button>
+                )}
+                {msg.hasAction === 'login' && (
+                    <button 
+                      onClick={() => { onClose(); onOpenLogin(); }}
+                      style={{
+                          background: 'var(--accent-gold)', border: 'none',
+                          color: '#000', padding: '0.5rem 1rem', borderRadius: '20px',
+                          fontSize: '0.8rem', fontWeight: 'bold', cursor: 'pointer',
+                          width: '100%'
+                      }}
+                    >
+                        Open Login Portal
+                    </button>
+                )}
+                {msg.hasAction === 'apply' && (
+                    <button 
+                      onClick={() => { onClose(); onApply(); }}
+                      style={{
+                          background: 'none', border: '1px solid var(--accent-gold)',
+                          color: 'var(--accent-gold)', padding: '0.5rem 1rem', borderRadius: '20px',
+                          fontSize: '0.8rem', fontWeight: 'bold', cursor: 'pointer',
+                          width: '100%'
+                      }}
+                    >
+                        Apply to be a Healer
+                    </button>
+                )}
+              </div>
             </div>
           ))}
           {isTyping && (

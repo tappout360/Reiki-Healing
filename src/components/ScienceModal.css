@@ -1,0 +1,340 @@
+/* Earthy / Naturopathic Styling for Science Modal */
+
+:root {
+  --earth-bg: #1e2621;
+  /* Deep forest green/charcoal */
+  --earth-card: #28362d;
+  /* Lighter organic green */
+  --earth-text: #e8e6d9;
+  /* Soft parchment/stone */
+  --earth-accent: #c2b280;
+  /* Sand/Ecru */
+  --earth-green: #7d9c75;
+  /* Sage */
+  --earth-border: rgba(168, 189, 160, 0.2);
+}
+
+.science-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(15, 25, 15, 0.85);
+  /* Deep botanical overlay */
+  backdrop-filter: blur(8px);
+  z-index: 10000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+.science-modal-content {
+  background: linear-gradient(145deg, var(--earth-bg), #1a201b);
+  border: 1px solid var(--earth-border);
+  box-shadow:
+    0 20px 50px rgba(0, 0, 0, 0.6),
+    inset 0 0 100px rgba(88, 115, 88, 0.05);
+  /* Subtle inner glow */
+  border-radius: 20px;
+  width: 100%;
+  max-width: 800px;
+  max-height: 90vh;
+  overflow-y: auto;
+  position: relative;
+  color: var(--earth-text);
+  font-family: 'Garamond', 'Georgia', serif;
+  /* Serif font for more organic feel */
+}
+
+/* Scrollbar styling for organic look */
+.science-modal-content::-webkit-scrollbar {
+  width: 10px;
+}
+
+.science-modal-content::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.2);
+}
+
+.science-modal-content::-webkit-scrollbar-thumb {
+  background: #5c6e5c;
+  border-radius: 5px;
+  border: 2px solid var(--earth-bg);
+}
+
+.close-button {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 50%;
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  color: var(--earth-green);
+  cursor: pointer;
+  transition: all 0.3s ease;
+  z-index: 10;
+}
+
+.close-button:hover {
+  background: var(--earth-green);
+  color: #1a201b;
+  transform: rotate(90deg);
+}
+
+.science-header {
+  padding: 40px 40px 30px;
+  border-bottom: 1px solid var(--earth-border);
+  display: flex;
+  align-items: center;
+  gap: 25px;
+  background: linear-gradient(to bottom, rgba(125, 156, 117, 0.05), transparent);
+}
+
+.icon-badge {
+  width: 70px;
+  height: 70px;
+  border-radius: 50%;
+  background: rgba(125, 156, 117, 0.1);
+  border: 1px solid var(--earth-green);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  box-shadow: 0 0 20px rgba(125, 156, 117, 0.1);
+}
+
+.science-header h2 {
+  font-size: 2.2rem;
+  margin: 0 0 8px 0;
+  color: var(--earth-text);
+  font-weight: normal;
+  letter-spacing: 0.5px;
+}
+
+.science-header p {
+  margin: 0;
+  color: var(--earth-green);
+  font-size: 1.1rem;
+  font-style: italic;
+  font-family: sans-serif;
+  /* Contrast font */
+  opacity: 0.8;
+}
+
+.science-body {
+  padding: 40px;
+}
+
+.science-section {
+  margin-bottom: 50px;
+}
+
+.science-section:last-child {
+  margin-bottom: 0;
+}
+
+.science-section h3 {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  font-size: 1.5rem;
+  color: var(--earth-accent);
+  margin-bottom: 20px;
+  border-bottom: 1px solid rgba(194, 178, 128, 0.1);
+  padding-bottom: 10px;
+  font-weight: normal;
+}
+
+.science-section p {
+  line-height: 1.8;
+  opacity: 0.9;
+  margin-bottom: 20px;
+  font-size: 1.05rem;
+  color: #c0c2bb;
+}
+
+.highlight-box {
+  background: rgba(125, 156, 117, 0.08);
+  /* Soft sage bg */
+  border-left: 3px solid var(--earth-green);
+  padding: 25px;
+  border-radius: 4px;
+  margin: 25px 0;
+  font-size: 1.1rem;
+  line-height: 1.6;
+  font-style: italic;
+  color: #fff;
+}
+
+.science-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.science-list li {
+  margin-bottom: 25px;
+  display: grid;
+  grid-template-columns: 100px 1fr;
+  gap: 25px;
+  align-items: start;
+}
+
+.freq-tag {
+  background: transparent;
+  padding: 8px 0;
+  border-bottom: 2px solid var(--earth-green);
+  text-align: right;
+  font-weight: normal;
+  font-family: 'Courier New', monospace;
+  /* Scientific touch */
+  color: var(--earth-green);
+  font-size: 1.1rem;
+  padding-right: 15px;
+}
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 20px;
+  margin-top: 25px;
+}
+
+.stat-card {
+  background: var(--earth-card);
+  padding: 25px;
+  border-radius: 12px;
+  text-align: center;
+  border: 1px solid rgba(255, 255, 255, 0.03);
+  transition: all 0.3s ease;
+  position: relative;
+}
+
+.stat-card.interactive {
+  cursor: pointer;
+  border: 1px solid rgba(125, 156, 117, 0.3);
+}
+
+.stat-card.interactive:hover {
+  transform: translateY(-5px);
+  background: #35453b;
+  border-color: var(--earth-green);
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
+}
+
+.stat-card.interactive:active {
+  transform: translateY(-2px);
+}
+
+.stat-card h4 {
+  font-size: 1rem;
+  margin-bottom: 12px;
+  color: var(--earth-text);
+  opacity: 0.7;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.stat-card span {
+  display: block;
+  font-weight: normal;
+  font-size: 1.4rem;
+  margin-bottom: 10px;
+}
+
+.stat-card span.down {
+  color: #a3be8c;
+}
+
+/* Nordic green */
+.stat-card span.up {
+  color: #a3be8c;
+}
+
+.stat-card span.neutral {
+  color: var(--earth-accent);
+}
+
+.stat-card p {
+  font-size: 0.85rem;
+  opacity: 0.6;
+  margin: 0;
+  font-family: sans-serif;
+}
+
+/* Impact Detail Styling */
+.impact-detail-container {
+  overflow: hidden;
+  margin-top: 20px;
+}
+
+.impact-detail {
+  background: rgba(0, 0, 0, 0.2);
+  border: 1px solid var(--earth-green);
+  border-radius: 12px;
+  padding: 25px;
+  animation: fadeIn 0.4s ease;
+}
+
+.impact-detail h4 {
+  color: var(--earth-accent);
+  font-size: 1.3rem;
+  margin: 0 0 15px 0;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.impact-detail h4::before {
+  content: '';
+  display: block;
+  width: 8px;
+  height: 8px;
+  background: var(--earth-green);
+  border-radius: 50%;
+}
+
+.science-footer {
+  padding: 25px 40px;
+  background: rgba(0, 0, 0, 0.15);
+  border-top: 1px solid var(--earth-border);
+  text-align: center;
+  font-size: 0.9rem;
+  color: var(--earth-green);
+  opacity: 0.7;
+  font-style: italic;
+  font-family: serif;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (max-width: 600px) {
+  .science-list li {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+
+  .freq-tag {
+    text-align: left;
+    border-bottom: none;
+    border-left: 3px solid var(--earth-green);
+    padding-left: 10px;
+    background: linear-gradient(to right, rgba(125, 156, 117, 0.1), transparent);
+  }
+}

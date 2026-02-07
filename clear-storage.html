@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Clear LocalStorage - Reiki App</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 600px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #1a1a2e;
+            color: #eee;
+        }
+        h1 {
+            color: #d4af37;
+        }
+        button {
+            background: #d4af37;
+            color: black;
+            border: none;
+            padding: 15px 30px;
+            font-size: 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            margin: 10px 5px;
+        }
+        button:hover {
+            background: #f0c960;
+        }
+        .danger {
+            background: #e74c3c;
+            color: white;
+        }
+        .danger:hover {
+            background: #c0392b;
+        }
+        #status {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px 0;
+            white-space: pre-wrap;
+            font-family: monospace;
+        }
+        .success {
+            color: #2ecc71;
+        }
+        .warning {
+            color: #f39c12;
+        }
+    </style>
+</head>
+<body>
+    <h1>🔧 Reiki App - LocalStorage Manager</h1>
+    
+    <div>
+        <h2>Current Storage:</h2>
+        <div id="status">Loading...</div>
+    </div>
+
+    <div>
+        <h2>Actions:</h2>
+        <button onclick="viewStorage()">🔍 View Storage</button>
+        <button onclick="removeUserProfile()">🗑️ Remove User Profile Only</button>
+        <button class="danger" onclick="clearAll()">⚠️ Clear ALL Storage</button>
+    </div>
+
+    <div>
+        <h2>Quick Test:</h2>
+        <button onclick="window.location.href='http://localhost:4000'">🚀 Go to App (Port 4000)</button>
+    </div>
+
+    <script>
+        function viewStorage() {
+            const status = document.getElementById('status');
+            let output = 'LocalStorage Contents:\n\n';
+            
+            if (localStorage.length === 0) {
+                output += '✅ EMPTY - No stored data\n';
+                status.className = 'success';
+            } else {
+                for (let i = 0; i < localStorage.length; i++) {
+                    const key = localStorage.key(i);
+                    const value = localStorage.getItem(key);
+                    output += `${key}:\n${value.substring(0, 200)}${value.length > 200 ? '...' : ''}\n\n`;
+                }
+                status.className = 'warning';
+            }
+            
+            status.textContent = output;
+        }
+
+        function removeUserProfile() {
+            localStorage.removeItem('user_profile');
+            alert('✅ Removed user_profile!\n\nNow refresh your app page.');
+            viewStorage();
+        }
+
+        function clearAll() {
+            if (confirm('⚠️ This will DELETE ALL localStorage data. Continue?')) {
+                localStorage.clear();
+                alert('✅ ALL storage cleared!\n\nNow refresh your app page.');
+                viewStorage();
+            }
+        }
+
+        // Auto-load on page load
+        viewStorage();
+    </script>
+</body>
+</html>

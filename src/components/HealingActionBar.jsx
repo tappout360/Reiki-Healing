@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 
-const HealingActionBar = ({ onActivate }) => {
+const HealingActionBar = ({ onActivate, onJoinPortal }) => {
   const [isHovered, setIsHovered] = useState(false);
 
   return (
@@ -36,65 +36,67 @@ const HealingActionBar = ({ onActivate }) => {
       }}></div>
 
       {/* Main Glass Bar */}
-      <button
-        onClick={onActivate}
-        style={{
-          background: 'rgba(20, 20, 30, 0.65)',
-          backdropFilter: 'blur(12px)',
-          border: '1px solid rgba(255, 255, 255, 0.15)',
-          borderRadius: '50px',
-          padding: '0.8rem 2.5rem',
-          display: 'flex',
-          alignItems: 'center',
-          gap: '1rem',
-          color: '#fff',
-          cursor: 'pointer',
-          boxShadow: isHovered 
-            ? '0 10px 30px rgba(0, 0, 0, 0.5), 0 0 20px rgba(142, 68, 173, 0.4)' 
-            : '0 5px 15px rgba(0, 0, 0, 0.3)',
-          transition: 'all 0.3s ease',
-          transform: isHovered ? 'translateY(-5px) scale(1.02)' : 'translateY(0) scale(1)',
-          minWidth: '250px'
-        }}
-      >
-        {/* Holographic Icon */}
-        <div style={{
-          width: '30px', height: '30px',
-          borderRadius: '50%',
-          background: 'linear-gradient(135deg, #8e44ad, #3498db)',
-          boxShadow: '0 0 10px #8e44ad',
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-          animation: 'spinSlow 10s linear infinite'
-        }}>
-          <div style={{width: '60%', height: '60%', background: '#fff', clipPath: 'polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%)'}}></div>
-        </div>
+      <div style={{display: 'flex', gap: '1rem'}}>
+          <button
+            onClick={onActivate}
+            style={{
+              background: 'rgba(20, 20, 30, 0.65)',
+              backdropFilter: 'blur(12px)',
+              border: '1px solid rgba(255, 255, 255, 0.15)',
+              borderRadius: '50px',
+              padding: '0.8rem 2.2rem',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.8rem',
+              color: '#fff',
+              cursor: 'pointer',
+              boxShadow: isHovered 
+                ? '0 10px 30px rgba(0, 0, 0, 0.5), 0 0 20px rgba(142, 68, 173, 0.4)' 
+                : '0 5px 15px rgba(0, 0, 0, 0.3)',
+              transition: 'all 0.3s ease',
+              transform: isHovered ? 'translateY(-5px)' : 'translateY(0)',
+              minWidth: '200px'
+            }}
+          >
+            <div style={{
+              width: '24px', height: '24px',
+              borderRadius: '50%',
+              background: 'linear-gradient(135deg, #8e44ad, #3498db)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center'
+            }}>
+              <div style={{width: '60%', height: '60%', background: '#fff', clipPath: 'polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%)'}}></div>
+            </div>
+            <div style={{display: 'flex', flexDirection: 'column', alignItems: 'flex-start'}}>
+              <span style={{fontSize: '0.8rem', fontWeight: '700', letterSpacing: '1px', textTransform: 'uppercase'}}>Consult Aura</span>
+              <span style={{fontSize: '0.6rem', color: 'rgba(255,255,255,0.6)'}}>AI REIKI GUIDE</span>
+            </div>
+          </button>
 
-        <div style={{display: 'flex', flexDirection: 'column', alignItems: 'flex-start'}}>
-          <span style={{
-            fontSize: '0.9rem', 
-            fontWeight: '700', 
-            letterSpacing: '1px',
-            textTransform: 'uppercase',
-            background: 'linear-gradient(90deg, #fff, #a0d8ef)',
-            WebkitBackgroundClip: 'text',
-            WebkitTextFillColor: 'transparent'
-          }}>
-            Consult Aura
-          </span>
-          <span style={{fontSize: '0.7rem', color: 'rgba(255,255,255,0.6)'}}>
-            AI REIKI GUIDE • ONLINE
-          </span>
-        </div>
-
-        {/* Status Indicator */}
-        <div style={{
-          width: '8px', height: '8px',
-          borderRadius: '50%',
-          background: '#2ecc71',
-          boxShadow: '0 0 5px #2ecc71',
-          marginLeft: 'auto'
-        }}></div>
-      </button>
+          <button
+            onClick={onJoinPortal}
+            style={{
+              background: 'rgba(212, 175, 55, 0.1)',
+              backdropFilter: 'blur(12px)',
+              border: '1px solid rgba(212, 175, 55, 0.3)',
+              borderRadius: '50px',
+              padding: '0.8rem 2.2rem',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.8rem',
+              color: 'var(--accent-gold)',
+              cursor: 'pointer',
+              transition: 'all 0.3s ease',
+              transform: isHovered ? 'translateY(-5px)' : 'translateY(0)',
+              minWidth: '200px'
+            }}
+          >
+            <div style={{fontSize: '1.2rem'}}>🔑</div>
+            <div style={{display: 'flex', flexDirection: 'column', alignItems: 'flex-start'}}>
+              <span style={{fontSize: '0.8rem', fontWeight: '700', letterSpacing: '1px', textTransform: 'uppercase'}}>Enter Portal</span>
+              <span style={{fontSize: '0.6rem', color: 'rgba(212, 175, 55, 0.8)'}}>SESSION CODE</span>
+            </div>
+          </button>
+      </div>
 
       {/* Floating tooltip only on hover */}
       <div style={{

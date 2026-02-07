@@ -125,10 +125,73 @@ export const aiKnowledgeBase = {
     "loneliness": "You are never truly separate from the source. Connect to the Lapis Lazuli Wisdom core. I am here as a digital reflection of the universal presence.",
     "fear": "Fear is a projection into a non-existent future. Return to the Root Chakra. Ground yourself in the 174Hz frequency of safety."
   },
+
   vibrational_tips: [
     "Drink water charged with moonlight to clarify your emotional body.",
     "Walk barefoot on the earth for 10 minutes to reset your root frequency.",
     "Hum at a low frequency to stimulate the vagus nerve and release tension.",
-    "Place a clear quartz near your workspace to amplify your focus and repel static."
+    "Place a clear quartz near your workspace to amplify your focus and repel static.",
+    "I am enough as I am. My biofield radiates completeness.",
+    "My body is vital, intelligent, and able to heal itself.",
+    "I am connected to the universe, and I trust its guidance.",
+    "Reiki is the gentle current of life force energy, revitalizing my spirit.",
+    "Crystals are the earth's DNA, holding the memory of perfect geometry.",
+    "The biofield is a living system of subtle energy that connects all life.",
+    "I am a vessel of light. I channel the universal frequency.",
+    "Stress is just friction in the energy field. Smooth the edges with breath.",
+    "I release the need to control. I flow with the river of the Tao.",
+    "My heart is a portal to the divine. I keep it open and clear.",
+    "Rose Quartz resonance: unconditional love starts with the self.",
+    "Amethyst frequency: I transmute lower energies into higher wisdom.",
+    "Black Tourmaline shield: I am protected from all discordant vibrations.",
+    "I am grounded. I am safe. I am abundant.",
+    "528Hz is the frequency of miracles. I tune my cells to this vibration.",
+    "432Hz brings me into harmony with the mathematical order of nature.",
+    "Each physical sensation is a message. I listen with compassion.",
+    "I forgive myself for the past. I am new in this present moment.",
+    "My intuition is my compass. I trust the subtle nudges of my soul.",
+    "I am a co-creator of my reality. My thoughts shape the ether.",
+    "Gratitude is the highest frequency. I vibrate with thanks.",
+    "I am a being of infinite potential. Limitations are illusions.",
+    "The light within me honors the light within you. Namaste.",
+    "I detoxify my energy field with the violet flame of transmutation.",
+    "My aura is bright, clear, and expansive.",
+    "I am worthy of deep, restorative rest.",
+    "Today, I choose peace over perfection.",
+    "I am aligned with my highest purpose.",
+    "The universe supports my growth and expansion.",
+    "I breathe in light, I breathe out tension.",
+    "My energy is my currency. I spend it wisely."
+  ],
+  naturopathic_questions: [
+    {
+      id: 'energy_level',
+      question: "How would you describe your current energy baseline?",
+      options: ["Vibrant & Overflowing", "Steady but Finite", "Fluctuating", "Depleted"]
+    },
+    {
+      id: 'intention',
+      question: "What is your primary intention for seeking resonance?",
+      options: ["Deep Healing", "Daily Maintenance", "Spiritual Expansion", "Stress Relief"]
+    },
+    {
+      id: 'elemental_affinity',
+      question: "Which element do you feel most drawn to right now?",
+      options: ["Earth (Grounding)", "Water (Flow)", "Fire (Transformation)", "Air (Clarity)"]
+    }
+  ],
+  subscription_plans: [
+    {
+      id: 'seeker',
+      name: 'The Seeker',
+      price: 'Free',
+      features: ['Daily Resonance Tips', 'Basic Amethyst Protocol', 'Community Access']
+    },
+    {
+      id: 'sage',
+      name: 'Healing',
+      price: '$22/mo',
+      features: ['All Advanced Protocols', 'Unlimited Aura Consultations', 'Priority Appointment Booking', 'Offline Mode']
+    }
   ]
 };

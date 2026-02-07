@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>THE WAVE - Reiki System Purge</title>
+    <style>
+        body {
+            background: #0a0a0f;
+            color: #d4af37;
+            font-family: 'Outfit', sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+            text-align: center;
+        }
+        .wave-container {
+            padding: 3rem;
+            border: 1px solid rgba(212, 175, 55, 0.3);
+            border-radius: 20px;
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            max-width: 500px;
+        }
+        h1 { font-size: 2.5rem; margin-bottom: 1rem; }
+        p { color: #a0a0b0; margin-bottom: 2rem; }
+        .btn {
+            padding: 1rem 2.5rem;
+            background: linear-gradient(135deg, #d4af37, #8e44ad);
+            color: white;
+            border: none;
+            border-radius: 50px;
+            font-weight: bold;
+            cursor: pointer;
+            font-size: 1.1rem;
+            transition: all 0.3s;
+        }
+        .btn:hover { transform: scale(1.05); box-shadow: 0 0 20px rgba(212, 175, 55, 0.5); }
+        .status { margin-top: 2rem; font-size: 0.9rem; color: #2ecc71; opacity: 0; transition: opacity 0.5s; }
+    </style>
+</head>
+<body>
+    <div class="wave-container">
+        <h1>🌊 THE WAVE</h1>
+        <p>This will perform a <strong>Nuclear Purge</strong> of your browser's memory to remove the old login system remnants.</p>
+        <button class="btn" onclick="performTheWave()">INITIATE PURGE</button>
+        <div id="status" class="status">System Purged. Resonance Restored.</div>
+    </div>
+
+    <script>
+        async function performTheWave() {
+            // 1. Clear Storage
+            localStorage.clear();
+            sessionStorage.clear();
+
+            // 2. Clear Caches
+            if ('caches' in window) {
+                const names = await caches.keys();
+                await Promise.all(names.map(name => caches.delete(name)));
+            }
+
+            // 3. Unregister Service Workers
+            if ('serviceWorker' in navigator) {
+                const registrations = await navigator.serviceWorker.getRegistrations();
+                await Promise.all(registrations.map(r => r.unregister()));
+            }
+
+            // 4. Delete IndexedDBs
+            if (window.indexedDB.databases) {
+                const dbs = await window.indexedDB.databases();
+                dbs.forEach(db => window.indexedDB.deleteDatabase(db.name));
+            }
+
+            // Show Status
+            const status = document.getElementById('status');
+            status.style.opacity = '1';
+
+            // Automatic Redirect after delay
+            setTimeout(() => {
+                window.location.href = 'http://localhost:4000';
+            }, 2000);
+        }
+    </script>
+</body>
+</html>
