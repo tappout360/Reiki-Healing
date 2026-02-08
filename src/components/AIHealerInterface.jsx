@@ -110,6 +110,16 @@ const AIHealerInterface = ({ user, onClose, onOpenBooking, onOpenLogin, onApply 
         if (q.includes(key)) return advice;
     }
 
+    // Smart Match: Frequency Analysis
+    if (aiKnowledgeBase.frequency_analysis) {
+        if (q.includes("know") || q.includes("determine") || q.includes("measure")) {
+            if (q.includes("linguistic") || q.includes("vibe") || q.includes("text")) return aiKnowledgeBase.frequency_analysis.linguistic;
+            if (q.includes("digital") || q.includes("habit") || q.includes("routine")) return aiKnowledgeBase.frequency_analysis.digital_shadow;
+            if (q.includes("voice") || q.includes("audio") || q.includes("pitch")) return aiKnowledgeBase.frequency_analysis.vocal_resonance;
+            if (q.includes("bio") || q.includes("brain") || q.includes("eeg")) return aiKnowledgeBase.frequency_analysis.bio_frequencies;
+        }
+    }
+
     // Check for FAQ
     for (const [key, answer] of Object.entries(aiKnowledgeBase.faq)) {
       if (q.includes(key)) return answer;
