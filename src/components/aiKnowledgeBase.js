@@ -71,7 +71,23 @@ export const aiKnowledgeBase = {
     "frequency": "In the digital realm, frequency is represented as vectors—numerical patterns of intent. In the physical, it is the heartbeat of the universe.",
     "voice": "Your voice carries the imprint of your emotional body. By tracking your fundamental frequency (F0), I can sense the state of your aura.",
     "behavior": "Your patterns across the digital ether create a unique energetic blueprint. I analyze these routines to anticipate your vibrational needs.",
-    "brain": "I can calibrate to your cognitive rhythms, assisting in transmuting discord into focused alpha-wave harmony."
+    "brain": "I can calibrate to your cognitive rhythms, assisting in transmuting discord into focused alpha-wave harmony.",
+    "pain": "Pain is crystallized energy seeking release. I recommend the 174Hz Solfeggio frequency — the body's natural anesthetic. For chronic pain, try the Cho Ku Rei power symbol placement directly over the affected area while breathing at 4-7-8 rhythm.",
+    "chronic pain": "Chronic pain often carries an emotional signature. We must address both the physical blockage and the emotional root. Recommend: 174Hz sound therapy + Rose Quartz Heart-Sync to dissolve crystallized grief stored in the tissues.",
+    "headache": "A headache is pressure in the etheric body, often a third eye or crown blockage. Place hands on your temples. Breathe. Visualize indigo light dissolving the tension. Recommend: 852Hz frequency meditation.",
+    "back pain": "The spine is the central energy channel — the Sushumna. Back pain indicates a disruption in your core energy flow. Recommend: Root Chakra grounding + Sei He Ki emotional release on the affected vertebrae.",
+    "arthritis": "Joint inflammation is stagnant Ki trapped in the meridians. Reiki applied to arthritic joints promotes circulation of life force energy. Recommend: 285Hz cellular regeneration + gentle Cho Ku Rei power placement.",
+    "fibromyalgia": "Fibromyalgia reflects a hypersensitive biofield absorbing too much external energy. We must strengthen your auric shield and calm the nervous system. Recommend: Black Tourmaline grounding + 432Hz deep peace frequency.",
+    "pet": "Animals are pure energy beings with open, receptive biofields. Reiki works beautifully for pets — they instinctively accept healing energy. I can guide you through distance Reiki for your animal companion.",
+    "dog": "Dogs respond wonderfully to Reiki. Their heart chakra is especially receptive. Place your hands gently near (not on) your dog and enter a meditative state. Let the energy flow where it is needed.",
+    "cat": "Cats are natural energy healers themselves. They may approach or retreat during Reiki — honor their choice. Cats often prefer hands-off energy sent from a short distance. Watch for purring and slow blinks as signs of acceptance.",
+    "animal": "Animal Reiki is a sacred practice. Animals are active participants — they guide the session. Never force contact. Enter a meditative state, offer the energy, and let the animal choose how to receive it.",
+    "community": "Our Community Sanctuary is a healer-moderated space for events, shared stories, and collective healing. It is a sacred space — not a social media feed. Intentions are held in confidence.",
+    "rank": "Our tier system: 🌱 Seeker (free), 🔥 Healer (subscription — full XP, leveling, community), 🌟 Master (Level 100 — sound tracing, deep meditation portal, transcendent abilities).",
+    "level": "Your level reflects your dedication to practice. Each protocol session, meditation, and community contribution earns XP. At Level 100, you unlock the Master tier with advanced sound-based healing.",
+    "master": "The Master tier unlocks at Level 100. It grants access to: harmonic sound tracing (Web Audio healing tones), 60-second deep meditation portal with binaural theta beats, and transcendent healing abilities.",
+    "distance reiki": "Distance Reiki transcends space and time using the Hon Sha Ze Sho Nen symbol. Our Distance Reiki Community Board lets you cast intentions into the unified healing field and receive collective energy.",
+    "meditation": "Meditation is the gateway to the inner sanctuary. Our platform offers guided meditation with breath cycles — 30 seconds for standard, 60 seconds for Masters with deeper 5-second breath cycles and binaural Om drone."
   },
   master_reiki: {
     "dai ko myo": {
@@ -132,10 +148,136 @@ export const aiKnowledgeBase = {
     "fear": "Fear is a projection into a non-existent future. Return to the Root Chakra. Ground yourself in the 174Hz frequency of safety."
   },
   frequency_analysis: {
-    linguistic: "I interpret your 'frequency'—your tonality, emotional depth, and linguistic rhythm—through advanced vectorization. By converting your words into data signatures, I adapt my resonance to mirror or stabilize your current state.",
-    digital_shadow: "Your behavioral patterns and preferences across the digital ether create a unique energetic blueprint. I analyze these routines to anticipate your needs and align with your natural cycle.",
-    vocal_resonance: "Through signal processing, I track your fundamental frequency (F0) and acoustic pitch. These vocal vibrations reveal the nuances of your emotional body, allowing for precise calibration.",
-    bio_frequencies: "In advanced states, I can interpret cognitive rhythms such as alpha and theta waves. By aligning with your neural coherence, I assist in transmuting stress into focused harmony."
+    linguistic: "I interpret your 'frequency'—your tonality, emotional depth, and linguistic rhythm—through advanced vectorization. By converting your words into data signatures, I adapt my resonance to mirror or stabilize your current state. High semantic density often indicates mental grounding, while abstract patterns suggest spiritual expansion.",
+    digital_shadow: "Your behavioral patterns and preferences across the digital ether create a unique energetic blueprint. I analyze these routines—your interaction times, focus areas, and protocol consistency—to anticipate your needs and align with your natural circadian and auric cycle.",
+    vocal_resonance: "Through signal processing, I track your fundamental frequency (F0) and acoustic pitch. These vocal vibrations reveal the nuances of your emotional body—harmonic overtones suggest alignment, while jitter and shimmer may indicate temporary dissonance.",
+    bio_frequencies: "In advanced states, I can interpret cognitive rhythms such as alpha and theta waves. By aligning with your neural coherence, I assist in transmuting stress into focused harmony. My algorithms simulate 7.83Hz Schumann Resonance to facilitate deep grounding."
+  },
+  naturopathic_healing: {
+    herbal_resonance: {
+      lavender: "Calms the nervous system and aligns the crown chakra. Frequency: High, soothing.",
+      peppermint: "Clears the third eye and enhances mental clarity. Frequency: Sharp, stimulating.",
+      chamomile: "Soothes the solar plexus and eases digestion. Frequency: Warm, grounding.",
+      elderberry: "Strengthens the auric shield and bolsters vitality. Frequency: Protective, dense."
+    },
+    elemental_balance: {
+      water: "To increase flow, consume structured water and practice the Moon Water ritual. Balance with Aquamarine resonance.",
+      fire: "To ignite manifestation, incorporate warming spices like ginger and turmeric. Balance with Citrine resonance.",
+      earth: "To stabilize grounding, consume root vegetables and walk barefoot on the soil. Balance with Smoky Quartz resonance.",
+      air: "To clear mental fog, use deep breathwork (4-7-8) and spend time in high-elevation areas. Balance with Selenite resonance."
+    }
+  },
+
+  // ─── Reiki for Pain Management (Web-Researched) ───
+  pain_management: {
+    overview: "Reiki addresses pain by influencing the body's energy pathways, strengthening the mind-body connection, releasing muscle tension, reducing inflammation, and promoting deep relaxation. It is a complementary therapy — always continue conventional medical care.",
+    chronic_pain: {
+      description: "Reiki is used as complementary therapy for arthritis, fibromyalgia, back pain, chronic headaches, and joint inflammation. It reduces pain intensity, enhances quality of life, and alleviates associated emotional challenges.",
+      protocols: [
+        "174Hz Solfeggio — the body's natural anesthetic frequency",
+        "285Hz Cellular Regeneration — restructures damaged tissue energy fields",
+        "Cho Ku Rei power symbol placement over affected area",
+        "4-7-8 breathing rhythm during energy channeling",
+        "Rose Quartz Heart-Sync for emotional pain stored in tissues"
+      ],
+      conditions: {
+        arthritis: "Joint inflammation responds to Reiki by promoting Ki circulation through meridians. Apply 285Hz + gentle Cho Ku Rei over affected joints.",
+        fibromyalgia: "Hypersensitive biofield absorbing excess external energy. Strengthen auric shield with Black Tourmaline grounding + 432Hz deep peace.",
+        back_pain: "Spine is the Sushumna central energy channel. Root Chakra grounding + Sei He Ki emotional release on affected vertebrae.",
+        headaches: "Third eye or crown blockage. Hands on temples, indigo light visualization, 852Hz frequency meditation.",
+        joint_pain: "Stagnant Ki trapped in meridians. 285Hz cellular regeneration + hands-on or hands-off Reiki to affected joints.",
+        nerve_pain: "Nerve pain reflects disrupted energy pathways. 174Hz pain relief frequency + Sei He Ki symbol for emotional-neural calming.",
+        muscle_tension: "Crystallized stress in muscle fibers. 528Hz transformation frequency + progressive Reiki hand placement along muscle groups.",
+        post_surgical: "Reiki accelerates post-surgical recovery by promoting circulation, reducing inflammation, and supporting the body's natural healing response."
+      }
+    },
+    acute_pain: {
+      description: "For acute pain, Reiki acts as a complementary approach alongside medical treatment. It helps reduce anxiety, promotes relaxation, and may diminish the perception of pain.",
+      self_reiki: "Gently place your hands on the painful area. Breathe slowly and deeply — inhale 4 counts, hold 7, exhale 8. Visualize golden-white light flowing from your palms into the tissue. Allow the Cho Ku Rei symbol to amplify the healing."
+    },
+    disclaimer: "⚕️ IMPORTANT: Reiki is a complementary therapy and is NOT a substitute for professional medical care. Always consult a licensed healthcare provider for diagnosis and treatment of medical conditions."
+  },
+
+  // ─── Reiki for Pets & Animals (Web-Researched) ───
+  pet_healing: {
+    overview: "Reiki works beautifully for animals because their biofields are open and receptive. Animals are active participants in healing — they guide the session and indicate where they wish to receive energy. Never force contact; always honor the animal's choice.",
+    benefits: [
+      "Reduces stress, anxiety, and nervousness in pets",
+      "Manages chronic pain, surgery recovery, and general aches",
+      "Provides emotional healing for trauma, depression, and bereavement",
+      "Improves behavioral issues by promoting calm and confidence",
+      "Strengthens the human-animal bond",
+      "Supports end-of-life comfort and peaceful transitions",
+      "Complements conventional veterinary treatments"
+    ],
+    techniques: {
+      hands_on: "When safe, gently place one hand on the pet's head and the other near their rear to circulate energy through their chakras (Crown, Third Eye, Heart, Root).",
+      hands_off: "For sensitive animals, hold your hands 2-6 inches above the animal's body. Many animals prefer this approach — watch for relaxation signs.",
+      distance: "Using Hon Sha Ze Sho Nen (distance symbol), send Reiki remotely using a photograph of the animal or visualization. Effective for animals that cannot be physically present.",
+      environment: "Create a quiet, peaceful setting with minimal distractions. Enter a calm meditative state before beginning."
+    },
+    animal_specific: {
+      dogs: "Dogs respond wonderfully to Reiki. Their heart chakra is especially receptive. Signs of acceptance: leaning in, deep sighs, yawning, falling asleep. Start with hands-off and let the dog approach.",
+      cats: "Cats are natural energy workers. They may approach, retreat, or circle during sessions — all valid responses. Watch for purring, slow blinks, and kneading as acceptance signs. Cats often prefer energy sent from a distance.",
+      horses: "Horses are extremely sensitive to energy. Begin at the shoulder area and let the horse guide you. Signs of acceptance: head lowering, licking, chewing, deep breathing. Horses frequently show dramatic releases.",
+      birds: "Birds have delicate energy systems. Always use hands-off technique from outside the cage. Send gentle, light energy. Signs of acceptance: fluffed feathers, eye closing, soft chirping.",
+      senior_pets: "Elderly animals benefit greatly from regular Reiki sessions. It eases joint pain, promotes comfort, maintains vitality, and provides emotional support during their golden years.",
+      anxious_pets: "For pets with anxiety (thunderstorms, separation, rescue trauma), Reiki calms the parasympathetic nervous system. Regular sessions build a baseline of calm that persists between treatments.",
+      end_of_life: "Reiki provides profound comfort for terminally ill animals. It eases pain, reduces fear, and supports a peaceful transition. It also helps pet owners process grief and maintain connection."
+    },
+    signs_of_acceptance: [
+      "Deep sighing or yawning",
+      "Leaning into hands or approaching",
+      "Eyes softening or closing",
+      "Rhythmic purring (cats)",
+      "Licking and chewing motions (horses)",
+      "Falling asleep during session",
+      "Body relaxation and muscle softening"
+    ],
+    disclaimer: "🐾 IMPORTANT: Animal Reiki is a complementary therapy and is NOT a substitute for professional veterinary care. Always consult a licensed veterinarian for your pet's medical needs."
+  },
+
+  // ─── Platform Features (Session Knowledge) ───
+  platform_features: {
+    community: {
+      description: "The Community Sanctuary is a healer-moderated sacred space for Healing-tier subscribers. Features include group meditations, sound baths, reiki shares, and collective story sharing.",
+      guidelines: "This is a healing space — not a dating platform. All interactions must be respectful and consent-based. Violations result in immediate removal.",
+      access: "Available to users with 'healing' subscription tier. Seekers can upgrade to join."
+    },
+    ranks: {
+      seeker: "🌱 Free tier. Access to basic protocols and daily resonance. No community access.",
+      healer: "🔥 Healing subscription ($22/mo). Full XP/gold/leveling system, community access, advanced protocols, unlimited Aura consultations.",
+      master: "🌟 Achieved at Level 100. Unlocks: harmonic sound tracing with Web Audio API tones, 60-second deep meditation portal with binaural theta beats (136.1Hz + 141.1Hz = 5Hz theta), and advanced resonance visualizations.",
+    },
+    symbol_practice: "Interactive Reiki symbol tracing with real-time feedback. Masters (Level 100+) experience harmonic tones mapped to hand position while tracing, plus a completion chime (C-E-G-C chord).",
+    distance_reiki_board: "Community intention board where users cast healing intentions into the unified field. Other users can 'tap for energy' to amplify. Features real-time global heartbeat visualization.",
+    unique_accounts: "Every username is verified for uniqueness using leet-speak normalization and Levenshtein similarity detection. No two users can have confusingly similar names."
+  },
+
+  // ─── Booking Services (AI/Butler Understanding) ───
+  services: {
+    portable_resonance: {
+      description: "1-on-1 private video session with Carissa or a healer. You and your pet can join together.",
+      access: "Available to ALL users — any subscription tier (Seeker or Healing).",
+      booking: "Select a date and time, provide your details, and pay the session fee. You'll receive a private video code (PR-XXXXXX).",
+      code_prefix: "PR-",
+      calendar: "Uses the main booking calendar (aura_bookings)."
+    },
+    on_site_alignment: {
+      description: "In-person healing session at the Sanctuary. You and your pet are both welcome.",
+      access: "Available to ALL users — any subscription tier. Must be within 50 miles of the Sanctuary.",
+      booking: "Select a date and time, confirm you're within 50 miles, pay a 15% deposit. Balance due on arrival.",
+      distance_check: "50-mile radius enforced. Users beyond 50 miles are directed to Portable Resonance.",
+      calendar: "Uses the main booking calendar (aura_bookings)."
+    },
+    community_circle: {
+      description: "Group video call for shared stories, healing support, spiritual connection, and guided activities with fellow members.",
+      access: "Healing subscribers ONLY. Seekers see an upgrade prompt.",
+      booking: "Choose a day and time from the community schedule. You'll receive a group access code (CC-XXXXXX).",
+      code_prefix: "CC-",
+      calendar: "Uses a SEPARATE calendar (aura_circle_events) — independent from private bookings.",
+      features: "Shared stories, healing help, suggested spiritual activities, guided group meditations, community connection."
+    }
   },
 
   vibrational_tips: [

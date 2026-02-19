@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 
-const HealingActionBar = ({ onActivate, onJoinPortal }) => {
+const HealingActionBar = ({ onActivate, onJoinPortal, onToggleAR }) => {
   const [isHovered, setIsHovered] = useState(false);
 
   return (
@@ -35,18 +35,20 @@ const HealingActionBar = ({ onActivate, onJoinPortal }) => {
         animation: 'auraPulse 3s infinite ease-in-out'
       }}></div>
 
-      {/* Main Glass Bar */}
-      <div style={{display: 'flex', gap: '1rem'}}>
+      {/* Main Glass Bar — Evenly Spaced */}
+      <div style={{display: 'flex', gap: '1.25rem', justifyContent: 'center', width: '100%', maxWidth: '720px'}}>
           <button
             onClick={onActivate}
             style={{
+              flex: 1,
               background: 'rgba(20, 20, 30, 0.65)',
               backdropFilter: 'blur(12px)',
               border: '1px solid rgba(255, 255, 255, 0.15)',
               borderRadius: '50px',
-              padding: '0.8rem 2.2rem',
+              padding: '0.8rem 1.5rem',
               display: 'flex',
               alignItems: 'center',
+              justifyContent: 'center',
               gap: '0.8rem',
               color: '#fff',
               cursor: 'pointer',
@@ -55,14 +57,16 @@ const HealingActionBar = ({ onActivate, onJoinPortal }) => {
                 : '0 5px 15px rgba(0, 0, 0, 0.3)',
               transition: 'all 0.3s ease',
               transform: isHovered ? 'translateY(-5px)' : 'translateY(0)',
-              minWidth: '200px'
+              minWidth: '200px',
+              maxWidth: '240px'
             }}
           >
             <div style={{
               width: '24px', height: '24px',
               borderRadius: '50%',
               background: 'linear-gradient(135deg, #8e44ad, #3498db)',
-              display: 'flex', alignItems: 'center', justifyContent: 'center'
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              flexShrink: 0
             }}>
               <div style={{width: '60%', height: '60%', background: '#fff', clipPath: 'polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%)'}}></div>
             </div>
@@ -75,25 +79,56 @@ const HealingActionBar = ({ onActivate, onJoinPortal }) => {
           <button
             onClick={onJoinPortal}
             style={{
+              flex: 1,
               background: 'rgba(212, 175, 55, 0.1)',
               backdropFilter: 'blur(12px)',
               border: '1px solid rgba(212, 175, 55, 0.3)',
               borderRadius: '50px',
-              padding: '0.8rem 2.2rem',
+              padding: '0.8rem 1.5rem',
               display: 'flex',
               alignItems: 'center',
+              justifyContent: 'center',
               gap: '0.8rem',
               color: 'var(--accent-gold)',
               cursor: 'pointer',
               transition: 'all 0.3s ease',
               transform: isHovered ? 'translateY(-5px)' : 'translateY(0)',
-              minWidth: '200px'
+              minWidth: '200px',
+              maxWidth: '240px'
             }}
           >
             <div style={{fontSize: '1.2rem'}}>🔑</div>
             <div style={{display: 'flex', flexDirection: 'column', alignItems: 'flex-start'}}>
               <span style={{fontSize: '0.8rem', fontWeight: '700', letterSpacing: '1px', textTransform: 'uppercase'}}>Enter Portal</span>
               <span style={{fontSize: '0.6rem', color: 'rgba(212, 175, 55, 0.8)'}}>SESSION CODE</span>
+            </div>
+          </button>
+
+          <button
+            onClick={onToggleAR}
+            style={{
+              flex: 1,
+              background: 'rgba(255, 255, 255, 0.05)',
+              backdropFilter: 'blur(12px)',
+              border: '1px solid rgba(255, 255, 255, 0.1)',
+              borderRadius: '50px',
+              padding: '0.8rem 1.5rem',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '0.8rem',
+              color: '#fff',
+              cursor: 'pointer',
+              transition: 'all 0.3s ease',
+              transform: isHovered ? 'translateY(-5px)' : 'translateY(0)',
+              minWidth: '200px',
+              maxWidth: '240px'
+            }}
+          >
+            <div style={{fontSize: '1.2rem'}}>🤳</div>
+            <div style={{display: 'flex', flexDirection: 'column', alignItems: 'flex-start'}}>
+              <span style={{fontSize: '0.8rem', fontWeight: '700', letterSpacing: '1px', textTransform: 'uppercase'}}>Self Heal AR</span>
+              <span style={{fontSize: '0.6rem', color: 'rgba(255,255,255,0.6)'}}>GHOST HANDS</span>
             </div>
           </button>
       </div>

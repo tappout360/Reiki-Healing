@@ -3,6 +3,77 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { User, Mail, Lock, Check, X, Sparkles, Crown, Heart, ArrowRight, CreditCard } from 'lucide-react';
 import toast from 'react-hot-toast';
 import BillingForm from './BillingForm';
+import PaymentLedger from '../utils/paymentLedger';
+
+// ─── Username / Email Uniqueness Helpers ───
+const normalizeUsername = (str) => {
+  // Normalize visually confusable characters (leet-speak, lookalikes)
+  return str.toLowerCase()
+    .replace(/0/g, 'o')
+    .replace(/1/g, 'l')
+    .replace(/3/g, 'e')
+    .replace(/4/g, 'a')
+    .replace(/5/g, 's')
+    .replace(/7/g, 't')
+    .replace(/8/g, 'b')
+    .replace(/9/g, 'g')
+    .replace(/[_\-.\s]/g, ''); // Strip separators
+};
+
+const levenshtein = (a, b) => {
+  const m = a.length, n = b.length;
+  const dp = Array.from({ length: m + 1 }, () => Array(n + 1).fill(0));
+  for (let i = 0; i <= m; i++) dp[i][0] = i;
+  for (let j = 0; j <= n; j++) dp[0][j] = j;
+  for (let i = 1; i <= m; i++)
+    for (let j = 1; j <= n; j++)
+      dp[i][j] = a[i-1] === b[j-1]
+        ? dp[i-1][j-1]
+        : 1 + Math.min(dp[i-1][j], dp[i][j-1], dp[i-1][j-1]);
+  return dp[m][n];
+};
+
+const checkUsernameUniqueness = (username) => {
+  const clients = JSON.parse(localStorage.getItem('aura_clients') || '[]');
+  const currentUser = JSON.parse(localStorage.getItem('user_profile') || 'null');
+  const normalized = normalizeUsername(username);
+  
+  for (const client of clients) {
+    // Skip the current logged-in user (for profile edits)
+    if (currentUser && client.email === currentUser.email) continue;
+    
+    // Exact match
+    if (client.username?.toLowerCase() === username.toLowerCase()) {
+      return { available: false, reason: `Username "${username}" is already taken.` };
+    }
+    
+    // Normalized match (leet-speak detection)
+    if (normalizeUsername(client.username || '') === normalized) {
+      return { available: false, reason: `Username too similar to existing user "${client.username}". Choose something more distinct.` };
+    }
+    
+    // Levenshtein similarity (catches typo-squatting)
+    const dist = levenshtein(username.toLowerCase(), (client.username || '').toLowerCase());
+    if (dist <= 1 && username.length >= 3) {
+      return { available: false, reason: `Username too similar to existing user "${client.username}". Choose something more distinct.` };
+    }
+  }
+  
+  return { available: true, reason: null };
+};
+
+const checkEmailUniqueness = (email) => {
+  const clients = JSON.parse(localStorage.getItem('aura_clients') || '[]');
+  const currentUser = JSON.parse(localStorage.getItem('user_profile') || 'null');
+  
+  for (const client of clients) {
+    if (currentUser && client.email === currentUser.email) continue;
+    if (client.email?.toLowerCase() === email.toLowerCase()) {
+      return { available: false, reason: 'An account with this email already exists.' };
+    }
+  }
+  return { available: true, reason: null };
+};
 
 const SignupFlow = ({ onComplete, onCancel }) => {
   const [currentStep, setCurrentStep] = useState(0);
@@ -29,12 +100,37 @@ const SignupFlow = ({ onComplete, onCancel }) => {
     confirmPassword: false
   });
 
+  // Uniqueness check results
+  const [usernameCheck, setUsernameCheck] = useState({ available: true, reason: null });
+  const [emailCheck, setEmailCheck] = useState({ available: true, reason: null });
+
   useEffect(() => {
     // Validate fields
+    const usernameFormatOk = formData.username.length >= 3 && /^[a-z0-9_.-]+$/.test(formData.username);
+    const emailFormatOk = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email);
+
+    // Run uniqueness checks
+    let uCheck = { available: true, reason: null };
+    let eCheck = { available: true, reason: null };
+    
+    if (usernameFormatOk) {
+      uCheck = checkUsernameUniqueness(formData.username);
+      setUsernameCheck(uCheck);
+    } else {
+      setUsernameCheck({ available: true, reason: null });
+    }
+    
+    if (emailFormatOk) {
+      eCheck = checkEmailUniqueness(formData.email);
+      setEmailCheck(eCheck);
+    } else {
+      setEmailCheck({ available: true, reason: null });
+    }
+
     setValidation({
       name: formData.name.length >= 2,
-      username: formData.username.length >= 3,
-      email: /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email),
+      username: usernameFormatOk && uCheck.available,
+      email: emailFormatOk && eCheck.available,
       password: formData.password.length >= 6,
       confirmPassword: formData.password === formData.confirmPassword && formData.confirmPassword.length > 0
     });
@@ -59,6 +155,20 @@ const SignupFlow = ({ onComplete, onCancel }) => {
     return { strength: 100, label: 'Strong', color: '#2ecc71' };
   };
 
+  // ─── Subscription pricing helper ───
+  const getSubscriptionPrice = () => {
+    const savedPricing = JSON.parse(localStorage.getItem('aura_pricing') || '{}');
+    if (formData.duration === '1_month') return parseFloat(savedPricing['1_month'] || 22);
+    if (formData.duration === '3_month') return parseFloat(savedPricing['3_month'] || 55);
+    if (formData.duration === '6_month') return parseFloat(savedPricing['6_month'] || 99);
+    return parseFloat(savedPricing['1_year'] || 188);
+  };
+
+  const getSubscriptionLabel = () => {
+    const labels = { '1_month': '1 Month', '3_month': '3 Months', '6_month': '6 Months', '1_year': '12 Months' };
+    return `Healing Subscription — ${labels[formData.duration] || '1 Month'}`;
+  };
+
   const handleSubmit = () => {
     // Validate required fields
     if (!validation.name || !validation.username || !validation.email || !validation.password || !validation.confirmPassword) {
@@ -66,9 +176,39 @@ const SignupFlow = ({ onComplete, onCancel }) => {
       return;
     }
 
+    // Final uniqueness gate (re-check at submit time)
+    const finalUsernameCheck = checkUsernameUniqueness(formData.username);
+    if (!finalUsernameCheck.available) {
+      toast.error(finalUsernameCheck.reason);
+      return;
+    }
+    const finalEmailCheck = checkEmailUniqueness(formData.email);
+    if (!finalEmailCheck.available) {
+      toast.error(finalEmailCheck.reason);
+      return;
+    }
+
     if (!formData.accountType) {
       toast.error('Please select an account type');
       return;
+    }
+
+    // ─── Record subscription transaction in Payment Ledger ───
+    let subscriptionTxnId = null;
+    if (formData.subscription === 'healing' && formData.billing) {
+      const txn = PaymentLedger.recordTransaction({
+        email: formData.email,
+        type: 'subscription',
+        description: getSubscriptionLabel(),
+        subtotal: getSubscriptionPrice(),
+        paymentMethod: formData.billing.paymentMethod || `Card •••• ${(formData.billing.number || '').replace(/\D/g, '').slice(-4)}`,
+        metadata: {
+          plan: formData.duration,
+          recurring: true,
+          renewalDate: new Date(Date.now() + (formData.duration === '1_month' ? 30 : formData.duration === '3_month' ? 90 : formData.duration === '6_month' ? 180 : 365) * 86400000).toISOString()
+        }
+      });
+      subscriptionTxnId = txn.id;
     }
 
     // Create user profile (PCI MASKED)
@@ -79,6 +219,8 @@ const SignupFlow = ({ onComplete, onCancel }) => {
       password: '●●●●●●', // Never store raw password in client persistence
       role: formData.accountType === 'healer' ? 'healer' : 'seeker',
       subscription: formData.subscription,
+      subscriptionDuration: formData.duration,
+      subscriptionTxnId,
       goals: formData.goals,
       experience: formData.experience,
       birthDate: formData.birthDate,
@@ -274,20 +416,21 @@ const SignupFlow = ({ onComplete, onCancel }) => {
 
                 <div style={{ marginBottom: '1.5rem' }}>
                   <label style={{ display: 'block', marginBottom: '0.5rem', color: 'var(--text-main)' }}>
-                    Username *
+                    Username * <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: 'normal' }}>(lowercase, numbers, underscores)</span>
                   </label>
                   <div style={{ position: 'relative' }}>
                     <input
                       type="text"
                       value={formData.username}
-                      onChange={(e) => setFormData({ ...formData, username: e.target.value.toLowerCase() })}
-                      placeholder="Choose a username"
+                      onChange={(e) => setFormData({ ...formData, username: e.target.value.toLowerCase().replace(/[^a-z0-9_.-]/g, '') })}
+                      placeholder="Choose a unique username"
+                      maxLength={30}
                       style={{
                         width: '100%',
                         padding: '1rem',
                         paddingRight: '3rem',
                         background: 'rgba(255, 255, 255, 0.05)',
-                        border: `1px solid ${validation.username ? '#2ecc71' : 'var(--glass-border)'}`,
+                        border: `1px solid ${validation.username ? '#2ecc71' : (formData.username.length >= 3 && !usernameCheck.available) ? '#e74c3c' : 'var(--glass-border)'}`,
                         borderRadius: '8px',
                         color: 'var(--text-main)',
                         fontSize: '1rem'
@@ -296,7 +439,16 @@ const SignupFlow = ({ onComplete, onCancel }) => {
                     {validation.username && (
                       <Check size={20} color="#2ecc71" style={{ position: 'absolute', right: '1rem', top: '50%', transform: 'translateY(-50%)' }} />
                     )}
+                    {formData.username.length >= 3 && !usernameCheck.available && (
+                      <X size={20} color="#e74c3c" style={{ position: 'absolute', right: '1rem', top: '50%', transform: 'translateY(-50%)' }} />
+                    )}
                   </div>
+                  {formData.username.length >= 3 && !usernameCheck.available && (
+                    <p style={{ color: '#e74c3c', fontSize: '0.8rem', marginTop: '0.4rem' }}>⚠ {usernameCheck.reason}</p>
+                  )}
+                  {validation.username && (
+                    <p style={{ color: '#2ecc71', fontSize: '0.8rem', marginTop: '0.4rem' }}>✓ Username is available</p>
+                  )}
                 </div>
 
                 <div style={{ marginBottom: '2rem' }}>
@@ -314,7 +466,7 @@ const SignupFlow = ({ onComplete, onCancel }) => {
                         padding: '1rem',
                         paddingRight: '3rem',
                         background: 'rgba(255, 255, 255, 0.05)',
-                        border: `1px solid ${validation.email ? '#2ecc71' : 'var(--glass-border)'}`,
+                        border: `1px solid ${validation.email ? '#2ecc71' : (/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email) && !emailCheck.available) ? '#e74c3c' : 'var(--glass-border)'}`,
                         borderRadius: '8px',
                         color: 'var(--text-main)',
                         fontSize: '1rem'
@@ -323,7 +475,13 @@ const SignupFlow = ({ onComplete, onCancel }) => {
                     {validation.email && (
                       <Check size={20} color="#2ecc71" style={{ position: 'absolute', right: '1rem', top: '50%', transform: 'translateY(-50%)' }} />
                     )}
+                    {/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email) && !emailCheck.available && (
+                      <X size={20} color="#e74c3c" style={{ position: 'absolute', right: '1rem', top: '50%', transform: 'translateY(-50%)' }} />
+                    )}
                   </div>
+                  {/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email) && !emailCheck.available && (
+                    <p style={{ color: '#e74c3c', fontSize: '0.8rem', marginTop: '0.4rem' }}>⚠ {emailCheck.reason}</p>
+                  )}
                 </div>
 
                 <button
@@ -590,14 +748,13 @@ const SignupFlow = ({ onComplete, onCancel }) => {
                 </h2>
                 <div style={{ maxWidth: '400px', margin: '0 auto' }}>
                   <BillingForm 
-                    buttonText={`Subscribe for $${
-                      formData.duration === '1_month' ? '22' : 
-                      formData.duration === '3_month' ? '55' : 
-                      formData.duration === '6_month' ? '99' : '188'
-                    }`}
+                    amount={getSubscriptionPrice()}
+                    serviceName={getSubscriptionLabel()}
+                    serviceType="subscription"
+                    buttonText="Subscribe & Pay"
                     onSubmit={(card) => {
                       setFormData({...formData, billing: card});
-                      toast.success('Frequency matched. Payment accepted.');
+                      toast.success('Payment accepted. Subscription activated.');
                       setCurrentStep(6);
                     }}
                   />
@@ -684,7 +841,7 @@ const SignupFlow = ({ onComplete, onCancel }) => {
 
                 <button
                   className="btn btn-primary"
-                  onClick={() => setCurrentStep(6)}
+                  onClick={() => setCurrentStep(7)}
                   style={{ width: '100%' }}
                 >
                   Review & Complete <ArrowRight size={18} style={{ marginLeft: '10px' }} />
@@ -692,8 +849,8 @@ const SignupFlow = ({ onComplete, onCancel }) => {
               </div>
             )}
 
-            {/* Step 6: Review & Submit */}
-            {currentStep === 6 && (
+            {/* Step 7: Review & Submit */}
+            {currentStep === 7 && (
               <div>
                 <h2 style={{ color: 'var(--accent-gold)', marginBottom: '2rem', textAlign: 'center' }}>
                   ✅ Review Your Information
@@ -726,7 +883,7 @@ const SignupFlow = ({ onComplete, onCancel }) => {
                   )}
                   {formData.billing && (
                      <div style={{ marginTop: '1rem' }}>
-                        <strong style={{ color: 'var(--accent-gold)' }}>Payment:</strong> <span style={{ color: 'var(--text-main)' }}>✓ Card ends in {formData.billing.number.slice(-4)}</span>
+                        <strong style={{ color: 'var(--accent-gold)' }}>Payment:</strong> <span style={{ color: 'var(--text-main)' }}>✓ {formData.billing.paymentMethod || `Card ends in ${(formData.billing.number || '').replace(/\D/g, '').slice(-4)}`}</span>
                      </div>
                   )}
                 </div>

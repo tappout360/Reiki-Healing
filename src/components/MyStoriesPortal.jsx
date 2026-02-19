@@ -1,9 +1,26 @@
 import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Quote, Star, Sparkles } from 'lucide-react';
+import { X, Quote, Star, Sparkles, Heart, Lock } from 'lucide-react';
 
 const MyStoriesPortal = ({ onClose }) => {
   const [stories, setStories] = React.useState([]);
+  const [storyLikes, setStoryLikes] = React.useState(() => JSON.parse(localStorage.getItem('aura_story_likes') || '{}'));
+  const user = React.useMemo(() => JSON.parse(localStorage.getItem('user_profile') || '{}'), []);
+  const canSubmit = user.role === 'healer' || user.role === 'admin' || user.role === 'owner';
+
+  const [myLikes, setMyLikes] = React.useState(() => {
+    try { return JSON.parse(localStorage.getItem(`aura_my_likes_${user.email}`) || '[]'); } catch { return []; }
+  });
+
+  const handleLike = (storyId) => {
+    if (myLikes.includes(storyId)) return;
+    const updated = { ...storyLikes, [storyId]: (storyLikes[storyId] || 0) + 1 };
+    const updatedMyLikes = [...myLikes, storyId];
+    setStoryLikes(updated);
+    setMyLikes(updatedMyLikes);
+    localStorage.setItem('aura_story_likes', JSON.stringify(updated));
+    try { const u = JSON.parse(localStorage.getItem('user_profile') || '{}'); if (u.email) localStorage.setItem(`aura_my_likes_${u.email}`, JSON.stringify(updatedMyLikes)); } catch {}
+  };
 
   React.useEffect(() => {
     const allStories = JSON.parse(localStorage.getItem('aura_stories') || '[]');
@@ -51,7 +68,7 @@ const MyStoriesPortal = ({ onClose }) => {
         </motion.div>
         <h2 style={{ fontSize: '3.5rem', color: 'var(--text-main)', marginBottom: '1rem' }}>Collective Reverie</h2>
         <p style={{ color: 'var(--text-muted)', fontSize: '1.2rem', fontStyle: 'italic' }}>
-          "Every story is a ripple in the ocean of awakening."
+          "In the tapestry of time, we are the threads of light, weaving a story of healing for all."
         </p>
       </div>
 
@@ -82,9 +99,25 @@ const MyStoriesPortal = ({ onClose }) => {
               "{story.story}"
             </p>
             <div style={{ borderTop: '1px solid rgba(255,255,255,0.1)', paddingTop: '1.5rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <span style={{ fontWeight: '600', color: 'var(--accent-gold)', textTransform: 'uppercase', letterSpacing: '1px', fontSize: '0.9rem' }}>
-                {story.userName}
-              </span>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                <span style={{ fontWeight: '600', color: 'var(--accent-gold)', textTransform: 'uppercase', letterSpacing: '1px', fontSize: '0.9rem' }}>
+                  {story.userName}
+                </span>
+                <button
+                  onClick={() => handleLike(story.id)}
+                  style={{
+                    background: myLikes.includes(story.id) ? 'rgba(212,175,55,0.15)' : 'rgba(255,255,255,0.05)',
+                    border: `1px solid ${myLikes.includes(story.id) ? 'rgba(212,175,55,0.3)' : 'rgba(255,255,255,0.1)'}`,
+                    borderRadius: '20px', padding: '5px 14px', cursor: myLikes.includes(story.id) ? 'default' : 'pointer',
+                    display: 'flex', alignItems: 'center', gap: '6px',
+                    color: myLikes.includes(story.id) ? 'var(--accent-gold)' : 'rgba(255,255,255,0.5)',
+                    fontSize: '0.8rem', fontWeight: '600', transition: 'all 0.2s'
+                  }}
+                >
+                  <Heart size={13} fill={myLikes.includes(story.id) ? 'var(--accent-gold)' : 'none'} />
+                  {storyLikes[story.id] || 0}
+                </button>
+              </div>
               <div style={{ display: 'flex', gap: '4px' }}>
                 {[...Array(story.rating)].map((_, i) => (
                   <Star key={i} size={14} fill="var(--accent-gold)" color="var(--accent-gold)" />
@@ -110,8 +143,24 @@ const MyStoriesPortal = ({ onClose }) => {
         borderRadius: '32px',
         background: 'rgba(255,255,255,0.02)',
         border: '1px solid rgba(255,255,255,0.05)',
-        textAlign: 'center'
+        textAlign: 'center',
+        position: 'relative'
       }}>
+        {!canSubmit && (
+          <div style={{
+            position: 'absolute', top: 0, left: 0, right: 0, bottom: 0,
+            background: 'rgba(5,5,10,0.7)', backdropFilter: 'blur(4px)',
+            borderRadius: '32px', display: 'flex', flexDirection: 'column',
+            alignItems: 'center', justifyContent: 'center', zIndex: 5, padding: '2rem'
+          }}>
+            <Lock size={48} color="var(--accent-gold)" style={{ marginBottom: '1.5rem', opacity: 0.8 }} />
+            <h3 style={{ color: '#fff', marginBottom: '0.5rem' }}>Healer Resonance Required</h3>
+            <p style={{ color: 'rgba(255,255,255,0.6)', maxWidth: '400px' }}>
+              Submission of sacred reveries is reserved for those who have attained the rank of Healer. 
+              Continue your journey to unlock this capability.
+            </p>
+          </div>
+        )}
         <h3 style={{ color: 'var(--accent-gold)', marginBottom: '1rem' }}>Share Your Resonance</h3>
         <p style={{ color: 'var(--text-muted)', marginBottom: '2.5rem' }}>
           Have you experienced a moment of profound alignment in the Sanctuary? Share your journey to inspire others.

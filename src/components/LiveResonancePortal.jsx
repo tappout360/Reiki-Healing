@@ -216,7 +216,7 @@ const LiveResonancePortal = ({ session, user, onClose }) => {
                     {/* HUD - Top Right: Participant Bubble */}
                     <div style={{ position: 'absolute', top: '2rem', right: '2rem' }}>
                         <div className="glass" style={{ width: '120px', height: '160px', borderRadius: '16px', overflow: 'hidden', border: '2px solid var(--accent-gold)' }}>
-                            <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Carissa" alt="Healer" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                            <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'linear-gradient(135deg, rgba(142,68,173,0.3), rgba(212,175,55,0.2))', fontSize: '3rem' }}>🧙‍♀️</div>
                             <div style={{ position: 'absolute', bottom: 0, width: '100%', background: 'rgba(0,0,0,0.6)', padding: '5px', textAlign: 'center', fontSize: '0.7rem' }}>
                                 CARISSA (HEALER)
                             </div>

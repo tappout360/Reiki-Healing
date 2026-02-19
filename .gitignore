@@ -24,3 +24,8 @@ dist-ssr
 *.sw?
 
 .vercel
+
+# Server secrets
+server/.env
+server/node_modules
+

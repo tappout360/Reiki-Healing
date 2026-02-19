@@ -246,7 +246,7 @@ nav {
   position: fixed;
   top: 0;
   width: 100%;
-  padding: 1.5rem 0;
+  padding: 0.75rem 0;
   z-index: 1000;
   transition: all 0.3s ease;
 }
@@ -254,7 +254,7 @@ nav {
 nav.scrolled {
   background: var(--glass-bg);
   backdrop-filter: blur(10px);
-  padding: 1rem 0;
+  padding: 0.5rem 0;
 }
 
 .nav-content {
@@ -264,12 +264,12 @@ nav.scrolled {
 }
 
 .logo {
-  font-size: 3.5rem;
+  font-size: 1.8rem;
   font-weight: 900;
   color: #fff;
   text-decoration: none;
   font-family: 'Playfair Display', serif;
-  letter-spacing: -3px;
+  letter-spacing: -1px;
   background: linear-gradient(90deg,
       #fff 0%,
       var(--accent-ethereal) 20%,
@@ -284,6 +284,7 @@ nav.scrolled {
   animation: crystalFlow 8s linear infinite;
   filter: drop-shadow(0 0 20px rgba(160, 210, 235, 0.4));
   display: inline-block;
+  white-space: nowrap;
 }
 
 @keyframes crystalFlow {
@@ -488,5 +489,48 @@ img {
   50% {
     opacity: 0.8;
     transform: scale(1.5);
+  }
+}
+
+@keyframes float {
+
+  0%,
+  100% {
+    transform: translateX(-50%) translateY(0);
+  }
+
+  50% {
+    transform: translateX(-50%) translateY(-6px);
+  }
+}
+
+/* ─── Performance: GPU-accelerated transitions ─── */
+.aura-cloud,
+.stardust,
+.ken-burns-active {
+  will-change: transform, opacity;
+  contain: layout style;
+}
+
+.page-transition-enter {
+  opacity: 0;
+  transform: translateY(8px);
+}
+
+.page-transition-active {
+  opacity: 1;
+  transform: translateY(0);
+  transition: opacity 0.25s ease-out, transform 0.25s ease-out;
+}
+
+/* Accessibility: reduce motion for users with vestibular conditions */
+@media (prefers-reduced-motion: reduce) {
+
+  .aura-cloud,
+  .stardust,
+  .ken-burns-active,
+  .gentle-drift {
+    animation: none !important;
+    transition: opacity 0.3s ease !important;
   }
 }

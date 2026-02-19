@@ -1,12 +1,11 @@
-import React, { useEffect, useState, Suspense, lazy } from 'react'
+import React, { useEffect, useState, Suspense, lazy, useRef, useCallback } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { 
-  Sparkles, Activity, Shield, Info, Heart, Zap, Waves, Moon, Sun, 
+  Sparkles, Activity, Shield, Info, Heart, Zap, Waves, Moon, Sun, Globe,
   LogOut, Lock, Clock, Quote, Star, MessageSquare, Play, Pause, Maximize, Minimize 
 } from 'lucide-react'
 import { aiKnowledgeBase } from './components/aiKnowledgeBase'
 import { Toaster, toast } from 'react-hot-toast'
-import { UserDashboardInline } from './components/UserDashboardInline'
 import './App.css'
 import './components/AuraGuide.css'
 
@@ -14,7 +13,7 @@ import './components/AuraGuide.css'
 const HealingActionBar = lazy(() => import('./components/HealingActionBar'));
 const AIHealerInterface = lazy(() => import('./components/AIHealerInterface'));
 const BookingInterface = lazy(() => import('./components/BookingInterface'));
-const HealerDashboard = lazy(() => import('./components/HealerDashboard'));
+const AdminDashboard = lazy(() => import('./components/AdminDashboard'));
 const AdminLogin = lazy(() => import('./components/AdminLogin'));
 const ScienceModal = lazy(() => import('./components/ScienceModal'));
 const AuraGuide = lazy(() => import('./components/AuraGuide'));
@@ -26,8 +25,15 @@ const LiveResonancePortal = lazy(() => import('./components/LiveResonancePortal'
 const JoinPortalModal = lazy(() => import('./components/JoinPortalModal'));
 const MyStoriesPortal = lazy(() => import('./components/MyStoriesPortal'));
 const SubscriptionPage = lazy(() => import('./components/SubscriptionPage'));
-import DuckingAudioPlayer from './components/DuckingAudioPlayer';
-import BillingForm from './components/BillingForm';
+const DistanceReikiBoard = lazy(() => import('./components/DistanceReikiBoard'));
+const ARHealingGuide = lazy(() => import('./components/ARHealingGuide'));
+const EtherealButler = lazy(() => import('./components/EtherealButler'));
+const DuckingAudioPlayer = lazy(() => import('./components/DuckingAudioPlayer'));
+const BillingForm = lazy(() => import('./components/BillingForm'));
+const UserDashboardInline = lazy(() => import('./components/UserDashboardInline').then(m => ({ default: m.UserDashboardInline })));
+import { ChoKuRei } from './components/ReikiIcons';
+import GoldButler from './utils/goldButler';
+import ActionButler from './utils/actionButler';
 
 // Loading Fallback
 const LoadingSpinner = () => (
@@ -91,24 +97,25 @@ const AuraClouds = () => {
   );
 };
 
-const Stardust = () => {
-  return (
-    <div style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', pointerEvents: 'none', zIndex: 0 }}>
-      {[...Array(50)].map((_, i) => (
-        <div
-          key={i}
-          className="stardust"
-          style={{
-            top: `${Math.random() * 100}%`,
-            left: `${Math.random() * 100}%`,
-            animationDelay: `${Math.random() * 5}s`,
-            opacity: Math.random() * 0.5 + 0.2
-          }}
-        />
-      ))}
-    </div>
-  );
-};
+// Memoized: prevents 50 stardust elements from re-rendering on every state change
+const stardustPositions = [...Array(30)].map((_, i) => ({
+  top: `${(i * 3.33 + Math.random() * 3) % 100}%`,
+  left: `${(i * 7.17 + Math.random() * 5) % 100}%`,
+  delay: `${(i * 0.17) % 5}s`,
+  opacity: 0.2 + (i % 5) * 0.1
+}));
+
+const Stardust = React.memo(() => (
+  <div style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', pointerEvents: 'none', zIndex: 0 }}>
+    {stardustPositions.map((s, i) => (
+      <div
+        key={i}
+        className="stardust"
+        style={{ top: s.top, left: s.left, animationDelay: s.delay, opacity: s.opacity }}
+      />
+    ))}
+  </div>
+));
 
 const protocols = [
   /* Protocols with sequence data and audio IDs */
@@ -290,6 +297,40 @@ const protocols = [
     voice: '/assets/celestial_meditation_voice.mp3', // Carissa's recorded voiceover — place MP3 here
     desc: '15-minute cinematic "Zodiac Awakening" — Carissa guides you through a Fantasia-inspired orchestra of gemstones, constellations, and healing aura.',
     tier: 'advanced'
+  },
+  {
+    id: 'pet-sanctuary',
+    name: 'Pet & Companion Healing',
+    color: '#34e7e4',
+    borderColor: '#00d8d6',
+    isImmersive: true,
+    video: [
+      'sage_protocol_shoreline_1770441338466.png',
+      'forest_natural_path_intelligence_1770423845946.png',
+      'sage_protocol_forest_clearing_1770424946816.png',
+      'sage_sacred_purify_1770423875666.png'
+    ],
+    audio: 'RLXddqULKX0',
+    voice: '/assets/pet_healing_voice.mp3',
+    desc: 'Specialized 10-minute frequency projection for your animal companions. Focus your intent on their bio-field to facilitate relief and calm.',
+    tier: 'basic'
+  },
+  {
+    id: 'space-cleansing',
+    name: 'Physical Space Sanctuary',
+    color: '#00b894',
+    borderColor: '#55efc4',
+    isImmersive: true,
+    video: [
+      'sage_smoke_ethereal_cleansing_1770423820855.png',
+      'sage_sacred_purify_1770423875666.png',
+      'sage_protocol_reiki_light_1770423936670.png',
+      'sage_protocol_purge_1770423911044.png'
+    ],
+    audio: 'AW5bH04AoC0',
+    voice: '/assets/space_cleansing_voice.mp3',
+    desc: 'Clear the stagnant energy from your physical environment. This 12-minute transmission harmonizes your room with sacred resonance patterns.',
+    tier: 'advanced'
   }
 ];
 
@@ -432,7 +473,7 @@ function App() {
   const [showAIInterface, setShowAIInterface] = useState(false);
   const [showAuraGuide, setShowAuraGuide] = useState(false);
   const [showScience, setShowScience] = useState(false); // Science Modal
-  const [showHealerDashboard, setShowHealerDashboard] = useState(false); // Admin access
+  const [showAdminDashboard, setShowAdminDashboard] = useState(false); // Admin access
   const [showAdminLogin, setShowAdminLogin] = useState(false); // NEW: Staff/Admin login
   const [bookingType, setBookingType] = useState(null); 
   const [videoIndex, setVideoIndex] = useState(0);
@@ -450,6 +491,39 @@ const [showJoinPortalModal, setShowJoinPortalModal] = useState(false);
 const [showMyStories, setShowMyStories] = useState(false);
 const [healerAppsEnabled, setHealerAppsEnabled] = useState(localStorage.getItem('aura_applications_enabled') !== 'false');
 const [showCheckoutModal, setShowCheckoutModal] = useState(false);
+const [healerNotification, setHealerNotification] = useState(false);
+const [showCommunityBoard, setShowCommunityBoard] = useState(false);
+const [showARGuide, setShowARGuide] = useState(false);
+
+  // ─── HIPAA: Session Auto-Logout (15 min inactivity) ───
+  const sessionTimeoutRef = useRef(null);
+  const SESSION_TIMEOUT_MS = 15 * 60 * 1000; // 15 minutes
+
+  const resetSessionTimer = useCallback(() => {
+    if (sessionTimeoutRef.current) clearTimeout(sessionTimeoutRef.current);
+    if (!user) return;
+    sessionTimeoutRef.current = setTimeout(() => {
+      setUser(null);
+      setShowUserFullDashboard(false);
+      setShowAdminDashboard(false);
+      toast('Session expired for your security. Please log in again.', {
+        icon: '🔒',
+        duration: 6000,
+        style: { borderRadius: '12px', background: 'rgba(20,20,25,0.95)', color: '#fff', border: '1px solid rgba(231,76,60,0.4)' }
+      });
+    }, SESSION_TIMEOUT_MS);
+  }, [user]);
+
+  useEffect(() => {
+    if (!user) return;
+    const events = ['mousedown', 'keydown', 'scroll', 'touchstart'];
+    events.forEach(e => window.addEventListener(e, resetSessionTimer, { passive: true }));
+    resetSessionTimer();
+    return () => {
+      events.forEach(e => window.removeEventListener(e, resetSessionTimer));
+      if (sessionTimeoutRef.current) clearTimeout(sessionTimeoutRef.current);
+    };
+  }, [user, resetSessionTimer]);
 
 
   useEffect(() => {
@@ -458,12 +532,60 @@ const [showCheckoutModal, setShowCheckoutModal] = useState(false);
       if (savedUser && savedUser !== "undefined" && savedUser !== "null") {
         const parsedUser = JSON.parse(savedUser);
         setUser(parsedUser);
+        // Log login event to ActionButler
+        if (parsedUser?.email) {
+          ActionButler.logLogin(parsedUser.email);
+        }
       }
     } catch (error) {
       console.error("Error loading profile:", error);
       localStorage.removeItem('user_profile');
     }
   }, []);
+
+  // ─── Auto-downgrade: if subscription cancelled and end date has passed ───
+  useEffect(() => {
+    if (!user || !user.cancellationDate || !user.subscriptionEndDate) return;
+    if (user.subscription !== 'healing') return;
+    const endDate = new Date(user.subscriptionEndDate);
+    if (new Date() >= endDate) {
+      // Grace period expired — downgrade to Seeker
+      const downgraded = {
+        ...user,
+        subscription: 'seeker',
+        cancellationDate: undefined,
+        subscriptionEndDate: undefined
+      };
+      setUser(downgraded);
+      localStorage.setItem('user_profile', JSON.stringify(downgraded));
+      // Also update client archive
+      const currentClients = JSON.parse(localStorage.getItem('aura_clients') || '[]');
+      const updatedClients = currentClients.map(c => c.email === downgraded.email ? downgraded : c);
+      localStorage.setItem('aura_clients', JSON.stringify(updatedClients));
+      // Close dashboard if open
+      setShowUserFullDashboard(false);
+      // Log the auto-downgrade transaction
+      try {
+        GoldButler.logTransaction(user.email, {
+          type: 'subscription_expired',
+          amount: 0,
+          balance: GoldButler.getGoldBalance(user.email),
+          accountNumber: GoldButler.getOrCreateAccountNumber(user.email),
+          description: `Subscription expired. Account downgraded to Seeker. User: ${user.name} (${user.email})`
+        });
+      } catch (e) { /* GoldButler may not be available in App scope */ }
+      // Also log to ActionButler for unified activity feed
+      try {
+        ActionButler.logSubscriptionExpired(user.email, user.name || user.email);
+      } catch (e) { /* safety */ }
+
+      toast('Your Healing subscription has expired. You have been returned to Seeker tier.', {
+        icon: '🔔',
+        duration: 6000,
+        style: { borderRadius: '12px', background: 'rgba(20,20,25,0.95)', color: '#fff', border: '1px solid rgba(243,156,18,0.4)' }
+      });
+    }
+  }, [user]);
 
   const toggleTheme = () => {
     const newTheme = theme === 'dark' ? 'light' : 'dark';
@@ -518,6 +640,26 @@ const [showCheckoutModal, setShowCheckoutModal] = useState(false);
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
+
+  // Mock Healer Notification Trigger
+  useEffect(() => {
+    if (user && !healerNotification) {
+      const timer = setTimeout(() => {
+        setHealerNotification(true);
+        toast("New energetic signature received from a Healer.", {
+          icon: '✨',
+          style: {
+            borderRadius: '12px',
+            background: 'rgba(20, 20, 25, 0.9)',
+            color: '#fff',
+            border: '1px solid var(--accent-gold)',
+            backdropFilter: 'blur(10px)'
+          },
+        });
+      }, 5000);
+      return () => clearTimeout(timer);
+    }
+  }, [user]);
 
   useEffect(() => {
     if (!showPortal) {
@@ -625,8 +767,21 @@ const [showCheckoutModal, setShowCheckoutModal] = useState(false);
       color: 'var(--text-main)',
       transition: 'all 0.8s cubic-bezier(0.4, 0, 0.2, 1)'
     }}>
-      <Toaster position="top-center" />
+      <Toaster position="top-center" toastOptions={{ duration: 3000 }} />
       <Stardust />
+
+      {/* FDA/HIPAA Compliance Disclaimer Banner */}
+      <div style={{
+        position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 9999,
+        background: 'rgba(5,5,10,0.92)', backdropFilter: 'blur(8px)',
+        borderTop: '1px solid rgba(212,175,55,0.15)',
+        padding: '6px 16px', textAlign: 'center',
+        fontSize: '0.65rem', color: 'rgba(255,255,255,0.45)',
+        letterSpacing: '0.3px', lineHeight: '1.4'
+      }}>
+        <span style={{color: 'rgba(212,175,55,0.6)', fontWeight: '600'}}>FDA Disclaimer:</span> This platform is for wellness & relaxation only. Not intended to diagnose, treat, cure, or prevent any disease. Consult a licensed healthcare provider. &nbsp;|&nbsp;
+        <span style={{color: 'rgba(160,210,235,0.6)', fontWeight: '600'}}>HIPAA Notice:</span> Session data is encrypted locally. Auto-logout after 15 min of inactivity.
+      </div>
       {showPortal && currentProtocol && (
         <div id="protocol-portal-root" className="healing-portal-overlay fade-in">
           <div className="portal-content">
@@ -845,16 +1000,36 @@ const [showCheckoutModal, setShowCheckoutModal] = useState(false);
         <div className="container nav-content" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '1.5rem' }}>
             <a href="#" className="logo">Reiki & Sage</a>
+            <AnimatePresence>
+              {healerNotification && (
+                <motion.div 
+                  initial={{ scale: 0, opacity: 0, rotate: -45 }}
+                  animate={{ scale: 1, opacity: 1, rotate: 0 }}
+                  exit={{ scale: 0, opacity: 0 }}
+                  whileHover={{ scale: 1.2 }}
+                  style={{ cursor: 'pointer', display: 'flex', alignItems: 'center' }}
+                  onClick={() => {
+                    setHealerNotification(false);
+                    setShowUserFullDashboard(true);
+                  }}
+                  title="Message from Healer Tapout"
+                >
+                  <ChoKuRei size={30} glowing={true} />
+                </motion.div>
+              )}
+            </AnimatePresence>
           </div>
 
-          <div className="nav-links">
-            <a href="#about" style={{ marginLeft: '1.5rem' }}>Philosophy</a>
-            <a href="#protocols" style={{ marginLeft: '0.8rem', marginRight: '2rem' }}>Protocols</a>
+          <div className="nav-links" style={{ display: 'flex', alignItems: 'center', gap: '2rem', marginLeft: '2rem' }}>
+            <a href="#about" style={{ color: 'var(--text-main)', fontSize: '0.95rem', fontWeight: '600', textDecoration: 'none', letterSpacing: '0.5px', whiteSpace: 'nowrap' }}>Philosophy</a>
+            <a href="#protocols-section" style={{ color: 'var(--text-main)', fontSize: '0.95rem', fontWeight: '600', textDecoration: 'none', letterSpacing: '0.5px', whiteSpace: 'nowrap' }}>Protocols</a>
+            <a href="#community-section" style={{ color: 'var(--text-main)', fontSize: '0.95rem', fontWeight: '600', textDecoration: 'none', letterSpacing: '0.5px', whiteSpace: 'nowrap' }}>Community</a>
             <button 
                 onClick={() => setShowSubscriptionPage(true)}
                 style={{
                   background: 'none', border: 'none', cursor: 'pointer',
-                  color: 'var(--text-main)', fontSize: '1rem', fontFamily: 'inherit' 
+                  color: 'var(--text-main)', fontSize: '0.95rem', fontFamily: 'inherit',
+                  fontWeight: '600', letterSpacing: '0.5px', padding: 0, whiteSpace: 'nowrap'
                 }}
             >
                 Membership
@@ -957,8 +1132,9 @@ const [showCheckoutModal, setShowCheckoutModal] = useState(false);
         <div style={{ height: '1px', background: 'rgba(255,255,255,0.1)', width: '80%', margin: '0 auto 1.5rem auto' }}></div>
         <Suspense fallback={null}>
           <HealingActionBar 
-            onActivate={() => setShowAIInterface(true)} 
+            onActivate={() => setShowProtocolOverlay(true)} 
             onJoinPortal={() => setShowJoinPortalModal(true)}
+            onToggleAR={() => setShowARGuide(true)}
           />
         </Suspense>
         <div style={{ height: '1px', background: 'rgba(255,255,255,0.1)', width: '80%', margin: '1.5rem auto 0 auto' }}></div>
@@ -1086,21 +1262,23 @@ const [showCheckoutModal, setShowCheckoutModal] = useState(false);
       )}
 
       {/* User Dashboard Inline - Appears after login */}
-      <UserDashboardInline 
-        user={user}
-        onOpenFullDashboard={() => {
-          if (user.subscription === 'healing' || user.role === 'owner') {
-            setShowUserFullDashboard(true);
-          } else {
-            toast.error("Guardian status required for Full Dashboard view.");
-            setShowSubscriptionPage(true);
-          }
-        }}
-        onUpdateUser={handleUpdateUser}
-        onNavigateToBooking={() => document.getElementById('mobile-service')?.scrollIntoView({ behavior: 'smooth' })}
-        onNavigateToProtocols={() => document.getElementById('protocols-section')?.scrollIntoView({ behavior: 'smooth' })}
-        onUpgrade={() => setShowSubscriptionPage(true)}
-      />
+      {!showUserFullDashboard && (
+        <UserDashboardInline 
+          user={user}
+          onOpenFullDashboard={() => {
+            if (user.subscription === 'healing' || user.role === 'owner') {
+              setShowUserFullDashboard(true);
+            } else {
+              toast.error("Guardian status required for Full Dashboard view.");
+              setShowSubscriptionPage(true);
+            }
+          }}
+          onUpdateUser={handleUpdateUser}
+          onNavigateToBooking={() => document.getElementById('mobile-service')?.scrollIntoView({ behavior: 'smooth' })}
+          onNavigateToProtocols={() => document.getElementById('protocols-section')?.scrollIntoView({ behavior: 'smooth' })}
+          onUpgrade={() => setShowSubscriptionPage(true)}
+        />
+      )}
 
       <AnimatePresence>
         {showUserFullDashboard && user && (
@@ -1174,7 +1352,7 @@ const [showCheckoutModal, setShowCheckoutModal] = useState(false);
               <p style={{fontSize: '1.1rem', marginBottom: '2rem', color: 'var(--text-main)'}}>
                 The sanctuary now comes to you. Our advanced mobile systems allow us to calibrate your energy field in the comfort of your own space, using our proprietary portable resonance technology.
               </p>
-              <div style={{display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem'}}>
+              <div style={{display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '1.5rem'}}>
                   <div 
                     className="glass card-hover" 
                     style={{padding: '1.5rem', textAlign: 'center', cursor: 'pointer'}}
@@ -1182,6 +1360,7 @@ const [showCheckoutModal, setShowCheckoutModal] = useState(false);
                   >
                     <div style={{fontSize: '1.5rem', color: 'var(--accent-gold)', marginBottom: '0.5rem'}}>🚚</div>
                     <div style={{fontWeight: '600', color: 'var(--text-main)'}}>On-Site Alignment</div>
+                    <div style={{fontSize: '0.7rem', color: 'rgba(255,255,255,0.4)', marginTop: '0.3rem'}}>In-person · You + Pet</div>
                   </div>
                   <div 
                     className="glass card-hover" 
@@ -1190,6 +1369,16 @@ const [showCheckoutModal, setShowCheckoutModal] = useState(false);
                   >
                     <div style={{fontSize: '1.5rem', color: 'var(--accent-gold)', marginBottom: '0.5rem'}}>⚡</div>
                     <div style={{fontWeight: '600', color: 'var(--text-main)'}}>Portable Resonance</div>
+                    <div style={{fontSize: '0.7rem', color: 'rgba(255,255,255,0.4)', marginTop: '0.3rem'}}>1-on-1 Video with Healer</div>
+                  </div>
+                  <div 
+                    className="glass card-hover" 
+                    style={{padding: '1.5rem', textAlign: 'center', cursor: 'pointer', color: 'var(--text-main)'}}
+                    onClick={() => setBookingType('circle')}
+                  >
+                    <div style={{fontSize: '1.5rem', color: '#2ecc71', marginBottom: '0.5rem'}}>🌐</div>
+                    <div style={{fontWeight: '600', color: 'var(--text-main)'}}>Community Circle</div>
+                    <div style={{fontSize: '0.7rem', color: 'rgba(46,204,113,0.6)', marginTop: '0.3rem'}}>Healing Tier · Group Video</div>
                   </div>
               </div>
             </div>
@@ -1200,6 +1389,128 @@ const [showCheckoutModal, setShowCheckoutModal] = useState(false);
                 style={{width: '100%', height: 'auto', display: 'block'}}
               />
             </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ═══════════════════ PHASE 6: FEATURE SHOWCASE – SALES PITCH ═══════════════════ */}
+      <section style={{
+        padding: '6rem 0',
+        background: 'linear-gradient(180deg, rgba(10,10,20,1) 0%, rgba(20,15,35,1) 50%, rgba(10,10,20,1) 100%)',
+        position: 'relative',
+        overflow: 'hidden'
+      }}>
+        {/* Ambient glow */}
+        <div style={{
+          position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)',
+          width: '600px', height: '600px',
+          background: 'radial-gradient(circle, rgba(212,175,55,0.08) 0%, transparent 70%)',
+          pointerEvents: 'none'
+        }} />
+        <div className="container" style={{ position: 'relative', zIndex: 1 }}>
+          <div style={{ textAlign: 'center', marginBottom: '4rem' }}>
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.6 }}
+            >
+              <p style={{ fontSize: '0.8rem', color: 'var(--accent-gold)', letterSpacing: '4px', marginBottom: '1rem', textTransform: 'uppercase' }}>Guardian Tier & Above</p>
+              <h2 style={{ fontSize: '3rem', color: '#fff', marginBottom: '1rem' }}>Ascend Your Practice</h2>
+              <p style={{ color: 'rgba(255,255,255,0.5)', maxWidth: '650px', margin: '0 auto', fontSize: '1.1rem' }}>
+                Unlock a universe of advanced healing tools, community connection, and personalized AI guidance.
+              </p>
+            </motion.div>
+          </div>
+
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '1.5rem', maxWidth: '1100px', margin: '0 auto' }}>
+            {[
+              {
+                icon: '🌐', title: 'Collective Field',
+                desc: 'Join a global community of healers. Share intentions and send energy taps in real-time.',
+                color: '#00b894',
+                action: () => { if (user) setShowCommunityBoard(true); else { toast.error('Log in to access.'); setShowLoginModal(true); } }
+              },
+              {
+                icon: '✋', title: 'AR Ghost Hands',
+                desc: 'Augmented reality guides your hand placements for precise chakra alignment during self-healing.',
+                color: '#a29bfe',
+                action: () => { if (user) setShowARGuide(true); else { toast.error('Log in to access.'); setShowLoginModal(true); } }
+              },
+              {
+                icon: '⭐', title: 'Mastery Path',
+                desc: 'Level up through 100 tiers by tracing sacred symbols. Unlock abilities and earn Resonance Points.',
+                color: 'var(--accent-gold)',
+                action: () => { if (user) setShowUserFullDashboard(true); else { toast.error('Create an account first.'); setShowSignupFlow(true); } }
+              },
+              {
+                icon: '🐾', title: 'Companion Sanctuary',
+                desc: 'Create healing profiles for your pets and track their bio-field sessions with dedicated protocols.',
+                color: '#34e7e4',
+                action: () => { if (user) setShowUserFullDashboard(true); else { toast.error('Create an account first.'); setShowSignupFlow(true); } }
+              }
+            ].map((feature, i) => (
+              <motion.div
+                key={feature.title}
+                initial={{ opacity: 0, y: 30 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: i * 0.1, duration: 0.5 }}
+                onClick={feature.action}
+                className="glass card-hover"
+                style={{
+                  padding: '2rem 1.5rem',
+                  borderRadius: '24px',
+                  cursor: 'pointer',
+                  textAlign: 'center',
+                  border: '1px solid rgba(255,255,255,0.05)',
+                  transition: 'all 0.3s ease'
+                }}
+                onMouseEnter={e => {
+                  e.currentTarget.style.borderColor = `${feature.color}44`;
+                  e.currentTarget.style.boxShadow = `0 10px 40px ${feature.color}15`;
+                }}
+                onMouseLeave={e => {
+                  e.currentTarget.style.borderColor = 'rgba(255,255,255,0.05)';
+                  e.currentTarget.style.boxShadow = 'none';
+                }}
+              >
+                <div style={{ fontSize: '2.5rem', marginBottom: '1rem' }}>{feature.icon}</div>
+                <h4 style={{ fontSize: '1.1rem', color: feature.color, marginBottom: '0.75rem' }}>{feature.title}</h4>
+                <p style={{ fontSize: '0.85rem', color: 'rgba(255,255,255,0.45)', lineHeight: '1.5' }}>{feature.desc}</p>
+              </motion.div>
+            ))}
+          </div>
+
+          <div style={{ textAlign: 'center', marginTop: '3rem' }}>
+            <motion.button
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={() => {
+                if (!user) {
+                  setShowSignupFlow(true);
+                  setTimeout(() => document.getElementById('signup-flow-section')?.scrollIntoView({ behavior: 'smooth' }), 300);
+                } else if (user.subscription !== 'healing') {
+                  setShowSubscriptionPage(true);
+                } else {
+                  document.getElementById('protocols-section')?.scrollIntoView({ behavior: 'smooth' });
+                }
+              }}
+              className="btn btn-primary"
+              style={{
+                padding: '1rem 3rem',
+                fontSize: '1rem',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '10px',
+                background: 'linear-gradient(135deg, var(--accent-gold), #e67e22)',
+                border: 'none',
+                boxShadow: '0 8px 30px rgba(212,175,55,0.3)'
+              }}
+            >
+              <Zap size={18} />
+              {!user ? 'Start Your Journey' : user.subscription !== 'healing' ? 'Upgrade to Guardian' : 'Enter the Sanctuary'}
+            </motion.button>
           </div>
         </div>
       </section>
@@ -1225,9 +1536,9 @@ const [showCheckoutModal, setShowCheckoutModal] = useState(false);
                     backgroundColor: selectedProtocol ? 'var(--accent-gold)' : '#ccc', 
                     borderColor: selectedProtocol ? 'var(--accent-gold)' : '#ccc', 
                     cursor: selectedProtocol ? 'pointer' : 'not-allowed',
-                    padding: '0.8rem 2rem', // Reduced padding
-                    fontSize: '1rem', // Standard font size
-                    maxWidth: '300px', // Prevent massive width
+                    padding: '0.8rem 2rem',
+                    fontSize: '1rem',
+                    maxWidth: '300px',
                     margin: '0 auto',
                     display: 'block'
                   }}
@@ -1326,13 +1637,65 @@ const [showCheckoutModal, setShowCheckoutModal] = useState(false);
         </div>
       </section>
 
-      {/* Admin Login Modal */}
+      {/* ─── Community Explanation Section ─── */}
+      <section id="community-section" style={{ backgroundColor: 'var(--bg-section)', borderTop: '1px solid rgba(255,255,255,0.05)' }}>
+        <div className="container" style={{ textAlign: 'center', padding: '5rem 2rem' }}>
+          <h2 style={{ fontSize: '2.5rem', marginBottom: '0.75rem', color: 'var(--text-main)', fontFamily: "'Playfair Display', serif" }}>Community Sanctuary</h2>
+          <p style={{ marginBottom: '3rem', maxWidth: '650px', margin: '0 auto 3rem', color: 'var(--text-muted)', lineHeight: '1.7', fontSize: '1.05rem' }}>
+            A sacred space where seekers and healers gather to share experiences, attend healer-approved events, 
+            and support each other on the journey toward resonance and self-discovery.
+          </p>
+
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '2rem', maxWidth: '900px', margin: '0 auto 3rem' }}>
+            {[
+              { icon: '🗓️', title: 'Healer-Approved Events', desc: 'Group meditations, sound baths, reiki shares, and more — all reviewed and approved by the healer team.' },
+              { icon: '💬', title: 'Share Your Journey', desc: 'Post your stories, insights, and breakthroughs. Connect with fellow community members on similar paths.' },
+              { icon: '🛡️', title: 'Safe & Moderated', desc: 'Our community is actively moderated. Report concerns directly to the healer team for swift resolution.' }
+            ].map((item, i) => (
+              <div key={i} className="glass" style={{ padding: '2rem 1.5rem', borderRadius: '20px', textAlign: 'center', border: '1px solid rgba(255,255,255,0.05)' }}>
+                <div style={{ fontSize: '2.5rem', marginBottom: '1rem' }}>{item.icon}</div>
+                <h3 style={{ fontSize: '1.05rem', fontWeight: '700', color: 'var(--text-main)', marginBottom: '0.5rem' }}>{item.title}</h3>
+                <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', lineHeight: '1.6', margin: 0 }}>{item.desc}</p>
+              </div>
+            ))}
+          </div>
+
+          {/* Disclaimer */}
+          <div style={{ maxWidth: '700px', margin: '0 auto 2.5rem', padding: '1.25rem 1.5rem', borderRadius: '14px', background: 'rgba(231,76,60,0.04)', border: '1px solid rgba(231,76,60,0.12)', textAlign: 'left' }}>
+            <div style={{ display: 'flex', alignItems: 'flex-start', gap: '10px' }}>
+              <span style={{ fontSize: '1.2rem', flexShrink: 0 }}>⚠️</span>
+              <div>
+                <div style={{ fontWeight: '700', fontSize: '0.8rem', color: '#e74c3c', letterSpacing: '1px', marginBottom: '0.3rem' }}>COMMUNITY GUIDELINES</div>
+                <p style={{ fontSize: '0.78rem', color: 'var(--text-muted)', margin: 0, lineHeight: '1.6' }}>
+                  This community is organized and run by members. The healer team reviews events but does not control individual actions. 
+                  <strong style={{ color: 'var(--text-main)' }}> This is NOT a dating platform.</strong> Inappropriate behavior will result in a warning and potential permanent ban. 
+                  Community access requires a Healing tier subscription.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <button
+            className="btn btn-primary glass"
+            onClick={() => {
+              if (user && user.subscription === 'healing') {
+                setShowUserFullDashboard(true);
+              } else {
+                setShowSubscriptionPage(true);
+              }
+            }}
+            style={{ padding: '1rem 2.5rem', fontSize: '1rem', fontWeight: '600', borderRadius: '50px', cursor: 'pointer' }}
+          >
+            {user && user.subscription === 'healing' ? '🏛️ Enter Community' : '👑 Upgrade to Join'}
+          </button>
+        </div>
+      </section>
       <Suspense fallback={null}>
         {showAdminLogin && (
           <AdminLogin 
             onLogin={() => {
               setShowAdminLogin(false);
-              setShowHealerDashboard(true);
+              setShowAdminDashboard(true);
               toast.success("Welcome back, Healer.");
             }} 
             onClose={() => setShowAdminLogin(false)} 
@@ -1347,9 +1710,9 @@ const [showCheckoutModal, setShowCheckoutModal] = useState(false);
 
       {/* Admin Dashboard */}
       <Suspense fallback={<LoadingSpinner />}>
-        {showHealerDashboard && (
-          <HealerDashboard 
-            onClose={() => setShowHealerDashboard(false)} 
+        {showAdminDashboard && (
+          <AdminDashboard 
+            onClose={() => setShowAdminDashboard(false)} 
             onJoinPortal={(session) => {
               setActiveSession(session);
               setShowLivePortal(true);
@@ -1444,7 +1807,7 @@ const [showCheckoutModal, setShowCheckoutModal] = useState(false);
           className="fade-in"
         >
           <button
-            onClick={() => setShowHealerDashboard(true)}
+            onClick={() => setShowAdminDashboard(true)}
             style={{
               background: 'rgba(20, 20, 30, 0.8)',
               backdropFilter: 'blur(10px)',
@@ -1473,12 +1836,45 @@ const [showCheckoutModal, setShowCheckoutModal] = useState(false);
               e.currentTarget.style.boxShadow = '2px 10px 30px rgba(0,0,0,0.4)';
             }}
           >
-            <Shield size={16} /> HEALER DASHBOARD
+            <Shield size={16} /> ADMIN DASHBOARD
           </button>
         </div>
       )}
 
       <SacredReflections />
+
+      {/* Ethereal Butler - Proactive AI Guide */}
+      {user && (
+        <Suspense fallback={null}>
+          <EtherealButler
+            user={user}
+            onAction={(action) => {
+              switch (action) {
+                case 'protocols':
+                  document.getElementById('protocols-section')?.scrollIntoView({ behavior: 'smooth' });
+                  break;
+                case 'mastery':
+                  setShowUserFullDashboard(true);
+                  break;
+                case 'community':
+                  setShowCommunityBoard(true);
+                  break;
+                case 'stories':
+                  setShowMyStories(true);
+                  break;
+                case 'upgrade':
+                  setShowSubscriptionPage(true);
+                  break;
+                case 'pets':
+                  setShowUserFullDashboard(true);
+                  break;
+                default:
+                  break;
+              }
+            }}
+          />
+        </Suspense>
+      )}
       
       <footer style={{padding: '4rem 0', textAlign: 'left', backgroundColor: 'var(--bg-section-alt)', color: 'var(--text-main)', borderTop: '1px solid rgba(255,255,255,0.05)'}}>
         <div className="container" style={{maxWidth: '1200px', margin: '0 2rem'}}>
@@ -1504,7 +1900,14 @@ const [showCheckoutModal, setShowCheckoutModal] = useState(false);
                       toast.error("Please log in to apply.");
                       setShowLoginModal(true);
                     } else {
-                      setShowHealerApp(true);
+                      // Check mastery level from user profile
+                      const profile = JSON.parse(localStorage.getItem('user_profile') || '{}');
+                      const userMastery = profile.masteryLevel || 1;
+                      if (userMastery < 50) {
+                        toast.error(`Grand Master rank required (Level 50). You are Level ${userMastery}.`);
+                      } else {
+                        setShowHealerApp(true);
+                      }
                     }
                   }}
                   style={{cursor: 'pointer', textDecoration: 'underline', color: 'var(--accent-gold)'}}
@@ -1643,7 +2046,15 @@ const [showCheckoutModal, setShowCheckoutModal] = useState(false);
             onClose={() => setShowAIInterface(false)} 
             onOpenBooking={() => setBookingType('portable')}
             onOpenLogin={() => setShowLoginModal(true)}
-            onApply={() => setShowHealerApp(true)}
+            onApply={() => {
+              const profile = JSON.parse(localStorage.getItem('user_profile') || '{}');
+              const userMastery = profile.masteryLevel || 1;
+              if (userMastery < 50) {
+                toast.error(`Grand Master rank required (Level 50). You are Level ${userMastery}.`);
+              } else {
+                setShowHealerApp(true);
+              }
+            }}
           />
         )}
       </Suspense>
@@ -1724,6 +2135,7 @@ const [showCheckoutModal, setShowCheckoutModal] = useState(false);
         {bookingType && (
           <BookingInterface 
             type={bookingType} 
+            user={user}
             onClose={() => setBookingType(null)} 
           />
         )}
@@ -1741,44 +2153,20 @@ const [showCheckoutModal, setShowCheckoutModal] = useState(false);
           )}
         </AnimatePresence>
       </Suspense>
-      <Suspense fallback={null}>
-        <AnimatePresence>
-          {showUserFullDashboard && (
-            <UserDashboard 
-              user={user}
-              onClose={() => setShowUserFullDashboard(false)}
-              onUpdateUser={handleUpdateUser}
-              onNavigateToBooking={() => {
-                setShowUserFullDashboard(false);
-                setBookingType('portable');
-              }}
-              onNavigateToProtocols={() => {
-                setShowUserFullDashboard(false);
-                document.getElementById('protocols-section')?.scrollIntoView({ behavior: 'smooth' });
-              }}
-              onJoinLivePortal={(session) => {
-                setShowUserFullDashboard(false);
-                setActiveSession(session);
-                setShowLivePortal(true);
-              }}
-            />
-          )}
-        </AnimatePresence>
-      </Suspense>
+      {/* FULL DASHBOARD RENDERED ABOVE IN MAIN FLOW */}
 
-      {/* Healer Dashboard (Immersive Management) */}
       <Suspense fallback={<LoadingSpinner />}>
         <AnimatePresence>
-          {showHealerDashboard && (
-            <HealerDashboard 
-              onClose={() => setShowHealerDashboard(false)} 
+          {showAdminDashboard && (
+            <AdminDashboard 
+              onClose={() => setShowAdminDashboard(false)} 
               healerAppsEnabled={healerAppsEnabled}
               onToggleHealerApps={(val) => {
                 setHealerAppsEnabled(val);
                 localStorage.setItem('aura_applications_enabled', val);
               }}
               onJoinPortal={(session) => {
-                setShowHealerDashboard(false);
+                setShowAdminDashboard(false);
                 setActiveSession(session);
                 setShowLivePortal(true);
               }}
@@ -1798,9 +2186,32 @@ const [showCheckoutModal, setShowCheckoutModal] = useState(false);
                 const profile = JSON.parse(localStorage.getItem('user_profile'));
                 setUser(profile);
                 setShowAdminLogin(false);
-                setShowHealerDashboard(true);
+                setShowAdminDashboard(true);
                 toast.success(`Welcome back, ${profile.name}`);
               }}
+            />
+          )}
+        </AnimatePresence>
+      </Suspense>
+
+      {/* Community Board Overlay */}
+      <Suspense fallback={<LoadingSpinner />}>
+        <AnimatePresence>
+          {showCommunityBoard && (
+            <DistanceReikiBoard 
+              user={user}
+              onClose={() => setShowCommunityBoard(false)}
+            />
+          )}
+        </AnimatePresence>
+      </Suspense>
+
+      {/* AR Healing Guide Overlay */}
+      <Suspense fallback={<LoadingSpinner />}>
+        <AnimatePresence>
+          {showARGuide && (
+            <ARHealingGuide 
+              onClose={() => setShowARGuide(false)}
             />
           )}
         </AnimatePresence>
