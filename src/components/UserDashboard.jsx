@@ -2623,9 +2623,9 @@ const addExp = (amount, reason) => {
                        {(() => {
                          const savedEvents = JSON.parse(localStorage.getItem('aura_community_events') || 'null');
                          const events = savedEvents || [
-                           { id: 'evt1', title: 'Group Meditation Circle', date: '2026-02-15', time: '7:00 PM', host: 'Chrissa', description: 'Guided group meditation focusing on heart chakra activation. All levels welcome.', spots: 12, signups: [] },
+                           { id: 'evt1', title: 'Group Meditation Circle', date: '2026-02-15', time: '7:00 PM', host: 'Carissa', description: 'Guided group meditation focusing on heart chakra activation. All levels welcome.', spots: 12, signups: [] },
                            { id: 'evt2', title: 'Reiki Share & Practice', date: '2026-02-18', time: '6:30 PM', host: 'Healing Team', description: 'Practice giving and receiving Reiki in a safe, supportive environment.', spots: 8, signups: [] },
-                           { id: 'evt3', title: 'Sound Bath Journey', date: '2026-02-22', time: '8:00 PM', host: 'Chrissa', description: 'Crystal singing bowls and tuning forks for deep vibrational healing.', spots: 15, signups: [] },
+                           { id: 'evt3', title: 'Sound Bath Journey', date: '2026-02-22', time: '8:00 PM', host: 'Carissa', description: 'Crystal singing bowls and tuning forks for deep vibrational healing.', spots: 15, signups: [] },
                            { id: 'evt4', title: 'New Moon Intention Setting', date: '2026-02-28', time: '7:30 PM', host: 'Community', description: 'Set powerful intentions under the new moon with collective energy amplification.', spots: 20, signups: [] },
                            { id: 'evt5', title: 'Chakra Balancing Workshop', date: '2026-03-05', time: '6:00 PM', host: 'Healing Team', description: 'Learn hands-on chakra balancing techniques for self and others.', spots: 10, signups: [] },
                          ];

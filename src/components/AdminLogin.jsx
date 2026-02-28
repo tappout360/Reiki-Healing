@@ -23,7 +23,7 @@ const AdminLogin = ({ onLogin, onClose }) => {
     if (normalizedUser === 'healer' && password === 'cosmos') {
         matchedAdmin = { name: 'Healer (Staff)', email: 'staff@reiki.com' };
     } else if (normalizedUser === 'admin' && password === 'ReikiMaster2026!') {
-        matchedAdmin = { name: 'Chrissa (Owner)', email: 'admin@reiki.com' };
+        matchedAdmin = { name: 'Carissa (Owner)', email: 'admin@reiki.com' };
     } else if ((normalizedUser === 'tapout' || normalizedUser === 'jasonmounts77@yahoo.com') && password === 'jakylie5526') {
         matchedAdmin = { name: 'Jason Mounts', email: 'JasonMounts77@yahoo.com', role: 'admin' };
     } else if (normalizedUser === 'bright' && password === 'pink-silver') {
