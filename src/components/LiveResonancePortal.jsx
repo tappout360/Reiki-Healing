@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   X, Mic, MicOff, Video, VideoOff, 
@@ -9,6 +9,15 @@ import {
   Share2, Eye, TrendingUp
 } from 'lucide-react';
 import { toast } from 'react-hot-toast';
+
+/**
+ * ═══════════════════════════════════════════════════════════════
+ *  LIVE RESONANCE PORTAL — Daily.co Video Integration
+ *  • Embeds Daily.co call frame when videoRoomUrl is available
+ *  • Falls back to simulated UI in prototype mode
+ *  • Preserves all existing UI: controls, chat, HUD, animations
+ * ═══════════════════════════════════════════════════════════════
+ */
 
 const LiveResonancePortal = ({ session, user, onClose }) => {
   const [isMuted, setIsMuted] = useState(false);
@@ -27,6 +36,123 @@ const LiveResonancePortal = ({ session, user, onClose }) => {
   const [isLive, setIsLive] = useState(false);
   const [seekerWaiting, setSeekerWaiting] = useState(true);
   const [seekerAdmitted, setSeekerAdmitted] = useState(false);
+
+  // Daily.co State
+  const callFrameRef = useRef(null);
+  const videoContainerRef = useRef(null);
+  const [dailyConnected, setDailyConnected] = useState(false);
+  const [participantCount, setParticipantCount] = useState(0);
+  const videoRoomUrl = session?.videoRoomUrl || null;
+
+  // ─── Daily.co Integration ───
+  useEffect(() => {
+    if (!videoRoomUrl || !videoContainerRef.current) return;
+
+    let callFrame = null;
+    let cancelled = false;
+
+    const initDaily = async () => {
+      try {
+        const DailyIframe = (await import('@daily-co/daily-js')).default;
+        if (cancelled) return;
+
+        callFrame = DailyIframe.createFrame(videoContainerRef.current, {
+          iframeStyle: {
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            width: '100%',
+            height: '100%',
+            border: 'none',
+            borderRadius: '24px'
+          },
+          showLeaveButton: false,
+          showFullscreenButton: true
+        });
+
+        callFrame.on('joined-meeting', () => {
+          setDailyConnected(true);
+          setIsLive(true);
+          toast.success('Connected to Resonance Portal');
+        });
+
+        callFrame.on('participant-joined', () => {
+          const p = callFrame.participants();
+          setParticipantCount(Object.keys(p).length);
+          setSeekerAdmitted(true);
+        });
+
+        callFrame.on('participant-left', () => {
+          const p = callFrame.participants();
+          setParticipantCount(Object.keys(p).length);
+        });
+
+        callFrame.on('app-message', (event) => {
+          if (event.data?.type === 'chat') {
+            setMessages(prev => [...prev, {
+              id: Date.now(),
+              sender: event.data.sender || 'Participant',
+              text: event.data.text,
+              time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+            }]);
+          }
+        });
+
+        callFrame.on('left-meeting', () => {
+          setDailyConnected(false);
+          setIsLive(false);
+        });
+
+        callFrame.on('error', (e) => {
+          console.error('[Daily.co] Error:', e);
+          toast.error('Video connection issue. Using simulation mode.');
+        });
+
+        const joinConfig = { url: videoRoomUrl };
+        if (session?.healerToken && isHealer) {
+          joinConfig.token = session.healerToken;
+        }
+
+        await callFrame.join(joinConfig);
+        callFrameRef.current = callFrame;
+      } catch (err) {
+        console.warn('[Daily.co] Failed to load, using simulation mode:', err.message);
+      }
+    };
+
+    initDaily();
+
+    return () => {
+      cancelled = true;
+      if (callFrame) {
+        try { callFrame.destroy(); } catch {}
+      }
+    };
+  }, [videoRoomUrl]);
+
+  // Toggle mic (Daily.co or simulated)
+  const toggleMic = () => {
+    if (callFrameRef.current && dailyConnected) {
+      callFrameRef.current.setLocalAudio(!isMuted);
+    }
+    setIsMuted(!isMuted);
+  };
+
+  // Toggle video (Daily.co or simulated)
+  const toggleVideo = () => {
+    if (callFrameRef.current && dailyConnected) {
+      callFrameRef.current.setLocalVideo(!isVideoOff);
+    }
+    setIsVideoOff(!isVideoOff);
+  };
+
+  // Leave meeting
+  const handleClose = () => {
+    if (callFrameRef.current && dailyConnected) {
+      callFrameRef.current.leave();
+    }
+    onClose();
+  };
 
   // Simulate resonance fluctuation
   useEffect(() => {
@@ -55,6 +181,15 @@ const LiveResonancePortal = ({ session, user, onClose }) => {
     };
     setMessages([...messages, newMessage]);
     setInputText('');
+
+    // Send via Daily.co if connected
+    if (callFrameRef.current && dailyConnected) {
+      callFrameRef.current.sendAppMessage({
+        type: 'chat',
+        sender: user.name || 'Seeker',
+        text: inputText
+      }, '*');
+    }
   };
 
   return (
@@ -65,7 +200,7 @@ const LiveResonancePortal = ({ session, user, onClose }) => {
       style={{
         position: 'fixed',
         top: 0, left: 0, right: 0, bottom: 0,
-        zIndex: 20000, // Highest priority
+        zIndex: 20000,
         background: '#05050a',
         display: 'flex',
         flexDirection: 'column',
@@ -86,22 +221,23 @@ const LiveResonancePortal = ({ session, user, onClose }) => {
             pointerEvents: 'none'
           }}
         />
-        {/* Mock Stream Background - Calm moving visuals */}
-        <div style={{ width: '100%', height: '100%', position: 'relative', overflow: 'hidden' }}>
+        {/* Background image — hidden when Daily.co is active */}
+        {!dailyConnected && (
+          <div style={{ width: '100%', height: '100%', position: 'relative', overflow: 'hidden' }}>
             <img 
-                src="/assets/amethyst_macro_realistic_1769877807331.png" 
-                alt="Background" 
-                className="ken-burns-active"
-                style={{ width: '100%', height: '100%', objectFit: 'cover', opacity: 0.4 }}
+              src="/assets/amethyst_macro_realistic_1769877807331.png" 
+              alt="Background" 
+              className="ken-burns-active"
+              style={{ width: '100%', height: '100%', objectFit: 'cover', opacity: 0.4 }}
             />
-            {/* Overlay Grid / Scanlines */}
             <div style={{
-                position: 'absolute', top: 0, left: 0, width: '100%', height: '100%',
-                background: 'linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06))',
-                backgroundSize: '100% 4px, 3px 100%',
-                pointerEvents: 'none'
+              position: 'absolute', top: 0, left: 0, width: '100%', height: '100%',
+              background: 'linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06))',
+              backgroundSize: '100% 4px, 3px 100%',
+              pointerEvents: 'none'
             }} />
-        </div>
+          </div>
+        )}
       </div>
 
       {/* Main Stream Area */}
@@ -115,12 +251,17 @@ const LiveResonancePortal = ({ session, user, onClose }) => {
                 <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
                     <div className="glass" style={{ padding: '0.4rem 1rem', borderRadius: '30px', display: 'flex', alignItems: 'center', gap: '10px', background: isLive ? 'rgba(255,50,50,0.2)' : 'rgba(255,255,255,0.05)', border: isLive ? '1px solid rgba(255,50,50,0.3)' : '1px solid rgba(255,255,255,0.1)' }}>
                         <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: isLive ? '#ff3e3e' : '#888', animation: isLive ? 'pulse 1.5s infinite' : 'none' }} />
-                        <span style={{ fontSize: '0.75rem', fontWeight: 'bold', letterSpacing: '1px' }}>{isLive ? 'LIVE RESONANCE' : 'PORTAL STANDBY'}</span>
+                        <span style={{ fontSize: '0.75rem', fontWeight: 'bold', letterSpacing: '1px' }}>
+                          {dailyConnected ? 'LIVE — DAILY.CO' : (isLive ? 'LIVE RESONANCE' : 'PORTAL STANDBY')}
+                        </span>
                     </div>
-                    {isLive && (
+                    {(isLive || dailyConnected) && (
                         <div className="glass" style={{ padding: '0.4rem 1rem', borderRadius: '30px', background: 'rgba(255,255,255,0.05)', fontSize: '0.8rem' }}>
                             <Users size={14} style={{ marginRight: '8px', verticalAlign: 'middle' }} />
-                            {seekerAdmitted ? '1 Seeker Connected' : 'Waiting for Seeker...'}
+                            {dailyConnected 
+                              ? `${participantCount} Participant${participantCount !== 1 ? 's' : ''}`
+                              : (seekerAdmitted ? '1 Seeker Connected' : 'Waiting for Seeker...')
+                            }
                         </div>
                     )}
                 </div>
@@ -129,7 +270,7 @@ const LiveResonancePortal = ({ session, user, onClose }) => {
                     <motion.button 
                       whileHover={{ scale: 1.1 }}
                       whileTap={{ scale: 0.9 }}
-                      onClick={onClose}
+                      onClick={handleClose}
                       className="glass"
                       style={{ width: '40px', height: '40px', borderRadius: '50%', border: 'none', color: '#fff', cursor: 'pointer' }}
                     >
@@ -138,11 +279,13 @@ const LiveResonancePortal = ({ session, user, onClose }) => {
                 </div>
             </div>
 
-            {/* Central Immersive Feed Area */}
-            <div style={{ flex: 1, position: 'relative', borderRadius: '24px', overflow: 'hidden', border: '1px solid rgba(255,255,255,0.1)' }}>
-                {/* Main Video Window */}
-                <div style={{ width: '100%', height: '100%', background: 'rgba(0,0,0,0.3)', position: 'relative' }}>
-                    {/* Simulated Camera Feed */}
+            {/* Central Video Feed Area */}
+            <div ref={videoContainerRef} style={{ flex: 1, position: 'relative', borderRadius: '24px', overflow: 'hidden', border: '1px solid rgba(255,255,255,0.1)' }}>
+                {/* Daily.co call frame is injected here when available */}
+                
+                {/* Simulated/placeholder content — shown only when Daily.co isn't connected */}
+                {!dailyConnected && (
+                  <div style={{ width: '100%', height: '100%', background: 'rgba(0,0,0,0.3)', position: 'relative' }}>
                     <div style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                          <div style={{ textAlign: 'center' }}>
                             <motion.div
@@ -163,9 +306,12 @@ const LiveResonancePortal = ({ session, user, onClose }) => {
                                 />
                             </motion.div>
                              <h2 style={{ marginTop: '2rem', fontSize: '1.2rem', color: 'rgba(255,255,255,0.5)', letterSpacing: '2px' }}>
-                                {!isLive ? 'INITIATE TRANSMISSION' : (seekerAdmitted ? 'RESONANCE ESTABLISHED' : 'WAITING FOR ADMISSION')}
+                                {videoRoomUrl 
+                                  ? 'CONNECTING TO DAILY.CO...' 
+                                  : (!isLive ? 'INITIATE TRANSMISSION' : (seekerAdmitted ? 'RESONANCE ESTABLISHED' : 'WAITING FOR ADMISSION'))
+                                }
                              </h2>
-                             {isHealer && !isLive && (
+                             {isHealer && !isLive && !videoRoomUrl && (
                                 <button 
                                     onClick={() => {
                                         setIsLive(true);
@@ -177,7 +323,7 @@ const LiveResonancePortal = ({ session, user, onClose }) => {
                                     START TRANSMISSION
                                 </button>
                              )}
-                             {isHealer && isLive && seekerWaiting && !seekerAdmitted && (
+                             {isHealer && isLive && seekerWaiting && !seekerAdmitted && !videoRoomUrl && (
                                 <motion.div 
                                     initial={{ y: 20, opacity: 0 }}
                                     animate={{ y: 0, opacity: 1 }}
@@ -198,31 +344,36 @@ const LiveResonancePortal = ({ session, user, onClose }) => {
                              )}
                          </div>
                     </div>
+                  </div>
+                )}
 
-                    {/* HUD - Bottom Left: Resonance Metadata */}
-                    <div style={{ position: 'absolute', bottom: '2rem', left: '2rem' }}>
-                        <div className="glass" style={{ padding: '1.5rem', borderRadius: '16px', background: 'rgba(0,0,0,0.4)', minWidth: '200px' }}>
-                            <div style={{ fontSize: '0.7rem', color: 'rgba(255,255,255,0.4)', marginBottom: '0.5rem', textTransform: 'uppercase' }}>Vibrational Sync</div>
-                            <div style={{ display: 'flex', alignItems: 'baseline', gap: '8px' }}>
-                                <span style={{ fontSize: '2rem', fontWeight: 'bold', color: 'var(--accent-gold)' }}>{resonanceLevel.toFixed(1)}%</span>
-                                <TrendingUp size={16} color="#00b894" />
-                            </div>
-                            <div style={{ marginTop: '0.5rem', fontSize: '0.8rem', color: '#00b894', fontWeight: '600' }}>
-                                {vibrationalStatus}
-                            </div>
+                {/* HUD - Bottom Left: Resonance Metadata (always visible) */}
+                {!dailyConnected && (
+                  <div style={{ position: 'absolute', bottom: '2rem', left: '2rem', zIndex: 5 }}>
+                    <div className="glass" style={{ padding: '1.5rem', borderRadius: '16px', background: 'rgba(0,0,0,0.4)', minWidth: '200px' }}>
+                        <div style={{ fontSize: '0.7rem', color: 'rgba(255,255,255,0.4)', marginBottom: '0.5rem', textTransform: 'uppercase' }}>Vibrational Sync</div>
+                        <div style={{ display: 'flex', alignItems: 'baseline', gap: '8px' }}>
+                            <span style={{ fontSize: '2rem', fontWeight: 'bold', color: 'var(--accent-gold)' }}>{resonanceLevel.toFixed(1)}%</span>
+                            <TrendingUp size={16} color="#00b894" />
+                        </div>
+                        <div style={{ marginTop: '0.5rem', fontSize: '0.8rem', color: '#00b894', fontWeight: '600' }}>
+                            {vibrationalStatus}
                         </div>
                     </div>
+                  </div>
+                )}
 
-                    {/* HUD - Top Right: Participant Bubble */}
-                    <div style={{ position: 'absolute', top: '2rem', right: '2rem' }}>
-                        <div className="glass" style={{ width: '120px', height: '160px', borderRadius: '16px', overflow: 'hidden', border: '2px solid var(--accent-gold)' }}>
-                            <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'linear-gradient(135deg, rgba(142,68,173,0.3), rgba(212,175,55,0.2))', fontSize: '3rem' }}>🧙‍♀️</div>
-                            <div style={{ position: 'absolute', bottom: 0, width: '100%', background: 'rgba(0,0,0,0.6)', padding: '5px', textAlign: 'center', fontSize: '0.7rem' }}>
-                                CARISSA (HEALER)
-                            </div>
+                {/* HUD - Top Right: Participant Bubble (only in sim mode) */}
+                {!dailyConnected && (
+                  <div style={{ position: 'absolute', top: '2rem', right: '2rem', zIndex: 5 }}>
+                    <div className="glass" style={{ width: '120px', height: '160px', borderRadius: '16px', overflow: 'hidden', border: '2px solid var(--accent-gold)' }}>
+                        <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'linear-gradient(135deg, rgba(142,68,173,0.3), rgba(212,175,55,0.2))', fontSize: '3rem' }}>🧙‍♀️</div>
+                        <div style={{ position: 'absolute', bottom: 0, width: '100%', background: 'rgba(0,0,0,0.6)', padding: '5px', textAlign: 'center', fontSize: '0.7rem' }}>
+                            CARISSA (HEALER)
                         </div>
                     </div>
-                </div>
+                  </div>
+                )}
 
                 {/* Bottom Overlay Controls */}
                 <div style={{ 
@@ -235,11 +386,12 @@ const LiveResonancePortal = ({ session, user, onClose }) => {
                     display: 'flex',
                     justifyContent: 'center',
                     gap: '1.5rem',
-                    alignItems: 'center'
+                    alignItems: 'center',
+                    zIndex: 10
                 }}>
                     <div style={{ display: 'flex', gap: '1rem' }}>
-                        <ControlCircle icon={isMuted ? MicOff : Mic} onClick={() => setIsMuted(!isMuted)} status={isMuted ? 'danger' : 'active'} />
-                        <ControlCircle icon={isVideoOff ? VideoOff : Video} onClick={() => setIsVideoOff(!isVideoOff)} status={isVideoOff ? 'danger' : 'active'} />
+                        <ControlCircle icon={isMuted ? MicOff : Mic} onClick={toggleMic} status={isMuted ? 'danger' : 'active'} />
+                        <ControlCircle icon={isVideoOff ? VideoOff : Video} onClick={toggleVideo} status={isVideoOff ? 'danger' : 'active'} />
                     </div>
                     
                     <div className="glass" style={{ display: 'flex', gap: '0.5rem', padding: '0.5rem', borderRadius: '30px' }}>
@@ -253,7 +405,7 @@ const LiveResonancePortal = ({ session, user, onClose }) => {
                           {isHealer && (
                              <ControlCircle 
                                 icon={X} 
-                                onClick={onClose} 
+                                onClick={handleClose} 
                                 status="danger" 
                                 title="End Session"
                              />
@@ -283,7 +435,9 @@ const LiveResonancePortal = ({ session, user, onClose }) => {
                 >
                     <div style={{ padding: '1.5rem', borderBottom: '1px solid rgba(255,255,255,0.05)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                         <h4 style={{ margin: 0 }}>Portal Chat</h4>
-                        <span style={{ fontSize: '0.7rem', color: 'rgba(255,255,255,0.4)', background: 'rgba(255,255,255,0.05)', padding: '2px 8px', borderRadius: '10px' }}>SECURE</span>
+                        <span style={{ fontSize: '0.7rem', color: dailyConnected ? '#00b894' : 'rgba(255,255,255,0.4)', background: dailyConnected ? 'rgba(0,184,148,0.1)' : 'rgba(255,255,255,0.05)', padding: '2px 8px', borderRadius: '10px' }}>
+                          {dailyConnected ? 'LIVE' : 'SECURE'}
+                        </span>
                     </div>
 
                     <div style={{ flex: 1, padding: '1.5rem', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '1rem' }}>

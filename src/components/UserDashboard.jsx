@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Toaster, toast } from 'react-hot-toast';
 import AvatarRenderer from './AvatarRenderer';
 import PetAvatarRenderer from './PetAvatarRenderer';
+import { MASTER_CATALOG, CATALOG_VERSION } from '../utils/masterCatalog';
 import {
   Activity, Calendar, CheckCircle, ChevronRight, Heart, Key, Send, Settings, Shield, Sparkles, Star, X, Zap,
   Compass, TrendingUp, Clock, Flame, Award, Sun, Moon, Cloud, Leaf, Flower, Droplets, Wind, Waves, Snowflake,
@@ -20,6 +21,7 @@ const SymbolPractice = React.lazy(() => import('./SymbolPractice'));
 
 const UserDashboard = ({ user, onClose, onUpdateUser, onNavigateToBooking, onNavigateToProtocols, onJoinLivePortal }) => {
   const [activeTab, setActiveTab] = useState('overview');
+  const [storeFilter, setStoreFilter] = useState('all');
   const [isCalibrating, setIsCalibrating] = useState(false);
   const [isDeactivating, setIsDeactivating] = useState(false);
   const [deactivateConfirmPhrase, setDeactivateConfirmPhrase] = useState('');
@@ -570,61 +572,9 @@ const addExp = (amount, reason) => {
     }
   };
 
-  // ─── Seed Master Catalog (Starters + Premium + Costumes) ───
+  // ─── Seed Master Catalog (from masterCatalog.js — 118+ items with costumes) ───
   useEffect(() => {
-    const MASTER_CATALOG = [
-      // --- FREE STARTERS (Reliable Basics) ---
-      { id: 'free_tshirt', name: 'Basic T-Shirt', icon: '👕', desc: 'A simple, comfortable tee.', price: 0, category: 'clothing', avatarSlot: 'chest', src: '/assets/amethyst_aura_realistic_1769877822836.png', avatarStyle: { fill: '#5b7fa5' }, enabled: true },
-      { id: 'free_jeans',  name: 'Basic Jeans',   icon: '👖', desc: 'Simple blue jeans.', price: 0, category: 'clothing', avatarSlot: 'legs', src: '/assets/sage_protocol_dewy_sage_png_1770425158983.png', avatarStyle: { fill: '#3b5a85' }, enabled: true },
-      { id: 'free_sandals',name: 'Handmade Sandals',icon: '👡', desc: 'Lightweight and natural.', price: 0, category: 'clothing', avatarSlot: 'feet', avatarStyle: { fill: '#8b5a2b' }, enabled: true },
-      { id: 'free_amulet', name: 'Quartz Amulet', icon: '💎', desc: 'A small protective charm.', price: 0, category: 'jewelry', avatarSlot: 'neck', src: '/assets/quartz_macro_realistic_1769877835658.png', enabled: true },
-      { id: 'free_bg_temple', name: 'Ether Temple', icon: '🏛️', desc: 'A peaceful meditation space.', price: 0, category: 'background', avatarSlot: 'background', src: '/assets/modern_healing_sanctuary_1769837644180.png', avatarStyle: { background: 'linear-gradient(180deg, #1a1a2e 0%, #0a0a0f 100%)' }, enabled: true },
-
-      // --- PREMIUM MYSTICAL WEARABLES (High Fidelity) ---
-      { id: 'amethyst_robe', name: 'Amethyst Robe', icon: '🧙', desc: 'A robe woven from violet light.', price: 500, category: 'clothing', avatarSlot: 'chest', src: '/assets/amethyst_aura_realistic_1769877822836.png', rarity: 'rare', enabled: true },
-      { id: 'sage_cloak', name: 'Sage Forest Cloak', icon: '🧥', desc: 'Infused with the scent of pine and peace.', price: 750, category: 'clothing', avatarSlot: 'chest', src: '/assets/sage_forest_smoke_1770425059439.png', rarity: 'rare', enabled: true },
-      { id: 'healer_robe_gold', name: 'Golden Healer Regalia', icon: '✨', desc: 'The highest frequency garment available.', price: 1500, category: 'clothing', avatarSlot: 'chest', src: '/assets/rose_aura_realistic_1769877874595.png', rarity: 'epic', enabled: true },
-
-      // --- SACRED ARTIFACTS (AI TRiggers) ---
-      { id: 'crystal_staff', name: 'Resonance Staff', icon: '🪄', desc: 'Focuses healing energy.', price: 1200, category: 'jewelry', avatarSlot: 'hand_right', src: '/assets/reiki_crown_chakra_light_1770423834100.png', rarity: 'epic', enabled: true },
-      { id: 'sacred_orb', name: 'Amethyst Core Orb', icon: '🔮', desc: 'A floating orb of pure resonance.', price: 1000, category: 'jewelry', avatarSlot: 'accessory', src: '/assets/amethyst_core_purge_macro_1769852056191.png', rarity: 'rare', enabled: true },
-
-      // --- DIVINE ENVIRONMENTS ---
-      { id: 'bg_crystal_cave', name: 'Crystal Sanctuary', icon: '💎', desc: 'Deep within a glowing cavern.', price: 300, category: 'background', avatarSlot: 'background', src: '/assets/sage_protocol_crystal_cave_1770441218348.png', enabled: true },
-      { id: 'bg_ethereal_forest', name: 'Ethereal Forest', icon: '🌲', desc: 'A path through the spirit woods.', price: 300, category: 'background', avatarSlot: 'background', src: '/assets/forest_natural_path_intelligence_1770423845946.png', enabled: true },
-      { id: 'bg_starry_night', name: 'Starry Night', icon: '🌌', desc: 'A vast cosmic night sky.', price: 200, category: 'background', avatarSlot: 'background', enabled: true },
-      { id: 'bg_sacred_temple', name: 'Sacred Temple', icon: '🏛️', desc: 'An ancient spiritual temple.', price: 250, category: 'background', avatarSlot: 'background', enabled: true },
-
-      // --- ACTIONS & EXPRESSIONS ---
-      { id: 'act_praying', name: 'Sacred Prayer', icon: '🙏', desc: 'Action: A peaceful praying pose.', price: 150, category: 'action', avatarSlot: 'action', enabled: true },
-      { id: 'act_channeling', name: 'Aura Channeling', icon: '⚡', desc: 'Action: Channeling pure light.', price: 200, category: 'action', avatarSlot: 'action', enabled: true },
-      { id: 'exp_compassion', name: 'Compassion', icon: '💖', desc: 'Expression: Heart-centered love.', price: 100, category: 'expression', avatarSlot: 'expression', enabled: true },
-      { id: 'exp_joyful', name: 'Pure Joy', icon: '😊', desc: 'Expression: Radiant joyful energy.', price: 100, category: 'expression', avatarSlot: 'expression', enabled: true },
-
-      // --- BRANDED / OFFICIAL ITEMS ---
-      { id: 'official_tee_rs', name: 'Ricky & Sage Official Tee', icon: '👕', desc: 'Premium branded apparel with resonance logo.', price: 50, category: 'clothing', avatarSlot: 'chest', src: '/assets/amethyst_aura_realistic_1769877822836.png', enabled: true },
-      { id: 'zen_garden_rs', name: 'Zen Garden Sanctuary', icon: '🎋', desc: 'Official Ricky & Sage meditation background.', price: 100, category: 'background', avatarSlot: 'background', src: '/assets/forest_natural_path_standard_1770423851088.png', enabled: true },
-
-
-      // --- HEADGEAR ---
-      { id: 'sacred_diadem', name: 'Sacred Diadem', icon: '👑', desc: 'A crown of light.', price: 400, category: 'clothing', avatarSlot: 'head', src: '/assets/reiki_crown_chakra_light_1770423834100.png', rarity: 'rare', enabled: true },
-      { id: 'ethereal_circlet', name: 'Ethereal Circlet', icon: '💍', desc: 'Focuses mental clarity.', price: 350, category: 'clothing', avatarSlot: 'head', rarity: 'rare', enabled: true },
-      
-      // --- SHOES ---
-      { id: 'astral_sandals', name: 'Astral Sandals', icon: '👡', desc: 'Walk on stardust.', price: 200, category: 'clothing', avatarSlot: 'feet', rarity: 'common', enabled: true },
-      { id: 'divine_boots', name: 'Divine Boots', icon: '👢', desc: 'Grounded in holiness.', price: 450, category: 'clothing', avatarSlot: 'feet', rarity: 'rare', enabled: true },
-
-      // --- HAIRSTYLES ---
-      { id: 'hair_flowing_light', name: 'Flowing Light', icon: '💇', desc: 'Energy hair.', price: 600, category: 'hair', avatarSlot: 'hair', rarity: 'rare', enabled: true },
-      { id: 'hair_braids_wisdom', name: 'Braids of Wisdom', icon: '👱', desc: 'Ancient style.', price: 400, category: 'hair', avatarSlot: 'hair', rarity: 'common', enabled: true },
-
-      // --- ABILITIES & EFFECTS ---
-      { id: 'abi_chrono_vision', name: 'Chrono-Vision', icon: '👁️', desc: 'See through time.', price: 2000, category: 'ability', avatarSlot: 'ability', rarity: 'epic', enabled: true },
-      { id: 'abi_aura_blast', name: 'Aura Blast', icon: '💥', desc: 'Release pure energy.', price: 1500, category: 'ability', avatarSlot: 'ability', rarity: 'epic', enabled: true },
-    ];
-
-    const AVATAR_SERVER_URL = 'http://127.0.0.1:3100'; // Using 127.0.0.1 for better cross-platform compatibility
-    const CATALOG_VERSION = 6; // Incremented for expansion
+    const AVATAR_SERVER_URL = 'http://127.0.0.1:3100';
     const storedVersion = parseInt(localStorage.getItem('aura_catalog_version') || '0');
     const existing = JSON.parse(localStorage.getItem('aura_shop_items') || '[]');
 
@@ -1853,9 +1803,74 @@ const addExp = (amount, reason) => {
                   </div>
                 </div>
 
+                {/* ═══ Reiki & Sage Collection Banner ═══ */}
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  style={{
+                    padding: '1.5rem 2rem', borderRadius: '20px', marginBottom: '1.5rem',
+                    background: 'linear-gradient(135deg, rgba(178,79,255,0.12), rgba(0,229,255,0.08), rgba(251,191,36,0.08))',
+                    border: '1px solid rgba(178,79,255,0.2)',
+                    display: 'flex', alignItems: 'center', gap: '1.5rem',
+                  }}
+                >
+                  <div style={{ fontSize: '2.5rem' }}>🔮</div>
+                  <div style={{ flex: 1 }}>
+                    <h3 style={{ margin: '0 0 4px', fontSize: '1.1rem', fontWeight: 800, background: 'linear-gradient(135deg, #b24fff, #00e5ff, #fbbf24)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>Reiki & Sage Collection</h3>
+                    <p style={{ margin: 0, fontSize: '0.75rem', color: 'rgba(255,255,255,0.5)', lineHeight: 1.4 }}>
+                      Exclusive 6-tier branded items — from <span style={{ color: '#6ee7b7' }}>Good</span> to <span style={{ color: '#fbbf24', fontWeight: 700 }}>✨ Outstanding</span>. Earn or purchase to enhance your avatar.
+                    </p>
+                    <div style={{ display: 'flex', gap: '8px', marginTop: '8px', flexWrap: 'wrap' }}>
+                      {[{ t: 1, n: 'Good', c: '#6ee7b7' }, { t: 2, n: 'Above Avg', c: '#60a5fa' }, { t: 3, n: 'Great', c: '#a78bfa' }, { t: 4, n: 'Excellent', c: '#f472b6' }, { t: 5, n: 'Superior', c: '#fb923c' }, { t: 6, n: 'Outstanding', c: '#fbbf24' }].map(t => (
+                        <span key={t.t} style={{ fontSize: '0.55rem', padding: '2px 8px', borderRadius: '10px', background: `${t.c}18`, border: `1px solid ${t.c}44`, color: t.c, fontWeight: 700, letterSpacing: '0.3px' }}>T{t.t} {t.n}</span>
+                      ))}
+                    </div>
+                  </div>
+                  <motion.button
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    onClick={() => { setStoreFilter('reiki_sage'); }}
+                    style={{ background: 'linear-gradient(135deg, #b24fff, #7c3aed)', border: 'none', color: '#fff', padding: '8px 18px', borderRadius: '14px', fontSize: '0.75rem', fontWeight: 700, cursor: 'pointer' }}
+                  >Browse Collection</motion.button>
+                </motion.div>
+
+                {/* ═══ Collection Filter Tabs ═══ */}
+                <div style={{ display: 'flex', gap: '6px', marginBottom: '1.5rem', flexWrap: 'wrap' }}>
+                  {[
+                    { id: 'all', label: '🌐 All Items' },
+                    { id: 'costume', label: '🎭 Costumes' },
+                    { id: 'reiki_sage', label: '🔮 Reiki & Sage' },
+                    { id: 'clothing', label: '👕 Clothing' },
+                    { id: 'jewelry', label: '💎 Artifacts' },
+                    { id: 'background', label: '🌅 Backgrounds' },
+                    { id: 'action', label: '⚡ Actions' },
+                    { id: 'hair', label: '💇 Hairstyles' },
+                    { id: 'ability', label: '💫 Abilities' },
+                    { id: 'pet', label: '🐾 Pet Items' },
+                  ].map(f => (
+                    <button
+                      key={f.id}
+                      onClick={() => setStoreFilter(f.id)}
+                      style={{
+                        padding: '6px 14px', borderRadius: '12px', border: '1px solid',
+                        borderColor: (storeFilter || 'all') === f.id ? 'rgba(212,175,55,0.4)' : 'rgba(255,255,255,0.08)',
+                        background: (storeFilter || 'all') === f.id ? 'rgba(212,175,55,0.1)' : 'rgba(255,255,255,0.03)',
+                        color: (storeFilter || 'all') === f.id ? 'var(--accent-gold)' : 'rgba(255,255,255,0.4)',
+                        fontSize: '0.7rem', fontWeight: 600, cursor: 'pointer', transition: 'all 0.2s'
+                      }}
+                    >{f.label}</button>
+                  ))}
+                </div>
+
                 {/* Store Categories */}
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '1.5rem', marginBottom: '3rem' }}>
-                  {(JSON.parse(localStorage.getItem('aura_shop_items') || '[]')).filter(item => item.enabled !== false).map(item => {
+                  {(JSON.parse(localStorage.getItem('aura_shop_items') || '[]')).filter(item => {
+                    if (item.enabled === false) return false;
+                    const filter = storeFilter || 'all';
+                    if (filter === 'all') return true;
+                    if (filter === 'reiki_sage') return item.collection === 'reiki_sage';
+                    return item.category === filter;
+                  }).map(item => {
                     const owned = purchasedItems.includes(item.id);
                     return (
                       <motion.div
@@ -1873,7 +1888,15 @@ const addExp = (amount, reason) => {
                       >
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                           <span style={{ fontSize: '2rem' }}>{item.icon}</span>
-                          <span style={{ fontSize: '0.6rem', color: 'rgba(255,255,255,0.3)', letterSpacing: '1px', background: 'rgba(255,255,255,0.05)', padding: '3px 8px', borderRadius: '10px' }}>{item.category.toUpperCase()}</span>
+                          <div style={{ display: 'flex', gap: '4px', alignItems: 'center' }}>
+                            {item.collection === 'reiki_sage' && item.tier && (
+                              <span style={{ fontSize: '0.55rem', padding: '2px 7px', borderRadius: '8px', background: `${item.tierColor}18`, border: `1px solid ${item.tierColor}44`, color: item.tierColor, fontWeight: 700, letterSpacing: '0.3px' }}>T{item.tier} {item.tierName}</span>
+                            )}
+                            {item.rarity && item.rarity !== 'common' && (
+                              <span style={{ fontSize: '0.55rem', padding: '2px 7px', borderRadius: '8px', background: item.rarity === 'legendary' ? 'rgba(251,191,36,0.15)' : item.rarity === 'epic' ? 'rgba(178,79,255,0.15)' : 'rgba(96,165,250,0.15)', border: `1px solid ${item.rarity === 'legendary' ? 'rgba(251,191,36,0.3)' : item.rarity === 'epic' ? 'rgba(178,79,255,0.3)' : 'rgba(96,165,250,0.3)'}`, color: item.rarity === 'legendary' ? '#fbbf24' : item.rarity === 'epic' ? '#b24fff' : '#60a5fa', fontWeight: 700, textTransform: 'uppercase' }}>{item.rarity}</span>
+                            )}
+                            <span style={{ fontSize: '0.6rem', color: 'rgba(255,255,255,0.3)', letterSpacing: '1px', background: 'rgba(255,255,255,0.05)', padding: '3px 8px', borderRadius: '10px' }}>{item.category === 'reiki_sage' ? 'R&S' : item.category.toUpperCase()}</span>
+                          </div>
                         </div>
                         <div>
                           <div style={{ fontWeight: '600', fontSize: '0.95rem', marginBottom: '0.25rem' }}>{item.name}</div>
@@ -2100,11 +2123,32 @@ const addExp = (amount, reason) => {
                         <span style={{ marginLeft: 'auto', fontSize: '0.6rem', color: 'rgba(255,255,255,0.25)' }}>{Object.keys(equippedAvatar).filter(k => equippedAvatar[k]).length}/13 equipped</span>
                       </div>
                       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr', gap: '0.6rem' }}>
-                        {['headgear', 'frame', 'badge', 'backbling', 'aura', 'background', 'necklace', 'chest', 'hands', 'rings', 'tattoo', 'legs', 'feet'].map(slot => {
+                        {['headgear', 'head', 'hair', 'backbling', 'aura', 'background', 'neck', 'chest', 'hand_right', 'hand_left', 'accessory', 'legs', 'feet', 'badge'].map(slot => {
                           const item = equippedAvatar?.[slot];
                           return (
                             <div
                               key={slot}
+                              onDragOver={(e) => { e.preventDefault(); e.currentTarget.style.borderColor = 'rgba(212,175,55,0.5)'; e.currentTarget.style.background = 'rgba(212,175,55,0.08)'; }}
+                              onDragLeave={(e) => { e.currentTarget.style.borderColor = item ? 'rgba(212,175,55,0.2)' : 'rgba(255,255,255,0.05)'; e.currentTarget.style.background = item ? 'rgba(212,175,55,0.06)' : 'rgba(255,255,255,0.02)'; }}
+                              onDrop={(e) => {
+                                e.preventDefault();
+                                e.currentTarget.style.borderColor = 'rgba(212,175,55,0.2)';
+                                e.currentTarget.style.background = 'rgba(212,175,55,0.06)';
+                                const itemData = e.dataTransfer.getData('aura_item');
+                                if (itemData) {
+                                  try {
+                                    const droppedItem = JSON.parse(itemData);
+                                    if (droppedItem.avatarSlot === slot || droppedItem.category === 'costume') {
+                                      const updated = { ...equippedAvatar, [slot]: droppedItem };
+                                      setEquippedAvatar(updated);
+                                      localStorage.setItem(`aura_equipped_${user?.email}`, JSON.stringify(updated));
+                                      toast.success(`Equipped ${droppedItem.name} → ${slot}`);
+                                    } else {
+                                      toast(`${droppedItem.name} doesn't fit the ${slot} slot`, { icon: '⚠️' });
+                                    }
+                                  } catch {}
+                                }
+                              }}
                               onClick={() => {
                                 if (item) {
                                   const updated = { ...equippedAvatar };
@@ -2131,7 +2175,7 @@ const addExp = (amount, reason) => {
                               ) : (
                                 <>
                                   <div style={{ width: '28px', height: '28px', border: '2px dashed rgba(255,255,255,0.1)', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.7rem', opacity: 0.3, marginBottom: '2px' }}>✦</div>
-                                  <div style={{ fontSize: '0.55rem', color: 'rgba(255,255,255,0.2)', textTransform: 'capitalize' }}>{slot}</div>
+                                  <div style={{ fontSize: '0.55rem', color: 'rgba(255,255,255,0.2)', textTransform: 'capitalize' }}>{slot.replace('_', ' ')}</div>
                                 </>
                               )}
                             </div>
@@ -2140,65 +2184,123 @@ const addExp = (amount, reason) => {
                       </div>
                     </div>
 
-                    {/* Inventory Split: Equipped vs Available */}
-                    <div className="glass" style={{ padding: '1.5rem', borderRadius: '20px', background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.05)' }}>
+                    {/* ═══ ITEM INVENTORY — Drag & Drop Panel ═══ */}
+                    <div className="glass" style={{
+                      padding: '1.5rem', borderRadius: '20px',
+                      background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.05)',
+                      minHeight: '400px'
+                    }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '1rem' }}>
                         <Shield size={16} color="var(--accent-gold)" />
-                        <h4 style={{ margin: 0, fontSize: '0.8rem', letterSpacing: '2px', color: 'rgba(255,255,255,0.5)' }}>INVENTORY</h4>
+                        <h4 style={{ margin: 0, fontSize: '0.8rem', letterSpacing: '2px', color: 'rgba(255,255,255,0.5)' }}>YOUR ITEMS</h4>
+                        <span style={{ marginLeft: 'auto', fontSize: '0.55rem', color: 'rgba(255,255,255,0.25)', background: 'rgba(212,175,55,0.08)', padding: '3px 8px', borderRadius: '8px' }}>
+                          DRAG → DROP onto avatar builder
+                        </span>
                       </div>
-                      {(() => {
-                        const archive = JSON.parse(localStorage.getItem(`aura_archive_${user?.email}`) || '[]');
-                        const equippedIds = Object.values(equippedAvatar).filter(Boolean).map(i => i.id);
-                        const inInventory = archive.filter(i => !equippedIds.includes(i.id));
-                        const equipped = archive.filter(i => equippedIds.includes(i.id));
 
-                        return (
-                          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
-                            {/* Equipped column */}
-                            <div>
-                              <div style={{ fontSize: '0.65rem', color: '#2ecc71', fontWeight: '600', marginBottom: '8px', letterSpacing: '1px' }}>⚔️ EQUIPPED ({equipped.length})</div>
-                              <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', maxHeight: '200px', overflowY: 'auto' }}>
-                                {equipped.length === 0 ? (
-                                  <div style={{ fontSize: '0.65rem', color: 'rgba(255,255,255,0.15)', padding: '8px', textAlign: 'center' }}>No items equipped</div>
-                                ) : equipped.map(item => (
-                                  <div key={item.name} style={{
-                                    display: 'flex', alignItems: 'center', gap: '8px', padding: '6px 10px',
-                                    borderRadius: '8px', background: 'rgba(46,204,113,0.05)', border: '1px solid rgba(46,204,113,0.1)',
-                                    fontSize: '0.7rem', color: '#fff'
-                                  }}>
-                                    <span>{item.icon}</span>
-                                    <span style={{ flex: 1 }}>{item.name}</span>
-                                    <span style={{ fontSize: '0.55rem', color: 'rgba(255,255,255,0.25)', textTransform: 'capitalize' }}>{item.avatarSlot}</span>
-                                  </div>
-                                ))}
+                      {/* Item filter tabs */}
+                      <div style={{ display: 'flex', gap: '4px', marginBottom: '1rem', flexWrap: 'wrap' }}>
+                        {[
+                          { id: 'all', label: '🌐 All' },
+                          { id: 'costume', label: '🎭' },
+                          { id: 'clothing', label: '👕' },
+                          { id: 'jewelry', label: '💎' },
+                          { id: 'background', label: '🌅' },
+                          { id: 'hair', label: '💇' },
+                          { id: 'reiki_sage', label: '🔮' },
+                        ].map(f => (
+                          <button
+                            key={f.id}
+                            onClick={() => setInventoryFilter?.(f.id) || setStoreFilter(f.id === 'all' ? 'inv_all' : 'inv_' + f.id)}
+                            style={{
+                              padding: '4px 10px', borderRadius: '8px', border: '1px solid',
+                              borderColor: 'rgba(255,255,255,0.08)',
+                              background: 'rgba(255,255,255,0.03)',
+                              color: 'rgba(255,255,255,0.5)',
+                              fontSize: '0.6rem', cursor: 'pointer', transition: 'all 0.2s'
+                            }}
+                          >{f.label}</button>
+                        ))}
+                      </div>
+
+                      {/* Draggable Item Grid */}
+                      <div style={{
+                        display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '8px',
+                        maxHeight: '500px', overflowY: 'auto', padding: '4px'
+                      }}>
+                        {(() => {
+                          const shopItems = JSON.parse(localStorage.getItem('aura_shop_items') || '[]');
+                          const ownedItems = shopItems.filter(item => purchasedItems.includes(item.id));
+                          if (ownedItems.length === 0) {
+                            return (
+                              <div style={{ gridColumn: '1 / -1', textAlign: 'center', padding: '2rem' }}>
+                                <div style={{ fontSize: '2rem', marginBottom: '0.5rem' }}>🛍️</div>
+                                <p style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.3)' }}>No items yet. Visit the Gold Store to purchase items!</p>
+                                <button
+                                  onClick={() => setActiveTab('gold store')}
+                                  style={{ marginTop: '0.5rem', padding: '8px 18px', borderRadius: '10px', background: 'rgba(212,175,55,0.1)', border: '1px solid rgba(212,175,55,0.2)', color: 'var(--accent-gold)', cursor: 'pointer', fontSize: '0.7rem', fontWeight: 600 }}
+                                >Go to Gold Store</button>
                               </div>
-                            </div>
-                            {/* In Inventory column */}
-                            <div>
-                              <div style={{ fontSize: '0.65rem', color: 'var(--accent-gold)', fontWeight: '600', marginBottom: '8px', letterSpacing: '1px' }}>🎒 IN BAG ({inInventory.length})</div>
-                              <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', maxHeight: '200px', overflowY: 'auto' }}>
-                                {inInventory.length === 0 ? (
-                                  <div style={{ fontSize: '0.65rem', color: 'rgba(255,255,255,0.15)', padding: '8px', textAlign: 'center' }}>All items equipped!</div>
-                                ) : inInventory.map(item => (
-                                  <div
-                                    key={item.name}
-                                    onClick={() => equipAvatarItem(item)}
-                                    style={{
-                                      display: 'flex', alignItems: 'center', gap: '8px', padding: '6px 10px',
-                                      borderRadius: '8px', background: 'rgba(212,175,55,0.05)', border: '1px solid rgba(212,175,55,0.1)',
-                                      fontSize: '0.7rem', color: '#fff', cursor: 'pointer', transition: 'all 0.2s'
-                                    }}
-                                  >
-                                    <span>{item.icon}</span>
-                                    <span style={{ flex: 1 }}>{item.name}</span>
-                                    <span style={{ fontSize: '0.55rem', color: '#2ecc71' }}>Equip →</span>
-                                  </div>
-                                ))}
+                            );
+                          }
+                          return ownedItems.map(item => {
+                            const isEquipped = Object.values(equippedAvatar).some(e => e?.id === item.id);
+                            const isCostume = item.category === 'costume';
+                            return (
+                              <div
+                                key={item.id}
+                                draggable
+                                onDragStart={(e) => {
+                                  e.dataTransfer.setData('aura_item', JSON.stringify(item));
+                                  e.dataTransfer.effectAllowed = 'copy';
+                                  e.currentTarget.style.opacity = '0.5';
+                                }}
+                                onDragEnd={(e) => { e.currentTarget.style.opacity = '1'; }}
+                                onClick={() => {
+                                  if (isCostume && item.costumeSlots) {
+                                    // Costume: equip all slots at once
+                                    const updated = { ...equippedAvatar };
+                                    Object.entries(item.costumeSlots).forEach(([slot, slotItem]) => {
+                                      updated[slot] = { ...slotItem, id: `${item.id}_${slot}`, parentCostume: item.id };
+                                    });
+                                    setEquippedAvatar(updated);
+                                    localStorage.setItem(`aura_equipped_${user?.email}`, JSON.stringify(updated));
+                                    toast.success(`💎 Equipped ${item.name} costume!`);
+                                  } else if (item.avatarSlot) {
+                                    const updated = { ...equippedAvatar, [item.avatarSlot]: item };
+                                    setEquippedAvatar(updated);
+                                    localStorage.setItem(`aura_equipped_${user?.email}`, JSON.stringify(updated));
+                                    toast.success(`Equipped ${item.name}`);
+                                  }
+                                }}
+                                style={{
+                                  padding: '10px', borderRadius: '12px', textAlign: 'center',
+                                  background: isEquipped ? 'rgba(46,204,113,0.06)' : 'rgba(255,255,255,0.03)',
+                                  border: `1px solid ${isEquipped ? 'rgba(46,204,113,0.2)' : 'rgba(255,255,255,0.06)'}`,
+                                  cursor: 'grab', transition: 'all 0.2s', userSelect: 'none',
+                                  position: 'relative'
+                                }}
+                                title={`${item.name} — ${item.desc || ''}\n${isCostume ? 'Click to equip full set' : 'Drag to avatar builder or click to equip'}`}
+                              >
+                                {/* Equipped badge */}
+                                {isEquipped && (
+                                  <div style={{ position: 'absolute', top: '4px', right: '4px', width: '8px', height: '8px', borderRadius: '50%', background: '#2ecc71', boxShadow: '0 0 4px #2ecc71' }} />
+                                )}
+                                {isCostume && (
+                                  <div style={{ position: 'absolute', top: '4px', left: '4px', fontSize: '0.45rem', color: '#fbbf24', fontWeight: 700, background: 'rgba(251,191,36,0.15)', padding: '1px 5px', borderRadius: '4px' }}>SET</div>
+                                )}
+                                <div style={{ fontSize: '1.4rem', marginBottom: '4px' }}>{item.icon}</div>
+                                <div style={{ fontSize: '0.55rem', color: '#fff', fontWeight: 600, lineHeight: 1.2, marginBottom: '2px' }}>{item.name}</div>
+                                <div style={{ fontSize: '0.45rem', color: 'rgba(255,255,255,0.25)', textTransform: 'capitalize' }}>
+                                  {isCostume ? `${Object.keys(item.costumeSlots || {}).length} slots` : item.avatarSlot || item.category}
+                                </div>
+                                {/* Drag handle indicator */}
+                                <div style={{ marginTop: '4px', fontSize: '0.4rem', color: 'rgba(255,255,255,0.15)', letterSpacing: '2px' }}>⠿⠿⠿</div>
                               </div>
-                            </div>
-                          </div>
-                        );
-                      })()}
+                            );
+                          });
+                        })()}
+                      </div>
                     </div>
 
                     {/* Rank Titles */}

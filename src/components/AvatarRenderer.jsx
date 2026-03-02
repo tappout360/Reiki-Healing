@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
+import { compositeAvatar, renderLivePreview, LAYERS } from '../utils/AvatarCompositingEngine';
 
 /**
  * AvatarRenderer — Premium avatar system with:
@@ -90,75 +91,11 @@ const injectKeyframes = () => {
 const GENERATED_AVATAR_KEY = 'aura_ai_avatar_generated';
 
 const generateAvatarOnCanvas = async (photoSrc, style, equippedItems = {}) => {
-  return new Promise(async (resolve) => {
-    const canvas = document.createElement('canvas');
-    const size = 1024; // High res for AI reference
-    canvas.width = size;
-    canvas.height = size;
-    const ctx = canvas.getContext('2d');
-
-    // 1. Background
-    const bgItem = equippedItems.background;
-    if (bgItem && bgItem.avatarStyle?.background) {
-      const grad = ctx.createLinearGradient(0, 0, 0, size);
-      // Simple parse of linear-gradient if possible, else fallback
-      grad.addColorStop(0, '#1a1a2e'); grad.addColorStop(1, '#0a0a0f');
-      ctx.fillStyle = grad;
-    } else {
-      ctx.fillStyle = '#0a0a1a';
-    }
-    ctx.fillRect(0, 0, size, size);
-
-    // 2. Base Image (User Photo or Skin)
-    const loadImage = (src) => new Promise((res) => {
-      const img = new Image();
-      img.crossOrigin = 'anonymous';
-      img.onload = () => res(img);
-      img.onerror = () => res(null);
-      img.src = src;
-    });
-
-    const baseImg = await loadImage(photoSrc);
-    if (baseImg) {
-      const aspect = baseImg.width / baseImg.height;
-      let dw = size, dh = size;
-      if (aspect > 1) { dh = size / aspect; } else { dw = size * aspect; }
-      const dx = (size - dw) / 2, dy = (size - dh) / 2;
-      ctx.drawImage(baseImg, dx, dy, dw, dh);
-    }
-
-    // 3. Equipped Items
-    const slots = ['legs', 'chest', 'feet', 'neck', 'hands', 'headgear', 'backbling', 'necklace', 'rings', 'tattoo', 'aura', 'badge'];
-    for (const slot of slots) {
-      const item = equippedItems[slot];
-      if (!item) continue;
-
-      if (item.src) {
-        const itemImg = await loadImage(item.src);
-        if (itemImg) ctx.drawImage(itemImg, 0, 0, size, size);
-      } else if (item.avatarEmoji) {
-        ctx.font = '160px serif';
-        ctx.textAlign = 'center';
-        ctx.textBaseline = 'middle';
-        
-        // Smarter placement for emojis
-        let yPos = size / 2;
-        if (slot === 'headgear' || slot === 'head') yPos = size * 0.15;
-        if (slot === 'chest' || slot === 'neck') yPos = size * 0.4;
-        if (slot === 'hands') yPos = size * 0.55;
-        if (slot === 'legs') yPos = size * 0.8;
-        
-        ctx.fillText(item.avatarEmoji, size / 2, yPos);
-      } else if (item.avatarStyle?.fill) {
-        // Fallback: draw a translucent tinted box for the slot area
-        ctx.fillStyle = item.avatarStyle.fill + '66'; // ~40% opacity
-        if (slot === 'chest') ctx.fillRect(size * 0.2, size * 0.25, size * 0.6, size * 0.45);
-        if (slot === 'headgear') ctx.fillRect(size * 0.3, size * 0.05, size * 0.4, size * 0.25);
-        if (slot === 'legs') ctx.fillRect(size * 0.25, size * 0.65, size * 0.5, size * 0.3);
-      }
-    }
-
-    resolve(canvas.toDataURL('image/png', 0.95));
+  // Delegate to the compositing engine for proper z-index layering & anchor points
+  return compositeAvatar({
+    baseSrc: photoSrc,
+    styleFilter: style ? (AI_STYLES.find(s => s.id === style)?.filter || '') : '',
+    equippedItems,
   });
 };
 
@@ -487,6 +424,26 @@ const AvatarRenderer = ({
                     </div>
 
                     {/* Drag and Drop Information Area */}
+
+                    {/* Aura AI — Reiki & Sage Item Recommendation */}
+                    <div style={{
+                      marginTop: '12px', padding: '10px 12px', borderRadius: '10px',
+                      background: 'linear-gradient(135deg, rgba(178,79,255,0.08), rgba(0,229,255,0.06))',
+                      border: '1px solid rgba(178,79,255,0.15)',
+                      display: 'flex', alignItems: 'flex-start', gap: '8px'
+                    }}>
+                      <span style={{ fontSize: '1rem', animation: 'avatarPulse 3s ease-in-out infinite' }}>🤖</span>
+                      <div style={{ flex: 1 }}>
+                        <div style={{ fontSize: '0.6rem', color: '#b24fff', fontWeight: 700, marginBottom: '3px', letterSpacing: '0.5px' }}>AURA AI RECOMMENDS</div>
+                        <div style={{ fontSize: '0.55rem', color: 'rgba(255,255,255,0.5)', lineHeight: 1.4 }}>
+                          {Object.keys(equippedAvatar).some(k => equippedAvatar[k]?.collection === 'reiki_sage')
+                            ? "I sense powerful Reiki & Sage energy in your loadout! Try combining the 🌿 Sage Amulet with the 💎 Crystal Cave background for maximum resonance."
+                            : "Enhance your avatar with the exclusive 🔮 Reiki & Sage Collection! Visit the Gold Store to unlock items from T1 Good to T6 Outstanding."
+                          }
+                        </div>
+                      </div>
+                    </div>
+
                      <div 
                        onDragOver={(e) => { e.preventDefault(); setIsDraggingItem(true); }}
                        onDragLeave={() => setIsDraggingItem(false)}

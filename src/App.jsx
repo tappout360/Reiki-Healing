@@ -1318,7 +1318,7 @@ const [showARGuide, setShowARGuide] = useState(false);
           <div style={{display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '4rem', alignItems: 'center'}}>
             <div className="glass" style={{position: 'relative', height: '500px', overflow: 'hidden'}}>
               <img 
-                src="/assets/compassion-glow.png" 
+                src="/assets/compassion_healing_glow_1769837632078.png" 
                 alt="Compassion Glow" 
                 style={{width: '100%', height: '100%', objectFit: 'cover'}}
               />
@@ -1384,7 +1384,7 @@ const [showARGuide, setShowARGuide] = useState(false);
             </div>
             <div className="glass" style={{padding: '0', overflow: 'hidden'}}>
                <img 
-                src="/assets/crystal-resonance.png" 
+                src="/assets/crystal_resonance_tech_1769838808831.png" 
                 alt="Crystal Resonance Technology" 
                 style={{width: '100%', height: 'auto', display: 'block'}}
               />
