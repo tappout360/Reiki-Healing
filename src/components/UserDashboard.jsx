@@ -7,8 +7,9 @@ import {
 } from 'lucide-react';
 import { getZodiacSign, getAdvancedHoroscope } from '../utils/horoscopes';
 import { auth, db, isFirebaseConfigured } from '../lib/firebase';
+import { BADGES, BADGE_CATEGORIES, getLevel, getLevelProgress, getNextLevel, getStats, getBadgesByCategory } from '../utils/gamification';
 
-const UserDashboard = ({ user, onClose, onUpdateUser, onNavigateToBooking, onNavigateToProtocols, onJoinLivePortal }) => {
+const UserDashboard = ({ user, onClose, onUpdateUser, onNavigateToBooking, onNavigateToProtocols, onJoinLivePortal, gamificationState }) => {
   const [activeTab, setActiveTab] = useState('overview');
   const [isCalibrating, setIsCalibrating] = useState(false);
   const [isDeactivating, setIsDeactivating] = useState(false);
@@ -243,7 +244,7 @@ const UserDashboard = ({ user, onClose, onUpdateUser, onNavigateToBooking, onNav
 
         <div style={{ display: 'flex', alignItems: 'center', gap: '1.5rem' }}>
           <div style={{ display: 'flex', gap: '2rem', marginRight: '2rem' }}>
-            {['Overview', 'Vibrational Log', 'Schedule', 'Community', 'My Reflections', 'Settings'].map(tab => (
+            {['Overview', 'Vibrational Log', 'Achievements', 'Schedule', 'Community', 'My Reflections', 'Settings'].map(tab => (
               <button
                 key={tab}
                 onClick={() => setActiveTab(tab.toLowerCase())}
@@ -428,36 +429,86 @@ const UserDashboard = ({ user, onClose, onUpdateUser, onNavigateToBooking, onNav
               </div>
             </div>
 
-            {/* Milestone Badges */}
-            <div className="glass" style={{ padding: '1.25rem', borderRadius: '16px', background: 'rgba(255,255,255,0.02)' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '1rem' }}>
-                <span style={{ fontSize: '0.8rem', color: 'rgba(255,255,255,0.4)' }}>Badges</span>
-                <Award size={16} color="var(--accent-gold)" />
+            {/* XP Level & Progress */}
+            {gamificationState && (
+              <div className="glass" style={{ padding: '1.25rem', borderRadius: '16px', background: 'rgba(255,255,255,0.02)' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.75rem' }}>
+                  <span style={{ fontSize: '0.8rem', color: 'rgba(255,255,255,0.4)' }}>Aura Level</span>
+                  <Award size={16} color={getLevel(gamificationState.xp).color} />
+                </div>
+                <div style={{ display: 'flex', alignItems: 'baseline', gap: '8px', marginBottom: '4px' }}>
+                  <span style={{ fontSize: '1.6rem', fontWeight: '700', color: getLevel(gamificationState.xp).color }}>
+                    {getLevel(gamificationState.xp).name}
+                  </span>
+                  <span style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.3)' }}>Lv.{getLevel(gamificationState.xp).level}</span>
+                </div>
+                <div className="xp-bar-container" style={{ marginBottom: '6px' }}>
+                  <div
+                    className="xp-bar-fill"
+                    style={{
+                      width: `${getLevelProgress(gamificationState.xp)}%`,
+                      background: `linear-gradient(90deg, ${getLevel(gamificationState.xp).color}, var(--accent-gold))`
+                    }}
+                  />
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.65rem', color: 'rgba(255,255,255,0.3)' }}>
+                  <span>{gamificationState.xp} XP</span>
+                  <span>{getNextLevel(gamificationState.xp) ? `${getNextLevel(gamificationState.xp).xpRequired} XP` : 'MAX'}</span>
+                </div>
+                {/* Mini badge row */}
+                <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', marginTop: '1rem' }}>
+                  {gamificationState.earnedBadges.slice(-6).map(id => {
+                    const badge = BADGES.find(b => b.id === id);
+                    return badge ? (
+                      <div key={id} title={badge.name} style={{
+                        width: '30px', height: '30px', borderRadius: '50%',
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        fontSize: '0.85rem',
+                        background: 'rgba(212, 175, 55, 0.15)',
+                        border: '1px solid rgba(212, 175, 55, 0.3)'
+                      }}>
+                        {badge.icon}
+                      </div>
+                    ) : null;
+                  })}
+                  {gamificationState.earnedBadges.length === 0 && (
+                    <span style={{ fontSize: '0.7rem', color: 'rgba(255,255,255,0.25)' }}>Complete protocols to earn badges</span>
+                  )}
+                </div>
               </div>
-              <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-                {[
-                  { label: 'First Light', threshold: 1, icon: '✨' },
-                  { label: 'Seeker', threshold: 3, icon: '🔮' },
-                  { label: 'Adept', threshold: 5, icon: '⚡' },
-                  { label: 'Master', threshold: 10, icon: '👑' },
-                ].map(badge => {
-                  const earned = (user.sessions || 0) >= badge.threshold;
-                  return (
-                    <div key={badge.label} title={`${badge.label} — ${badge.threshold} sessions`} style={{
-                      width: '36px', height: '36px', borderRadius: '50%',
-                      display: 'flex', alignItems: 'center', justifyContent: 'center',
-                      fontSize: '1rem',
-                      background: earned ? 'rgba(212, 175, 55, 0.15)' : 'rgba(255,255,255,0.03)',
-                      border: `1px solid ${earned ? 'var(--accent-gold)' : 'rgba(255,255,255,0.08)'}`,
-                      opacity: earned ? 1 : 0.3,
-                      cursor: 'default'
-                    }}>
-                      {badge.icon}
-                    </div>
-                  );
-                })}
+            )}
+            {/* Fallback: old badge display when gamification is not active */}
+            {!gamificationState && (
+              <div className="glass" style={{ padding: '1.25rem', borderRadius: '16px', background: 'rgba(255,255,255,0.02)' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '1rem' }}>
+                  <span style={{ fontSize: '0.8rem', color: 'rgba(255,255,255,0.4)' }}>Badges</span>
+                  <Award size={16} color="var(--accent-gold)" />
+                </div>
+                <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                  {[
+                    { label: 'First Light', threshold: 1, icon: '✨' },
+                    { label: 'Seeker', threshold: 3, icon: '🔮' },
+                    { label: 'Adept', threshold: 5, icon: '⚡' },
+                    { label: 'Master', threshold: 10, icon: '👑' },
+                  ].map(badge => {
+                    const earned = (user.sessions || 0) >= badge.threshold;
+                    return (
+                      <div key={badge.label} title={`${badge.label} — ${badge.threshold} sessions`} style={{
+                        width: '36px', height: '36px', borderRadius: '50%',
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        fontSize: '1rem',
+                        background: earned ? 'rgba(212, 175, 55, 0.15)' : 'rgba(255,255,255,0.03)',
+                        border: `1px solid ${earned ? 'var(--accent-gold)' : 'rgba(255,255,255,0.08)'}`,
+                        opacity: earned ? 1 : 0.3,
+                        cursor: 'default'
+                      }}>
+                        {badge.icon}
+                      </div>
+                    );
+                  })}
+                </div>
               </div>
-            </div>
+            )}
           </div>
         </div>
 
@@ -811,6 +862,73 @@ const UserDashboard = ({ user, onClose, onUpdateUser, onNavigateToBooking, onNav
                       ))
                     )}
                  </div>
+              </motion.div>
+            )}
+
+            {activeTab === 'achievements' && gamificationState && (
+              <motion.div
+                key="achievements"
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -20 }}
+              >
+                <h2 style={{ fontSize: '2.5rem', marginBottom: '0.5rem', fontFamily: "'Playfair Display', serif" }}>Ascension Achievements</h2>
+                <p style={{ color: 'rgba(255,255,255,0.5)', marginBottom: '2rem' }}>
+                  Your journey through the realms of healing — {getStats(gamificationState).earnedBadges} of {getStats(gamificationState).totalBadges + getStats(gamificationState).earnedHidden} badges earned.
+                </p>
+
+                {/* Stats Row */}
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '1rem', marginBottom: '3rem' }}>
+                  <div className="gamification-stat">
+                    <div className="gamification-stat-value" style={{ color: getLevel(gamificationState.xp).color }}>{gamificationState.xp}</div>
+                    <div className="gamification-stat-label">Total XP</div>
+                  </div>
+                  <div className="gamification-stat">
+                    <div className="gamification-stat-value" style={{ color: '#e17055' }}>{gamificationState.totalSessions}</div>
+                    <div className="gamification-stat-label">Sessions</div>
+                  </div>
+                  <div className="gamification-stat">
+                    <div className="gamification-stat-value" style={{ color: '#00cec9' }}>{Math.round(gamificationState.totalHzGain)}</div>
+                    <div className="gamification-stat-label">Total Hz</div>
+                  </div>
+                  <div className="gamification-stat">
+                    <div className="gamification-stat-value" style={{ color: '#d4af37' }}>{getStats(gamificationState).completionPercent}%</div>
+                    <div className="gamification-stat-label">Complete</div>
+                  </div>
+                </div>
+
+                {/* Badge Categories */}
+                {Object.entries(getBadgesByCategory(gamificationState.earnedBadges)).map(([categoryKey, category]) => (
+                  <div key={categoryKey} style={{ marginBottom: '2.5rem' }}>
+                    <div className="badge-category-header">
+                      <div className="badge-category-icon" style={{ background: `${category.color}22`, border: `1px solid ${category.color}44` }}>
+                        {category.icon}
+                      </div>
+                      <div>
+                        <h4 style={{ margin: 0, fontSize: '1rem' }}>{category.label}</h4>
+                        <span style={{ fontSize: '0.7rem', color: 'rgba(255,255,255,0.3)' }}>
+                          {category.badges.filter(b => b.earned).length}/{category.badges.filter(b => !b.hidden || b.earned).length} unlocked
+                        </span>
+                      </div>
+                    </div>
+                    <div className="badge-grid">
+                      {category.badges.filter(b => !b.hidden || b.earned).map(badge => (
+                        <motion.div
+                          key={badge.id}
+                          className={`badge-card ${badge.earned ? 'earned' : 'locked'}`}
+                          whileHover={{ scale: badge.earned ? 1.05 : 1.02 }}
+                        >
+                          {badge.earned && <div className="badge-xp-tag">+{badge.xp} XP</div>}
+                          <div className="badge-icon" style={{ background: badge.earned ? `${category.color}22` : 'rgba(255,255,255,0.03)' }}>
+                            {badge.icon}
+                          </div>
+                          <div className="badge-name">{badge.name}</div>
+                          <div className="badge-desc">{badge.desc}</div>
+                        </motion.div>
+                      ))}
+                    </div>
+                  </div>
+                ))}
               </motion.div>
             )}
 

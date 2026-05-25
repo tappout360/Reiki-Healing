@@ -9,6 +9,7 @@ import { aiKnowledgeBase } from './components/aiKnowledgeBase'
 import { Toaster, toast } from 'react-hot-toast'
 import { UserDashboardInline } from './components/UserDashboardInline'
 import { auth, db, isFirebaseConfigured } from './lib/firebase'
+import { loadGamificationState, saveGamificationState, processSessionComplete, syncToFirestore } from './utils/gamification'
 import './App.css'
 import './components/AuraGuide.css'
 
@@ -478,6 +479,10 @@ const [showCheckoutModal, setShowCheckoutModal] = useState(false);
   const [isIOS, setIsIOS] = useState(false);
   const [showIOSInstruction, setShowIOSInstruction] = useState(false);
 
+  // Gamification State
+  const [gamificationState, setGamificationState] = useState(null);
+  const [showLevelUp, setShowLevelUp] = useState(null);
+
   useEffect(() => {
     // Detect iOS
     const isIpadOrIphone = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
@@ -598,6 +603,16 @@ const [showCheckoutModal, setShowCheckoutModal] = useState(false);
       activityEvents.forEach(event => window.removeEventListener(event, resetTimers));
     };
   }, [user, handleLogout]);
+
+  // Load gamification state for subscribers
+  useEffect(() => {
+    if (user?.email && (user.subscription === 'healing' || user.role === 'owner')) {
+      const state = loadGamificationState(user.email);
+      setGamificationState(state);
+    } else {
+      setGamificationState(null);
+    }
+  }, [user]);
 
   const toggleTheme = () => {
     const newTheme = theme === 'dark' ? 'light' : 'dark';
@@ -728,6 +743,40 @@ const [showCheckoutModal, setShowCheckoutModal] = useState(false);
     else if (currentStreak === 7) toast.success('✨ 7-Day Mastery Streak! You are radiating pure light.');
     else if (currentStreak === 30) toast.success('👑 30-Day Ascension Streak! Legendary status achieved.');
     else toast.success(`${currentProto?.name} integration complete. Frequency elevated.`);
+
+    // ── Gamification: Process session completion ──
+    if (gamificationState && (user.subscription === 'healing' || user.role === 'owner')) {
+      const hzGain = newLog.hzGain;
+      const result = processSessionComplete(gamificationState, selectedProtocol, hzGain);
+      result.updatedState.currentStreak = currentStreak;
+      result.updatedState.longestStreak = Math.max(currentStreak, result.updatedState.longestStreak);
+      setGamificationState(result.updatedState);
+      saveGamificationState(user.email, result.updatedState);
+      if (isFirebaseConfigured()) {
+        const uid = auth.getUser()?.uid;
+        syncToFirestore(db, uid, result.updatedState);
+      }
+      for (const badge of result.newBadges) {
+        setTimeout(() => {
+          toast((t) => (
+            <div className="badge-unlock-toast" onClick={() => toast.dismiss(t.id)}>
+              <span style={{ fontSize: '2rem' }}>{badge.icon}</span>
+              <div>
+                <div style={{ fontWeight: '700', color: '#d4af37' }}>Badge Unlocked!</div>
+                <div style={{ fontSize: '0.85rem' }}>{badge.name}</div>
+                <div style={{ fontSize: '0.7rem', color: '#00b894' }}>+{badge.xp} XP</div>
+              </div>
+            </div>
+          ), { duration: 4000, style: { background: 'transparent', boxShadow: 'none', padding: 0 } });
+        }, 500);
+      }
+      if (result.leveledUp && result.newLevel) {
+        setTimeout(() => {
+          setShowLevelUp(result.newLevel);
+          setTimeout(() => setShowLevelUp(null), 5000);
+        }, result.newBadges.length > 0 ? 2000 : 500);
+      }
+    }
   };
 
 
@@ -1988,6 +2037,7 @@ const [showCheckoutModal, setShowCheckoutModal] = useState(false);
         {showUserFullDashboard && user && (
           <Suspense fallback={null}>
             <UserDashboard 
+              gamificationState={gamificationState}
               user={user} 
               onClose={() => setShowUserFullDashboard(false)} 
               onUpdateUser={handleUpdateUser}
@@ -2511,6 +2561,7 @@ const [showCheckoutModal, setShowCheckoutModal] = useState(false);
         <AnimatePresence>
           {showUserFullDashboard && (
             <UserDashboard 
+              gamificationState={gamificationState}
               user={user}
               onClose={() => setShowUserFullDashboard(false)}
               onUpdateUser={handleUpdateUser}
@@ -2574,6 +2625,31 @@ const [showCheckoutModal, setShowCheckoutModal] = useState(false);
 
       {/* iOS Safari PWA Install Modal */}
       {renderIOSInstructionModal()}
+
+      {/* Level-Up Celebration Overlay */}
+      {showLevelUp && (
+        <div className="level-up-overlay" onClick={() => setShowLevelUp(null)}>
+          <div className="level-up-card">
+            <div className="level-up-icon">⚡</div>
+            <h2 style={{ fontSize: '2.5rem', fontFamily: 'Playfair Display', color: '#d4af37', marginBottom: '0.5rem' }}>
+              Level Up!
+            </h2>
+            <div style={{ fontSize: '1.5rem', color: showLevelUp.color, fontWeight: '700', marginBottom: '0.5rem' }}>
+              {showLevelUp.name}
+            </div>
+            <div style={{ fontSize: '1rem', color: 'rgba(255,255,255,0.5)' }}>
+              Level {showLevelUp.level}
+            </div>
+            <button
+              onClick={() => setShowLevelUp(null)}
+              className="btn btn-primary"
+              style={{ marginTop: '2rem', padding: '0.8rem 2.5rem' }}
+            >
+              Continue
+            </button>
+          </div>
+        </div>
+      )}
 
     </div>
   )
