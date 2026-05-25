@@ -16,6 +16,10 @@ const AdminLogin = ({ onLogin, onClose }) => {
     setLoading(true);
 
     try {
+      const normalizedEmail = email.trim().toLowerCase();
+      const allowedEmails = ['jasonmounts77@yahoo.com', 'carissabright@gmail.com'];
+      const isWhitelisted = allowedEmails.includes(normalizedEmail);
+
       if (isFirebaseConfigured()) {
         // Firebase Auth + role check
         const user = await auth.signIn(email.trim(), password);
@@ -28,54 +32,44 @@ const AdminLogin = ({ onLogin, onClose }) => {
           return;
         }
 
-        const isAuthorized = ['admin', 'owner', 'staff', 'healer'].includes(profile.role);
-        if (!isAuthorized) {
+        if (!isWhitelisted) {
           setError('Access Denied: Your account does not have Healer privileges.');
           await auth.signOut();
           setLoading(false);
           return;
         }
 
+        // Auto-promote whitelisted email profiles to 'owner' role if they aren't already
+        let updatedProfile = { ...profile };
+        if (profile.role !== 'owner') {
+          updatedProfile = await db.updateProfile(user.uid, { role: 'owner' });
+        }
+
         // Success — store profile for App.jsx and trigger dashboard
-        localStorage.setItem('user_profile', JSON.stringify(profile));
+        localStorage.setItem('user_profile', JSON.stringify(updatedProfile));
         setLoading(false);
         onLogin();
       } else {
-        // Fallback: localStorage check for local dev
-        const clients = JSON.parse(localStorage.getItem('aura_clients') || '[]');
-        const team = JSON.parse(localStorage.getItem('aura_team') || '[]');
-        const normalizedEmail = email.trim().toLowerCase();
-
-        const userMatch = clients.find(c =>
-          c.email?.toLowerCase() === normalizedEmail || c.username?.toLowerCase() === normalizedEmail
-        );
-
-        if (userMatch) {
-          const isTeamMember = team.find(t =>
-            t.email?.toLowerCase() === userMatch.email?.toLowerCase() && t.status === 'Active'
-          );
-          const isAdmin = ['admin', 'owner', 'healer'].includes(userMatch.role);
-
-          if (isTeamMember || isAdmin) {
-            setTimeout(() => {
-              setLoading(false);
-              const adminUser = {
-                name: userMatch.name, email: userMatch.email,
-                role: userMatch.role, subscription: 'healing', status: 'Active'
-              };
-              localStorage.setItem('user_profile', JSON.stringify(adminUser));
-              onLogin();
-            }, 1000);
-            return;
-          } else {
+        // Fallback: local development check with the whitelisted emails & password
+        if (isWhitelisted && password === '2014$Rogue10/31') {
+          setTimeout(() => {
             setLoading(false);
-            setError('Access Denied: Your account does not have Healer privileges.');
-            return;
-          }
+            const adminUser = {
+              name: normalizedEmail === 'carissabright@gmail.com' ? 'Carissa Bright' : 'Jason Mounts',
+              email: normalizedEmail,
+              role: 'owner',
+              subscription: 'healing',
+              status: 'Active'
+            };
+            localStorage.setItem('user_profile', JSON.stringify(adminUser));
+            onLogin();
+          }, 1000);
+          return;
+        } else {
+          setLoading(false);
+          setError('Access Denied: Invalid credentials or unauthorized account.');
+          return;
         }
-
-        setLoading(false);
-        setError('Invalid credentials. Please check your email and password.');
       }
     } catch (err) {
       setLoading(false);
