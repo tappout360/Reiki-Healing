@@ -1,4 +1,4 @@
-import React, { useEffect, useState, Suspense, lazy } from 'react'
+import React, { useEffect, useState, useRef, useCallback, Suspense, lazy } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { 
   Sparkles, Activity, Shield, Info, Heart, Zap, Waves, Moon, Sun, 
@@ -541,6 +541,63 @@ const [showCheckoutModal, setShowCheckoutModal] = useState(false);
       }
     }
   }, []);
+
+  // ─── Reusable Logout Handler ───
+  const handleLogout = useCallback(async () => {
+    try {
+      if (isFirebaseConfigured()) await auth.signOut();
+    } catch { /* ignore signout errors */ }
+    setUser(null);
+    localStorage.removeItem('user_profile');
+  }, []);
+
+  // ─── 15-Minute Session Auto-Logout (Idle Timer) ───
+  useEffect(() => {
+    if (!user) return; // Only active when logged in
+
+    const SESSION_TIMEOUT = 15 * 60 * 1000; // 15 minutes
+    const WARNING_BEFORE = 60 * 1000; // Warn 1 minute before logout
+    let idleTimer = null;
+    let warningTimer = null;
+
+    const resetTimers = () => {
+      if (idleTimer) clearTimeout(idleTimer);
+      if (warningTimer) clearTimeout(warningTimer);
+
+      // Warning toast at 14 minutes
+      warningTimer = setTimeout(() => {
+        toast('⏳ Your session will expire in 1 minute due to inactivity.', {
+          icon: '🔒',
+          duration: 8000,
+          style: {
+            background: 'rgba(20, 20, 40, 0.95)',
+            color: '#d4af37',
+            border: '1px solid rgba(212, 175, 55, 0.4)',
+            borderRadius: '16px'
+          }
+        });
+      }, SESSION_TIMEOUT - WARNING_BEFORE);
+
+      // Auto-logout at 15 minutes
+      idleTimer = setTimeout(() => {
+        handleLogout();
+        toast.success('Session ended due to inactivity. Your energy field is safely sealed. 🔒', { duration: 5000 });
+      }, SESSION_TIMEOUT);
+    };
+
+    // Activity events that reset the idle timer
+    const activityEvents = ['mousemove', 'mousedown', 'keypress', 'scroll', 'touchstart', 'click'];
+    activityEvents.forEach(event => window.addEventListener(event, resetTimers, { passive: true }));
+
+    // Start the initial timer
+    resetTimers();
+
+    return () => {
+      if (idleTimer) clearTimeout(idleTimer);
+      if (warningTimer) clearTimeout(warningTimer);
+      activityEvents.forEach(event => window.removeEventListener(event, resetTimers));
+    };
+  }, [user, handleLogout]);
 
   const toggleTheme = () => {
     const newTheme = theme === 'dark' ? 'light' : 'dark';
@@ -1739,11 +1796,7 @@ const [showCheckoutModal, setShowCheckoutModal] = useState(false);
                     </button>
                     <button 
                       onClick={async () => {
-                          try {
-                            if (isFirebaseConfigured()) await auth.signOut();
-                          } catch { /* ignore signout errors */ }
-                          setUser(null);
-                          localStorage.removeItem('user_profile');
+                          await handleLogout();
                           toast.success('Disconnected peacefully.');
                       }}
                       style={{

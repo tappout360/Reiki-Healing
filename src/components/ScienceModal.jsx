@@ -20,11 +20,14 @@ const ScienceTab = () => {
         <h3><Activity size={20} /> The Biofield Mechanism</h3>
         <p>
           Every living biological system emits an electromagnetic field, scientifically referred to as the <strong>Biofield</strong>.
-          Research in biophysics has detected that the heart generates the strongest electromagnetic field in the body, measurable several feet away.
+          According to the Institute of HeartMath, the human heart generates the strongest electromagnetic field in the body—up to 100 times stronger electrically and 5,000 times stronger magnetically than the brain—measurable several feet away using sensitive magnetometers.
         </p>
         <div className="highlight-box">
-          <strong>Distinct Detail:</strong> SQUID magnetometer studies have recorded biomagnetic pulses from healers' hands in the range of <strong>0.3 to 30 Hz</strong>—precisely overlapping with human brainwaves (alpha/theta) that govern tissue repair and deep relaxation.
+          <strong>SQUID Magnetometry:</strong> In the 1980s, biophysicist Dr. John Zimmerman utilized a Superconducting Quantum Interference Device (SQUID) to measure the biomagnetic fields of energy healers' hands. He recorded weak pulsating electromagnetic fields sweeping through <strong>0.3 to 30 Hz</strong>, with strong activity in the <strong>7–8 Hz (alpha/theta)</strong> boundary.
         </div>
+        <p style={{ fontSize: '0.85rem', color: 'var(--text-muted, #a1a1a1)', marginTop: '0.5rem', fontStyle: 'italic', lineHeight: '1.4' }}>
+          *Note on Replication: While Zimmerman's pioneering work established this range, a 2013 study utilizing advanced magnetic shielding reported that any biomagnetic emissions from the hands did not exceed normal physiological boundaries (e.g., heartbeat harmonics). Hence, biofield interactions are likely subtle and mediated through autonomic nervous system entrainment rather than high-intensity radiation.
+        </p>
       </section>
 
       <section className="science-section">
@@ -204,22 +207,30 @@ const SageTab = () => (
     </section>
 
     <section className="science-section">
-      <h3><Microscope size={20} /> What Science Says</h3>
-      <p>While the spiritual dimensions of sage are deeply personal, modern research has identified some interesting properties:</p>
+      <h3><Microscope size={20} /> Biochemical Analysis of White Sage</h3>
+      <p>
+        Modern chromatography and mass spectrometry have mapped the active chemical profile of White Sage (<em>Salvia apiana</em>) essential oil and polar extracts:
+      </p>
       <ul className="sage-science-list">
         <li>
-          <strong>Antimicrobial Properties:</strong> Laboratory studies have found that sage extracts and essential oils possess antimicrobial and antioxidant compounds, including thujone, camphor, and rosmarinic acid.
+          <strong>High 1,8-Cineole (Eucalyptol):</strong> Comprising <strong>26% to 71%</strong> of the essential oil, this monoterpene is known for its refreshing, clearing, and respiratory-soothing properties.
         </li>
         <li>
-          <strong>Aromatherapy Benefits:</strong> The scent of sage has been associated with improved mood, reduced anxiety, and enhanced cognitive function in aromatherapy research.
+          <strong>Camphor Content:</strong> Comprising <strong>2% to 22%</strong>, camphor acts as a mild cognitive stimulant and gives white sage its cooling sensory signature.
         </li>
         <li>
-          <strong>Negative Ion Theory:</strong> Some researchers theorize that burning herbs may release negative ions, which are associated with mood elevation — similar to the feeling near waterfalls or after rain.
+          <strong>Absence of Thujone:</strong> Unlike common culinary sage (<em>Salvia officinalis</em>), White Sage essential oil lacks neurotoxic <strong>thujone</strong>, making it safer for inhalation during ceremonies.
         </li>
         <li>
-          <strong>Mindfulness Anchor:</strong> The ritual of smudging serves as a powerful mindfulness practice, creating intentional transitions between mental states.
+          <strong>Phenolic Diterpenes:</strong> Rich in antioxidants such as <strong>carnosic acid</strong>, <strong>rosmanol</strong>, and <strong>carnosol</strong>, which exhibit strong anti-inflammatory and free-radical scavenging properties in extracts.
+        </li>
+        <li>
+          <strong>In Vitro Antimicrobial Action:</strong> Laboratory studies demonstrate that extracts of <em>Salvia apiana</em> show potent inhibitory and bactericidal efficacy against Gram-positive bacteria, including <em>Staphylococcus aureus</em> and <em>Streptococcus pyogenes</em>, as well as fungal pathogens like <em>Candida albicans</em>.
         </li>
       </ul>
+      <div className="highlight-box" style={{ borderLeftColor: 'var(--earth-accent, #c8963e)' }}>
+        <strong>Science Fact-Check:</strong> A popular online claim states that burning sage reduces airborne bacteria by 94%. However, the 2007 <em>Journal of Ethnopharmacology</em> study actually tested <strong>havan sámagri</strong> (a traditional Vedic polyherbal blend), not white sage. Although smudging white sage has not been clinically proven to disinfect room air, the ritual remains a highly effective aromatherapy anchor, using volatile terpenes to stimulate the olfactory system and shift cognitive states.
+      </div>
     </section>
   </>
 );
@@ -334,6 +345,24 @@ const MedicineTab = () => {
             </motion.div>
           ))}
         </div>
+      </section>
+
+      <section className="science-section">
+        <h3><Activity size={20} /> Clinical Evidence & Physiological Markers</h3>
+        <p>
+          Peer-reviewed studies on Reiki explore its impact on the autonomic nervous system (ANS) and pathways governing stress recovery:
+        </p>
+        <ul className="sage-science-list">
+          <li>
+            <strong>Autonomic Nervous System Regulation:</strong> Clinical trials show Reiki significantly increases heart rate variability (HRV), particularly the SDNN index. This indicates a robust shift from the sympathetic (fight-or-flight) to the parasympathetic (rest-and-repair) nervous system.
+          </li>
+          <li>
+            <strong>Stress and Pain Management:</strong> Reiki has been shown to reduce perceived pain and anxiety in oncology settings, aiding post-operative healing by facilitating relaxation and elevating patient pain thresholds.
+          </li>
+          <li>
+            <strong>Mixed Biochemical Responses:</strong> While patients consistently report lower anxiety and subjective stress, salivary cortisol levels show mixed results across clinical trials, suggesting that Reiki's pathway of action operates primarily through autonomic pathways rather than immediate endocrine changes.
+          </li>
+        </ul>
       </section>
 
       <section className="science-section">
