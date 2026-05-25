@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import toast from 'react-hot-toast';
 import { auth, db, isFirebaseConfigured } from '../lib/firebase';
 
 const AdminLogin = ({ onLogin, onClose }) => {

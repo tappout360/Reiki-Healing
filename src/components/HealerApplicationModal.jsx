@@ -162,13 +162,22 @@ const HealerApplicationModal = ({ user, onClose }) => {
             <div style={{display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem', marginBottom: '1.5rem'}}>
                 <div>
                     <label style={{display: 'block', marginBottom: '0.5rem', color: 'var(--text-main)', fontSize: '0.9rem'}}>Create Password</label>
-                    <input 
-                        required
-                        type={showPassword ? "text" : "password"}
-                        style={{width: '100%', padding: '0.8rem', borderRadius: '8px', background: 'rgba(255,255,255,0.05)', border: '1px solid var(--glass-border)', color: 'white'}}
-                        value={formData.password}
-                        onChange={e => setFormData({...formData, password: e.target.value})}
-                    />
+                    <div style={{position: 'relative'}}>
+                        <input 
+                            required
+                            type={showPassword ? "text" : "password"}
+                            style={{width: '100%', padding: '0.8rem', paddingRight: '2.5rem', borderRadius: '8px', background: 'rgba(255,255,255,0.05)', border: '1px solid var(--glass-border)', color: 'white'}}
+                            value={formData.password}
+                            onChange={e => setFormData({...formData, password: e.target.value})}
+                        />
+                        <button
+                            type="button"
+                            onClick={() => setShowPassword(!showPassword)}
+                            style={{position: 'absolute', right: '10px', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', color: 'rgba(255,255,255,0.4)', cursor: 'pointer'}}
+                        >
+                            {showPassword ? '🙈' : '👁️'}
+                        </button>
+                    </div>
                     {formData.password && (
                         <div style={{marginTop: '0.5rem'}}>
                             <div style={{width: '100%', height: '4px', background: 'rgba(255,255,255,0.1)', borderRadius: '10px', overflow: 'hidden'}}>
@@ -180,13 +189,22 @@ const HealerApplicationModal = ({ user, onClose }) => {
                 </div>
                 <div>
                     <label style={{display: 'block', marginBottom: '0.5rem', color: 'var(--text-main)', fontSize: '0.9rem'}}>Confirm Password</label>
-                    <input 
-                        required
-                        type={showPassword ? "text" : "password"}
-                        style={{width: '100%', padding: '0.8rem', borderRadius: '8px', background: 'rgba(255,255,255,0.05)', border: '1px solid var(--glass-border)', color: 'white'}}
-                        value={formData.confirmPassword}
-                        onChange={e => setFormData({...formData, confirmPassword: e.target.value})}
-                    />
+                    <div style={{position: 'relative'}}>
+                        <input 
+                            required
+                            type={showPassword ? "text" : "password"}
+                            style={{width: '100%', padding: '0.8rem', paddingRight: '2.5rem', borderRadius: '8px', background: 'rgba(255,255,255,0.05)', border: '1px solid var(--glass-border)', color: 'white'}}
+                            value={formData.confirmPassword}
+                            onChange={e => setFormData({...formData, confirmPassword: e.target.value})}
+                        />
+                        <button
+                            type="button"
+                            onClick={() => setShowPassword(!showPassword)}
+                            style={{position: 'absolute', right: '10px', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', color: 'rgba(255,255,255,0.4)', cursor: 'pointer'}}
+                        >
+                            {showPassword ? '🙈' : '👁️'}
+                        </button>
+                    </div>
                 </div>
             </div>
 
@@ -221,10 +239,10 @@ const HealerApplicationModal = ({ user, onClose }) => {
             <button 
                 type="submit" 
                 className="btn-primary" 
-                disabled={!validate()}
-                style={{width: '100%', justifyContent: 'center', opacity: validate() ? 1 : 0.5}}
+                disabled={!validate() || submitting}
+                style={{width: '100%', justifyContent: 'center', opacity: (validate() && !submitting) ? 1 : 0.5}}
             >
-                <Send size={18} /> Submit Application
+                <Send size={18} /> {submitting ? 'Transmitting...' : 'Submit Application'}
             </button>
         </form>
 

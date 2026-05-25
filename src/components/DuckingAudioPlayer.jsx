@@ -120,7 +120,7 @@ const DuckingAudioPlayer = ({
       ambientElementRef.current.pause();
       voiceElementRef.current.pause();
     }
-  }, [isPlaying, musicSrc, ambientSrc]);
+  }, [isPlaying, musicSrc, ambientSrc, voiceSrc]);
 
   useEffect(() => {
     return () => {

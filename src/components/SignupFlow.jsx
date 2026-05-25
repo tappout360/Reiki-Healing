@@ -807,9 +807,10 @@ const SignupFlow = ({ onComplete, onCancel }) => {
                   <button
                     className="btn btn-primary"
                     onClick={handleSubmit}
-                    style={{ flex: 2, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px' }}
+                    disabled={submitting}
+                    style={{ flex: 2, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px', opacity: submitting ? 0.7 : 1 }}
                   >
-                    <Sparkles size={20} /> Complete Registration
+                    <Sparkles size={20} /> {submitting ? 'Calibrating Profile...' : 'Complete Registration'}
                   </button>
                 </div>
               </div>

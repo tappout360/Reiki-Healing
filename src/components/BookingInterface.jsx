@@ -4,7 +4,12 @@ import Calendar from 'react-calendar';
 import 'react-calendar/dist/Calendar.css';
 import './BookingInterface.css';
 import { logTransaction } from '../utils/logger';
-import BillingForm, { maskCardData } from './BillingForm';
+import BillingForm from './BillingForm';
+
+const maskCardData = (number) => {
+  if (!number || number.length < 4) return '****';
+  return `**** **** **** ${number.slice(-4)}`;
+};
 
 const BookingInterface = ({ type, onClose }) => {
   const [date, setDate] = useState(new Date());
@@ -94,7 +99,7 @@ const BookingInterface = ({ type, onClose }) => {
     
     // Simulated email dispatch
     const emailSettings = JSON.parse(localStorage.getItem('aura_email_settings')) || { fromEmail: 'healing@reikiandsage.com', signature: 'Balance & Blessing, Carissa' };
-    // console.log(`[AURA SIMULATION] Email sent from ${emailSettings.fromEmail} to ${email}. Subject: Appointment Confirmed. Signature: ${emailSettings.signature}`);
+    console.log(`[AURA SIMULATION] Email sent from ${emailSettings.fromEmail} to ${email}. Subject: Appointment Confirmed. Signature: ${emailSettings.signature}`);
     
     // Log Transaction
     logTransaction(

@@ -503,7 +503,7 @@ const [showCheckoutModal, setShowCheckoutModal] = useState(false);
   useEffect(() => {
     if (isFirebaseConfigured()) {
       // Firebase auth state listener — reactive login/logout
-      const unsubscribe = auth.onAuthStateChange(async (event, firebaseUser) => {
+      const unsubscribe = auth.onAuthStateChange(async (firebaseUser) => {
         if (firebaseUser) {
           try {
             const profile = await db.getProfile(firebaseUser.uid);
@@ -576,7 +576,7 @@ const [showCheckoutModal, setShowCheckoutModal] = useState(false);
         return () => clearInterval(interval);
       }
     }
-  }, [showPortal, selectedProtocol]);
+  }, [showPortal, selectedProtocol, isPaused]);
 
   const handleUpdateUser = (updatedProfile) => {
     setUser(updatedProfile);
@@ -610,7 +610,7 @@ const [showCheckoutModal, setShowCheckoutModal] = useState(false);
   const toggleFullscreen = () => {
     const element = document.getElementById('protocol-portal-root');
     if (!document.fullscreenElement) {
-      element.requestFullscreen().catch(err => {
+      element.requestFullscreen().catch(() => {
         toast.error("Fullscreen resonance blocked by browser.");
       });
       setIsFullscreen(true);
@@ -676,18 +676,6 @@ const [showCheckoutModal, setShowCheckoutModal] = useState(false);
 
   const currentProtocol = protocols.find(p => p.id === selectedProtocol);
 
-  const handleVideoEnd = (e) => {
-    if (Array.isArray(currentProtocol.video)) {
-      const nextIdx = (videoIndex + 1) % currentProtocol.video.length;
-      setVideoIndex(nextIdx);
-      
-      const nextVideo = e.target.parentElement.querySelectorAll('video')[nextIdx];
-      if (nextVideo) {
-        nextVideo.currentTime = 0;
-        nextVideo.play().catch(err => console.log("Autoplay blocked:", err));
-      }
-    }
-  };
 
   const videoSrc = Array.isArray(currentProtocol?.video) 
     ? currentProtocol.video[videoIndex] 
@@ -698,7 +686,7 @@ const [showCheckoutModal, setShowCheckoutModal] = useState(false);
       setShowIOSInstruction(true);
     } else if (deferredPrompt) {
       deferredPrompt.prompt();
-      const { outcome } = await deferredPrompt.userChoice;
+      await deferredPrompt.userChoice;
       setDeferredPrompt(null);
       setShowInstallBanner(false);
     } else {
@@ -1753,7 +1741,7 @@ const [showCheckoutModal, setShowCheckoutModal] = useState(false);
                       onClick={async () => {
                           try {
                             if (isFirebaseConfigured()) await auth.signOut();
-                          } catch (e) { /* ignore signout errors */ }
+                          } catch { /* ignore signout errors */ }
                           setUser(null);
                           localStorage.removeItem('user_profile');
                           toast.success('Disconnected peacefully.');
@@ -2252,7 +2240,7 @@ const [showCheckoutModal, setShowCheckoutModal] = useState(false);
               </button>
               <BillingForm 
                 buttonText="ACTIVATE RESONANCE"
-                onSubmit={(data) => {
+                onSubmit={() => {
                   toast.loading("Verifying energetic credentials...");
                   setTimeout(() => {
                     const updatedUser = { 

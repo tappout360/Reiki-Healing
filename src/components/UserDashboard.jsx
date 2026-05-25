@@ -159,6 +159,7 @@ const UserDashboard = ({ user, onClose, onUpdateUser, onNavigateToBooking, onNav
       setNewRating(5);
       toast.success("Reflection sent to the Archive for resonance check.");
     } catch (error) {
+      console.error("Story submission failed:", error);
       toast.error("Could not submit reflection. Please try again.");
     } finally {
       setIsSubmittingStory(false);

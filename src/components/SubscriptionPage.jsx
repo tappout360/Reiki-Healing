@@ -100,7 +100,7 @@ const SubscriptionPage = ({ onClose, onUpgrade }) => {
                       const labels = { '1_month': 'Monthly', '3_month': 'Quarterly', '6_month': 'Biannual', '1_year': 'Annual' };
 
                       // Filter enabled plans
-                      const activeEntries = Object.entries(simplePricing).filter(([id, _]) => {
+                      const activeEntries = Object.entries(simplePricing).filter(([id]) => {
                           // If enabled is not explicitly set to false, it's enabled
                           return advancedPlans[id]?.enabled !== false;
                       });

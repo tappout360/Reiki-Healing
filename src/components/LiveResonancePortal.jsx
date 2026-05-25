@@ -10,7 +10,7 @@ import {
 } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 
-const LiveResonancePortal = ({ session, user, onClose }) => {
+const LiveResonancePortal = ({ user, onClose }) => {
   const [isMuted, setIsMuted] = useState(false);
   const [isVideoOff, setIsVideoOff] = useState(false);
   const [showChat, setShowChat] = useState(false);
@@ -188,6 +188,7 @@ const LiveResonancePortal = ({ session, user, onClose }) => {
                                     <button 
                                         onClick={() => {
                                             setSeekerAdmitted(true);
+                                            setSeekerWaiting(false);
                                             toast.success("Seeker admitted to the Sanctuary.");
                                         }}
                                         className="btn-primary"
@@ -371,7 +372,7 @@ const LiveResonancePortal = ({ session, user, onClose }) => {
   );
 };
 
-const ControlCircle = ({ icon: Icon, onClick, status = 'idle' }) => (
+const ControlCircle = ({ icon, onClick, status = 'idle' }) => (
     <motion.button
         whileHover={{ scale: 1.1 }}
         whileTap={{ scale: 0.9 }}
@@ -390,11 +391,11 @@ const ControlCircle = ({ icon: Icon, onClick, status = 'idle' }) => (
             boxShadow: status === 'active' ? '0 0 20px rgba(212, 175, 55, 0.4)' : 'none'
         }}
     >
-        <Icon size={24} />
+        {React.createElement(icon, { size: 24 })}
     </motion.button>
 );
 
-const IconButton = ({ icon: Icon, label, color }) => (
+const IconButton = ({ icon, label, color }) => (
     <motion.button
         whileHover={{ scale: 1.05, background: 'rgba(255,255,255,0.1)' }}
         className="glass"
@@ -412,7 +413,7 @@ const IconButton = ({ icon: Icon, label, color }) => (
             cursor: 'pointer'
         }}
     >
-        <Icon size={14} />
+        {React.createElement(icon, { size: 14 })}
         {label}
     </motion.button>
 );

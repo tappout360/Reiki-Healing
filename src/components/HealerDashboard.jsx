@@ -33,7 +33,6 @@ const HealerDashboard = ({ onClose, onJoinPortal, healerAppsEnabled, onToggleHea
   }, []);
 
   const [selectedClient, setSelectedClient] = useState(null); // For Archive Modal
-  const [transactions, setTransactions] = useState([]); // NEW: Financials
   const [pricing, setPricing] = useState(
     JSON.parse(localStorage.getItem('aura_pricing')) || {
       '1_month': 22,
@@ -95,8 +94,6 @@ const HealerDashboard = ({ onClose, onJoinPortal, healerAppsEnabled, onToggleHea
     const savedClients = JSON.parse(localStorage.getItem('aura_clients') || '[]');
     setClients(savedClients.sort((a, b) => a.name.localeCompare(b.name)));
 
-    const savedTransactions = JSON.parse(localStorage.getItem('aura_transactions') || '[]');
-    setTransactions(savedTransactions);
 
     const savedTeam = JSON.parse(localStorage.getItem('aura_team') || '[]');
     setTeamMembers(savedTeam);
@@ -1052,7 +1049,7 @@ const HealerDashboard = ({ onClose, onJoinPortal, healerAppsEnabled, onToggleHea
                               }} style={{background: 'none', border: 'none', color: '#e74c3c', cursor: 'pointer'}}><X size={16} /></button>
                             </div>
                           ))}
-                          {Object.entries(blockedSlots).filter(([_, slots]) => slots.length > 0).sort((a,b) => new Date(a[0]) - new Date(b[0])).map(([date, slots]) => (
+                          {Object.entries(blockedSlots).filter(([, slots]) => slots.length > 0).sort((a,b) => new Date(a[0]) - new Date(b[0])).map(([date, slots]) => (
                             <div key={date} style={{
                               background: 'rgba(243, 156, 18, 0.1)', padding: '0.8rem', borderRadius: '8px',
                               border: '1px solid rgba(243, 156, 18, 0.3)'

@@ -70,6 +70,7 @@ const Login = ({ onClose, onLoginSuccess }) => {
       toast.success('Password reset email sent! Check your inbox.');
       setShowReset(false);
     } catch (error) {
+      console.error("Password reset failed:", error);
       toast.error('Could not send reset email. Please check the address.');
     }
   };

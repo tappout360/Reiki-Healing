@@ -159,6 +159,7 @@ const MyStoriesPortal = ({ onClose }) => {
                 toast.success('Your story has been sent into the collective mist for review.');
               });
             } catch (err) {
+              console.error('Error submitting story:', err);
               import('react-hot-toast').then(({ toast }) => {
                 toast.error('Could not submit story. Please try again.');
               });

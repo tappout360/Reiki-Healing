@@ -41,7 +41,7 @@ const AIHealerInterface = ({ user, onClose, onOpenBooking, onOpenLogin, onApply 
           ? `Welcome back, ${parsed.name}. I sense your vibrational signature. How may I serve you today?`
           : aiKnowledgeBase.identity.intro;
         setMessages([{ id: 1, sender: 'bot', text: greeting }]);
-      } catch (e) {
+      } catch {
         setMessages([{ id: 1, sender: 'bot', text: aiKnowledgeBase.identity.intro }]);
       }
     } else {
