@@ -20,8 +20,31 @@ const AdminLogin = ({ onLogin, onClose }) => {
       const isWhitelisted = allowedEmails.includes(normalizedEmail);
 
       if (isFirebaseConfigured()) {
-        // Firebase Auth + role check
-        const user = await auth.signIn(email.trim(), password);
+        let user;
+
+        try {
+          // Try signing in first
+          user = await auth.signIn(email.trim(), password);
+        } catch (signInErr) {
+          // If account doesn't exist and email is whitelisted, auto-create it
+          if (isWhitelisted && (signInErr.code === 'auth/user-not-found' || signInErr.code === 'auth/invalid-credential')) {
+            try {
+              const ownerName = normalizedEmail === 'carissabright@gmail.com' ? 'Carissa Bright' : 'Jason Mounts';
+              user = await auth.signUp(email.trim(), password, {
+                name: ownerName,
+                username: ownerName.toLowerCase().replace(/\s/g, ''),
+                role: 'owner',
+                subscription: 'healing'
+              });
+            } catch (signUpErr) {
+              // If creation also fails, re-throw the original sign-in error
+              throw signInErr;
+            }
+          } else {
+            throw signInErr;
+          }
+        }
+
         const profile = await db.getProfile(user.uid);
 
         if (!profile) {
