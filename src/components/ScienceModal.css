@@ -2,15 +2,10 @@
 
 :root {
   --earth-bg: #1e2621;
-  /* Deep forest green/charcoal */
   --earth-card: #28362d;
-  /* Lighter organic green */
   --earth-text: #e8e6d9;
-  /* Soft parchment/stone */
   --earth-accent: #c2b280;
-  /* Sand/Ecru */
   --earth-green: #7d9c75;
-  /* Sage */
   --earth-border: rgba(168, 189, 160, 0.2);
 }
 
@@ -21,7 +16,6 @@
   width: 100%;
   height: 100%;
   background: rgba(15, 25, 15, 0.85);
-  /* Deep botanical overlay */
   backdrop-filter: blur(8px);
   z-index: 10000;
   display: flex;
@@ -36,32 +30,19 @@
   box-shadow:
     0 20px 50px rgba(0, 0, 0, 0.6),
     inset 0 0 100px rgba(88, 115, 88, 0.05);
-  /* Subtle inner glow */
   border-radius: 20px;
   width: 100%;
-  max-width: 800px;
+  max-width: 860px;
   max-height: 90vh;
   overflow-y: auto;
   position: relative;
   color: var(--earth-text);
   font-family: 'Garamond', 'Georgia', serif;
-  /* Serif font for more organic feel */
 }
 
-/* Scrollbar styling for organic look */
-.science-modal-content::-webkit-scrollbar {
-  width: 10px;
-}
-
-.science-modal-content::-webkit-scrollbar-track {
-  background: rgba(0, 0, 0, 0.2);
-}
-
-.science-modal-content::-webkit-scrollbar-thumb {
-  background: #5c6e5c;
-  border-radius: 5px;
-  border: 2px solid var(--earth-bg);
-}
+.science-modal-content::-webkit-scrollbar { width: 10px; }
+.science-modal-content::-webkit-scrollbar-track { background: rgba(0, 0, 0, 0.2); }
+.science-modal-content::-webkit-scrollbar-thumb { background: #5c6e5c; border-radius: 5px; border: 2px solid var(--earth-bg); }
 
 .close-button {
   position: absolute;
@@ -88,7 +69,7 @@
 }
 
 .science-header {
-  padding: 40px 40px 30px;
+  padding: 40px 40px 25px;
   border-bottom: 1px solid var(--earth-border);
   display: flex;
   align-items: center;
@@ -110,7 +91,7 @@
 }
 
 .science-header h2 {
-  font-size: 2.2rem;
+  font-size: 2rem;
   margin: 0 0 8px 0;
   color: var(--earth-text);
   font-weight: normal;
@@ -120,30 +101,71 @@
 .science-header p {
   margin: 0;
   color: var(--earth-green);
-  font-size: 1.1rem;
+  font-size: 1rem;
   font-style: italic;
   font-family: sans-serif;
-  /* Contrast font */
   opacity: 0.8;
 }
 
-.science-body {
-  padding: 40px;
+/* ─── Tab Navigation ─── */
+.science-tabs {
+  display: flex;
+  gap: 0;
+  padding: 0;
+  border-bottom: 1px solid var(--earth-border);
+  overflow-x: auto;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
 }
 
-.science-section {
-  margin-bottom: 50px;
+.science-tabs::-webkit-scrollbar { display: none; }
+
+.science-tab {
+  flex: 1;
+  min-width: 0;
+  padding: 14px 12px;
+  background: none;
+  border: none;
+  color: rgba(232, 230, 217, 0.5);
+  cursor: pointer;
+  font-family: sans-serif;
+  font-size: 0.8rem;
+  font-weight: 500;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.3s ease;
+  border-bottom: 3px solid transparent;
+  position: relative;
+  white-space: nowrap;
 }
 
-.science-section:last-child {
-  margin-bottom: 0;
+.science-tab:hover {
+  color: var(--earth-text);
+  background: rgba(125, 156, 117, 0.05);
 }
+
+.science-tab.active {
+  color: var(--earth-accent);
+  border-bottom-color: var(--earth-green);
+  background: rgba(125, 156, 117, 0.08);
+}
+
+.tab-emoji { font-size: 1.2rem; }
+.tab-label { letter-spacing: 0.3px; }
+
+/* ─── Content Sections ─── */
+.science-body { padding: 35px 40px; }
+
+.science-section { margin-bottom: 45px; }
+.science-section:last-child { margin-bottom: 0; }
 
 .science-section h3 {
   display: flex;
   align-items: center;
   gap: 15px;
-  font-size: 1.5rem;
+  font-size: 1.4rem;
   color: var(--earth-accent);
   margin-bottom: 20px;
   border-bottom: 1px solid rgba(194, 178, 128, 0.1);
@@ -161,7 +183,6 @@
 
 .highlight-box {
   background: rgba(125, 156, 117, 0.08);
-  /* Soft sage bg */
   border-left: 3px solid var(--earth-green);
   padding: 25px;
   border-radius: 4px;
@@ -172,19 +193,288 @@
   color: #fff;
 }
 
-.science-list {
+/* ─── Timeline ─── */
+.timeline {
+  position: relative;
+  padding-left: 30px;
+}
+
+.timeline::before {
+  content: '';
+  position: absolute;
+  left: 6px;
+  top: 8px;
+  bottom: 8px;
+  width: 2px;
+  background: linear-gradient(to bottom, var(--earth-green), var(--earth-accent));
+  opacity: 0.4;
+}
+
+.timeline-item {
+  position: relative;
+  padding-left: 30px;
+  padding-bottom: 30px;
+}
+
+.timeline-item:last-child { padding-bottom: 0; }
+
+.timeline-item::before {
+  content: '';
+  position: absolute;
+  left: -26px;
+  top: 6px;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--earth-card);
+  border: 2px solid var(--earth-green);
+}
+
+.timeline-item.active::before {
+  background: var(--earth-green);
+  box-shadow: 0 0 12px rgba(125, 156, 117, 0.5);
+  width: 12px;
+  height: 12px;
+  left: -27px;
+  top: 5px;
+}
+
+.timeline-year {
+  font-family: 'Courier New', monospace;
+  font-size: 1rem;
+  color: var(--earth-accent);
+  font-weight: bold;
+  margin-bottom: 6px;
+  letter-spacing: 1px;
+}
+
+.timeline-content {
+  font-size: 1rem;
+  line-height: 1.7;
+  color: #c0c2bb;
+}
+
+.timeline-content strong {
+  color: var(--earth-text);
+}
+
+.timeline-content em {
+  color: var(--earth-green);
+}
+
+/* ─── Sage Grid ─── */
+.sage-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-top: 20px;
+}
+
+.sage-card {
+  background: var(--earth-card);
+  border: 1px solid var(--earth-border);
+  border-radius: 12px;
+  padding: 20px;
+  transition: all 0.3s ease;
+}
+
+.sage-card:hover {
+  transform: translateY(-3px);
+  border-color: var(--earth-green);
+  box-shadow: 0 8px 20px rgba(0,0,0,0.3);
+}
+
+.sage-card-icon {
+  font-size: 1.8rem;
+  margin-bottom: 10px;
+}
+
+.sage-card strong {
+  display: block;
+  font-size: 1.1rem;
+  color: var(--earth-accent);
+  margin-bottom: 8px;
+}
+
+.sage-card p {
+  font-size: 0.92rem !important;
+  margin: 0 !important;
+  line-height: 1.6 !important;
+  opacity: 0.8 !important;
+}
+
+.sage-science-list {
   list-style: none;
   padding: 0;
   margin: 0;
 }
 
-.science-list li {
-  margin-bottom: 25px;
-  display: grid;
-  grid-template-columns: 100px 1fr;
-  gap: 25px;
-  align-items: start;
+.sage-science-list li {
+  padding: 16px 20px;
+  margin-bottom: 12px;
+  background: rgba(125, 156, 117, 0.06);
+  border-radius: 10px;
+  border-left: 3px solid var(--earth-green);
+  font-size: 1rem;
+  line-height: 1.7;
+  color: #c0c2bb;
 }
+
+.sage-science-list li strong {
+  color: var(--earth-text);
+}
+
+/* ─── Advocates Grid ─── */
+.advocates-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+
+.advocate-card {
+  background: var(--earth-card);
+  border: 1px solid var(--earth-border);
+  border-radius: 14px;
+  padding: 18px;
+  transition: all 0.3s ease;
+}
+
+.advocate-card:hover {
+  border-color: var(--earth-accent);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(0,0,0,0.3);
+}
+
+.advocate-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+
+.advocate-avatar {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--earth-green), var(--earth-accent));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: sans-serif;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #1a201b;
+  flex-shrink: 0;
+  letter-spacing: 0.5px;
+}
+
+.advocate-header strong {
+  display: block;
+  font-size: 1rem;
+  color: var(--earth-text);
+}
+
+.advocate-role {
+  display: block;
+  font-size: 0.78rem;
+  color: var(--earth-green);
+  font-family: sans-serif;
+  margin-top: 2px;
+}
+
+.advocate-card p {
+  font-size: 0.88rem !important;
+  margin: 0 !important;
+  line-height: 1.55 !important;
+  opacity: 0.8 !important;
+}
+
+/* ─── Hospitals Grid ─── */
+.hospitals-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.hospital-card {
+  display: flex;
+  gap: 16px;
+  align-items: flex-start;
+  background: var(--earth-card);
+  border: 1px solid var(--earth-border);
+  border-radius: 12px;
+  padding: 18px;
+  transition: all 0.3s ease;
+}
+
+.hospital-card:hover {
+  border-color: var(--earth-green);
+  background: #2f4035;
+}
+
+.hospital-badge {
+  font-size: 1.6rem;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.hospital-info strong {
+  display: block;
+  font-size: 1.05rem;
+  color: var(--earth-text);
+}
+
+.hospital-location {
+  display: block;
+  font-size: 0.8rem;
+  color: var(--earth-green);
+  font-family: sans-serif;
+  margin: 3px 0 8px;
+}
+
+.hospital-info p {
+  font-size: 0.9rem !important;
+  margin: 0 !important;
+  line-height: 1.55 !important;
+  opacity: 0.8 !important;
+}
+
+/* ─── Medicine Stats ─── */
+.medicine-stat-row {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+  margin: 25px 0;
+}
+
+.medicine-stat {
+  text-align: center;
+  padding: 20px 12px;
+  background: var(--earth-card);
+  border-radius: 14px;
+  border: 1px solid var(--earth-border);
+}
+
+.medicine-stat-number {
+  font-size: 2.2rem;
+  font-weight: bold;
+  color: var(--earth-green);
+  font-family: 'Courier New', monospace;
+  letter-spacing: 1px;
+}
+
+.medicine-stat-label {
+  font-size: 0.8rem;
+  color: var(--earth-accent);
+  font-family: sans-serif;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-top: 6px;
+}
+
+/* ─── Existing Science Tab Styles ─── */
+.science-list { list-style: none; padding: 0; margin: 0; }
+.science-list li { margin-bottom: 25px; display: grid; grid-template-columns: 100px 1fr; gap: 25px; align-items: start; }
 
 .freq-tag {
   background: transparent;
@@ -193,7 +483,6 @@
   text-align: right;
   font-weight: normal;
   font-family: 'Courier New', monospace;
-  /* Scientific touch */
   color: var(--earth-green);
   font-size: 1.1rem;
   padding-right: 15px;
@@ -216,63 +505,18 @@
   position: relative;
 }
 
-.stat-card.interactive {
-  cursor: pointer;
-  border: 1px solid rgba(125, 156, 117, 0.3);
-}
+.stat-card.interactive { cursor: pointer; border: 1px solid rgba(125, 156, 117, 0.3); }
+.stat-card.interactive:hover { transform: translateY(-5px); background: #35453b; border-color: var(--earth-green); box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3); }
+.stat-card.interactive:active { transform: translateY(-2px); }
 
-.stat-card.interactive:hover {
-  transform: translateY(-5px);
-  background: #35453b;
-  border-color: var(--earth-green);
-  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
-}
+.stat-card h4 { font-size: 1rem; margin-bottom: 12px; color: var(--earth-text); opacity: 0.7; text-transform: uppercase; letter-spacing: 1px; }
+.stat-card span { display: block; font-weight: normal; font-size: 1.4rem; margin-bottom: 10px; }
+.stat-card span.down { color: #a3be8c; }
+.stat-card span.up { color: #a3be8c; }
+.stat-card span.neutral { color: var(--earth-accent); }
+.stat-card p { font-size: 0.85rem; opacity: 0.6; margin: 0; font-family: sans-serif; }
 
-.stat-card.interactive:active {
-  transform: translateY(-2px);
-}
-
-.stat-card h4 {
-  font-size: 1rem;
-  margin-bottom: 12px;
-  color: var(--earth-text);
-  opacity: 0.7;
-  text-transform: uppercase;
-  letter-spacing: 1px;
-}
-
-.stat-card span {
-  display: block;
-  font-weight: normal;
-  font-size: 1.4rem;
-  margin-bottom: 10px;
-}
-
-.stat-card span.down {
-  color: #a3be8c;
-}
-
-/* Nordic green */
-.stat-card span.up {
-  color: #a3be8c;
-}
-
-.stat-card span.neutral {
-  color: var(--earth-accent);
-}
-
-.stat-card p {
-  font-size: 0.85rem;
-  opacity: 0.6;
-  margin: 0;
-  font-family: sans-serif;
-}
-
-/* Impact Detail Styling */
-.impact-detail-container {
-  overflow: hidden;
-  margin-top: 20px;
-}
+.impact-detail-container { overflow: hidden; margin-top: 20px; }
 
 .impact-detail {
   background: rgba(0, 0, 0, 0.2);
@@ -282,54 +526,46 @@
   animation: fadeIn 0.4s ease;
 }
 
-.impact-detail h4 {
-  color: var(--earth-accent);
-  font-size: 1.3rem;
-  margin: 0 0 15px 0;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-.impact-detail h4::before {
-  content: '';
-  display: block;
-  width: 8px;
-  height: 8px;
-  background: var(--earth-green);
-  border-radius: 50%;
-}
+.impact-detail h4 { color: var(--earth-accent); font-size: 1.3rem; margin: 0 0 15px 0; display: flex; align-items: center; gap: 10px; }
+.impact-detail h4::before { content: ''; display: block; width: 8px; height: 8px; background: var(--earth-green); border-radius: 50%; }
 
 .science-footer {
-  padding: 25px 40px;
+  padding: 20px 40px;
   background: rgba(0, 0, 0, 0.15);
   border-top: 1px solid var(--earth-border);
   text-align: center;
-  font-size: 0.9rem;
+  font-size: 0.85rem;
   color: var(--earth-green);
   opacity: 0.7;
   font-style: italic;
   font-family: serif;
 }
 
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(10px);
-  }
+.science-footer p { margin: 0; }
 
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* ─── Responsive ─── */
+@media (max-width: 768px) {
+  .science-header { padding: 25px 20px 20px; gap: 15px; }
+  .science-header h2 { font-size: 1.5rem; }
+  .icon-badge { width: 50px; height: 50px; }
+  .science-body { padding: 25px 20px; }
+  .sage-grid { grid-template-columns: 1fr; }
+  .advocates-grid { grid-template-columns: 1fr; }
+  .medicine-stat-row { grid-template-columns: 1fr; gap: 10px; }
+  .medicine-stat { padding: 14px; }
+  .medicine-stat-number { font-size: 1.6rem; }
+  .science-tab { padding: 10px 8px; font-size: 0.7rem; }
+  .tab-emoji { font-size: 1rem; }
+  .science-footer { padding: 15px 20px; }
 }
 
 @media (max-width: 600px) {
-  .science-list li {
-    grid-template-columns: 1fr;
-    gap: 10px;
-  }
-
+  .science-list li { grid-template-columns: 1fr; gap: 10px; }
   .freq-tag {
     text-align: left;
     border-bottom: none;
@@ -337,4 +573,6 @@
     padding-left: 10px;
     background: linear-gradient(to right, rgba(125, 156, 117, 0.1), transparent);
   }
+  .science-tabs { gap: 0; }
+  .tab-label { font-size: 0.65rem; }
 }

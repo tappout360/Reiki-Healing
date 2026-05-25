@@ -1579,10 +1579,7 @@ const [showCheckoutModal, setShowCheckoutModal] = useState(false);
         )}
       </Suspense>
 
-      {/* Science Modal */}
-      <Suspense fallback={<LoadingSpinner />}>
-        {showScience && <ScienceModal onClose={() => setShowScience(false)} />}
-      </Suspense>
+
       
       {/* Subscription & Signup Modals */}
       <Suspense fallback={<LoadingSpinner />}>
