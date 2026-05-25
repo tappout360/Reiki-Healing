@@ -26,7 +26,7 @@ An immersive digital platform offering **crystal-powered Reiki healing protocols
 
 ## 🌐 Live Demo
 
-🔗 **[chrissas-project.vercel.app](https://chrissas-project.vercel.app)**
+🔗 **[Live Demo](https://dist-dusky-eta-42.vercel.app)** &nbsp;|&nbsp; Also available at [chrissas-project.vercel.app](https://chrissas-project.vercel.app)
 
 ---
 
