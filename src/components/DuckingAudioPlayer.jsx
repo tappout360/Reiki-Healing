@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { Volume2, VolumeX, Play, Pause } from 'lucide-react';
 
 const DuckingAudioPlayer = ({ 
@@ -174,17 +174,18 @@ const DuckingAudioPlayer = ({
       voiceGainRef.current?.gain.setValueAtTime(masterVolume, now);
     };
 
-    voiceElementRef.current.addEventListener('play', handleVolumeShift);
-    voiceElementRef.current.addEventListener('pause', handleVolumeShift);
-    voiceElementRef.current.addEventListener('timeupdate', handleVolumeShift);
+    const voiceEl = voiceElementRef.current;
+    voiceEl.addEventListener('play', handleVolumeShift);
+    voiceEl.addEventListener('pause', handleVolumeShift);
+    voiceEl.addEventListener('timeupdate', handleVolumeShift);
 
     // Set initial volume
     handleVolumeShift();
 
     return () => {
-      voiceElementRef.current.removeEventListener('play', handleVolumeShift);
-      voiceElementRef.current.removeEventListener('pause', handleVolumeShift);
-      voiceElementRef.current.removeEventListener('timeupdate', handleVolumeShift);
+      voiceEl.removeEventListener('play', handleVolumeShift);
+      voiceEl.removeEventListener('pause', handleVolumeShift);
+      voiceEl.removeEventListener('timeupdate', handleVolumeShift);
     };
   }, [volume, duckingAmount, musicSrc]);
 
@@ -192,8 +193,9 @@ const DuckingAudioPlayer = ({
     const handleEnded = () => {
       if (onEnded) onEnded();
     };
-    voiceElementRef.current.addEventListener('ended', handleEnded);
-    return () => voiceElementRef.current.removeEventListener('ended', handleEnded);
+    const voiceEl = voiceElementRef.current;
+    voiceEl.addEventListener('ended', handleEnded);
+    return () => voiceEl.removeEventListener('ended', handleEnded);
   }, [onEnded]);
 
   return null; // This is a logic-only controller for now

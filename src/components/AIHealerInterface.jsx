@@ -10,8 +10,25 @@ const AIHealerInterface = ({ user, onClose, onOpenBooking, onOpenLogin, onApply 
   const [isTyping, setIsTyping] = useState(false);
   const [isVoiceEnabled, setIsVoiceEnabled] = useState(false);
   const [isScanning, setIsScanning] = useState(false);
+  const [scanPercentage, setScanPercentage] = useState(0);
   const [userMemory, setUserMemory] = useState({ name: '', intentions: [] });
   const messagesEndRef = useRef(null);
+
+  useEffect(() => {
+    if (isScanning) {
+      setScanPercentage(0);
+      const interval = setInterval(() => {
+        setScanPercentage(prev => {
+          if (prev >= 100) {
+            clearInterval(interval);
+            return 100;
+          }
+          return prev + Math.floor(Math.random() * 10) + 5;
+        });
+      }, 150);
+      return () => clearInterval(interval);
+    }
+  }, [isScanning]);
 
   // Load Memory on Mount
   useEffect(() => {
@@ -576,7 +593,7 @@ const AIHealerInterface = ({ user, onClose, onOpenBooking, onOpenLogin, onApply 
             </motion.div>
             <div style={{ fontSize: '1.2rem', letterSpacing: '4px', fontWeight: 'bold' }}>SCANNING BIOFIELD</div>
             <div style={{ fontSize: '0.8rem', marginTop: '1rem', color: 'rgba(255,255,255,0.4)' }}>
-              VECTORING CHAKRA NODES... {Math.floor(Math.random() * 100)}%
+              VECTORING CHAKRA NODES... {Math.min(100, scanPercentage)}%
             </div>
             {/* Animated Grid Lines */}
             <div style={{

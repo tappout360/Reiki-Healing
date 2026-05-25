@@ -94,17 +94,31 @@ const AuraClouds = () => {
 };
 
 const Stardust = () => {
+  const [stars, setStars] = useState([]);
+
+  useEffect(() => {
+    setStars(
+      Array.from({ length: 50 }).map((_, i) => ({
+        id: i,
+        top: `${Math.random() * 100}%`,
+        left: `${Math.random() * 100}%`,
+        delay: `${Math.random() * 5}s`,
+        opacity: Math.random() * 0.5 + 0.2
+      }))
+    );
+  }, []);
+
   return (
     <div style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', pointerEvents: 'none', zIndex: 0 }}>
-      {[...Array(50)].map((_, i) => (
+      {stars.map((star) => (
         <div
-          key={i}
+          key={star.id}
           className="stardust"
           style={{
-            top: `${Math.random() * 100}%`,
-            left: `${Math.random() * 100}%`,
-            animationDelay: `${Math.random() * 5}s`,
-            opacity: Math.random() * 0.5 + 0.2
+            top: star.top,
+            left: star.left,
+            animationDelay: star.delay,
+            opacity: star.opacity
           }}
         />
       ))}
@@ -126,12 +140,12 @@ const protocols = [
       'amethyst_core_purge_macro_1769852056191.png',
       'amethyst_macro_realistic_1769877807331.png',
       'amethyst_core_purge_aura_1769852069785.png',
-      'reiki_hero_ethereal_energy_1769837619855.png',
-      'compassion_healing_glow_1769837632078.png',
-      'crystal_resonance_tech_1769838808831.png',
+      'hero-energy.png',
+      'compassion-glow.png',
+      'crystal-resonance.png',
       'quartz_lattice_field_1769852099553.png',
       'quartz_lattice_macro_1769852085365.png',
-      'gemstone_energy_portal_1769839144418.png',
+      'energy-portal.png',
       'reiki_crown_chakra_light_1770423834100.png'
     ],
     audio: 'AW5bH04AoC0', // Violet Flame 528Hz Meditation
@@ -170,7 +184,7 @@ const protocols = [
       'rose_aura_realistic_1769877874595.png',
       'rose_quartz_macro_1769852112446.png',
       'rose_quartz_field_1769852125920.png',
-      'compassion_healing_glow_1769837632078.png',
+      'compassion-glow.png',
       'sage_protocol_heart_emerald_1770425202896.png',
       'sage_protocol_heart_resonance_1770424959673.png',
       'sage_protocol_heart_glow_1770425071893.png'
@@ -212,7 +226,7 @@ const protocols = [
       'sage_protocol_macro_gold_1770425190644.png',
       'sage_ocean_sunrise_1770425017610.png',
       'hero-energy.png',
-      'gemstone_energy_portal_1769839144418.png', // Switched to energy portal for sacred geometry feel
+      'energy-portal.png', // Switched to energy portal for sacred geometry feel
       'sage_protocol_reiki_light_1770423936670.png',
       'sage_protocol_sunrise_ocean_1770425084382.png',
       'reiki_crown_chakra_light_1770423834100.png'
@@ -255,13 +269,13 @@ const protocols = [
     isImmersive: true,
     video: [
       'reiki_crown_chakra_light_1770423834100.png',
-      'gemstone_energy_portal_1769839144418.png',
+      'energy-portal.png',
       'sage_protocol_reiki_light_1770423936670.png',
       'amethyst_core_purge_aura_1769852069785.png',
       'sage_protocol_cosmic_alignment_1770424972911.png',
       'sage_protocol_crystal_cave_1770441218348.png',
       'sage_protocol_heart_glow_1770425071893.png',
-      'reiki_hero_ethereal_energy_1769837619855.png',
+      'hero-energy.png',
       'sage_protocol_starlight_ocean_v2_1770441141710.png',
       'sage_sacred_purify_1770423875666.png'
     ],
@@ -278,7 +292,7 @@ const protocols = [
     isImmersive: true,
     video: [
       'sage_protocol_cosmic_alignment_1770424972911.png',
-      'gemstone_energy_portal_1769839144418.png',
+      'energy-portal.png',
       'amethyst_core_purge_aura_1769852069785.png',
       'sage_protocol_starlight_ocean_v2_1770441141710.png',
       'sage_protocol_crystal_cave_1770441218348.png',
@@ -371,7 +385,7 @@ const SacredReflections = () => {
                             delay: i * 0.2,
                             scale: { type: "spring", stiffness: 100 },
                             y: {
-                                duration: 4 + Math.random() * 2,
+                                duration: 4 + (i % 3) * 0.8,
                                 repeat: Infinity,
                                 ease: "easeInOut"
                             }
@@ -1343,11 +1357,12 @@ const [showCheckoutModal, setShowCheckoutModal] = useState(false);
             </div>
             {/* Audio Player */}
             <DuckingAudioPlayer 
-              audioId={currentProtocol.audio} 
-              voiceSrc={currentProtocol.voice} 
-              isPaused={isPaused} 
-              volume={volume} 
-              onComplete={handleProtocolComplete}
+              musicSrc={`https://www.youtube.com/embed/${currentProtocol.audio}?autoplay=1&mute=0&enablejsapi=1&origin=${window.location.origin}`}
+              ambientSrc={currentProtocol.ambient}
+              voiceSrc={currentProtocol.voice}
+              isPlaying={showPortal && !isPaused}
+              volume={volume}
+              onEnded={handleProtocolEnd}
             />
           </div>
         )}

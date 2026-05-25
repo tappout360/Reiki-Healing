@@ -13,22 +13,13 @@ import { logTransaction } from '../utils/logger';
 import './HealerDashboard.css';
 
 const HealerDashboard = ({ onClose, onJoinPortal, healerAppsEnabled, onToggleHealerApps }) => {
-  const profile = JSON.parse(localStorage.getItem('user_profile') || 'null');
-  
-  // Security Layer: Role-Based Access Control
-  if (!profile || (profile.role !== 'admin' && profile.role !== 'owner')) {
-    toast.error("Unauthorized entry detected. Vibrational signature mismatch.");
-    onClose();
-    return null;
-  }
-
   const [activeTab, setActiveTab] = useState('bookings');
   const [filter, setFilter] = useState('all');
   const [storyFilter, setStoryFilter] = useState('pending'); // 'pending', 'approved', 'archived'
   const [bookings, setBookings] = useState([]);
   const [clients, setClients] = useState([]);
   const [stories, setStories] = useState(() => JSON.parse(localStorage.getItem('aura_stories') || '[]'));
-  const [onlineSouls, setOnlineSouls] = useState(Math.floor(Math.random() * 31) + 20); // Mock 20-50
+  const [onlineSouls, setOnlineSouls] = useState(30); // Stable default during render
   
   // Real-time soul fluctuation
   useEffect(() => {
@@ -80,7 +71,6 @@ const HealerDashboard = ({ onClose, onJoinPortal, healerAppsEnabled, onToggleHea
     };
   });
 
-
   // Simulated trend data based on bookings
   const trendData = [
     { name: 'Mon', vibrations: 4 },
@@ -95,6 +85,9 @@ const HealerDashboard = ({ onClose, onJoinPortal, healerAppsEnabled, onToggleHea
   const [applications, setApplications] = useState([]); // Healer Job Applications
 
   useEffect(() => {
+    // Set random presence on mount to keep it dynamic and pure
+    setOnlineSouls(Math.floor(Math.random() * 31) + 20);
+
     // Load data from simulated database
     const savedBookings = JSON.parse(localStorage.getItem('aura_bookings') || '[]');
     setBookings(savedBookings.sort((a, b) => b.id - a.id));
@@ -122,6 +115,21 @@ const HealerDashboard = ({ onClose, onJoinPortal, healerAppsEnabled, onToggleHea
 
     return () => clearInterval(presenceInterval);
   }, []);
+
+  // Security Layer: Role-Based Access Control
+  const profile = JSON.parse(localStorage.getItem('user_profile') || 'null');
+  const isAuthorized = profile && (profile.role === 'admin' || profile.role === 'owner');
+
+  useEffect(() => {
+    if (!isAuthorized) {
+      toast.error("Unauthorized entry detected. Vibrational signature mismatch.");
+      onClose();
+    }
+  }, [isAuthorized, onClose]);
+
+  if (!isAuthorized) {
+    return null;
+  }
 
   const saveEmailSettings = (e) => {
     e.preventDefault();
@@ -707,11 +715,11 @@ const HealerDashboard = ({ onClose, onJoinPortal, healerAppsEnabled, onToggleHea
                         
                         {/* Animated Pulses */}
                         {[
-                           { top: '30%', left: '20%', size: 40, color: '#8e44ad' },
-                           { top: '60%', left: '45%', size: 60, color: '#3498db' },
-                           { top: '25%', left: '75%', size: 30, color: '#f1c40f' },
-                           { top: '70%', left: '80%', size: 45, color: '#e74c3c' },
-                           { top: '40%', left: '50%', size: 80, color: '#2ecc71' }
+                           { top: '30%', left: '20%', size: 40, color: '#8e44ad', duration: 3.2 },
+                           { top: '60%', left: '45%', size: 60, color: '#3498db', duration: 2.5 },
+                           { top: '25%', left: '75%', size: 30, color: '#f1c40f', duration: 3.8 },
+                           { top: '70%', left: '80%', size: 45, color: '#e74c3c', duration: 2.1 },
+                           { top: '40%', left: '50%', size: 80, color: '#2ecc71', duration: 3.5 }
                         ].map((pulse, i) => (
                            <motion.div
                              key={i}
@@ -720,7 +728,7 @@ const HealerDashboard = ({ onClose, onJoinPortal, healerAppsEnabled, onToggleHea
                                opacity: [0.3, 0.7, 0.3]
                              }}
                              transition={{ 
-                               duration: 2 + Math.random() * 2, 
+                               duration: pulse.duration, 
                                repeat: Infinity,
                                delay: i * 0.5
                              }}

@@ -267,6 +267,21 @@ const HoroscopeCard = ({ user, birthDate, onUpdateUser }) => {
 };
 
 export const UserDashboardInline = ({ user, onUpdateUser, onOpenFullDashboard, onNavigateToBooking, onNavigateToProtocols, onUpgrade }) => {
+  const [particles, setParticles] = React.useState([]);
+
+  React.useEffect(() => {
+    setParticles(
+      Array.from({ length: 20 }).map((_, i) => ({
+        id: i,
+        x: Math.random() * 20 - 10,
+        duration: 3 + Math.random() * 2,
+        delay: Math.random() * 2,
+        left: `${Math.random() * 100}%`,
+        top: `${Math.random() * 100}%`
+      }))
+    );
+  }, []);
+
   if (!user) return null;
 
   return (
@@ -295,23 +310,23 @@ export const UserDashboardInline = ({ user, onUpdateUser, onOpenFullDashboard, o
           opacity: 0.1,
           pointerEvents: 'none'
         }}>
-          {[...Array(20)].map((_, i) => (
+          {particles.map((p) => (
             <motion.div
-              key={i}
+              key={p.id}
               animate={{
                 y: [0, -30, 0],
-                x: [0, Math.random() * 20 - 10, 0],
+                x: [0, p.x, 0],
                 opacity: [0.2, 0.5, 0.2]
               }}
               transition={{
-                duration: 3 + Math.random() * 2,
+                duration: p.duration,
                 repeat: Infinity,
-                delay: Math.random() * 2
+                delay: p.delay
               }}
               style={{
                 position: 'absolute',
-                left: `${Math.random() * 100}%`,
-                top: `${Math.random() * 100}%`,
+                left: p.left,
+                top: p.top,
                 width: '4px',
                 height: '4px',
                 borderRadius: '50%',
