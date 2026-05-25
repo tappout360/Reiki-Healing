@@ -2,7 +2,8 @@ import React, { useEffect, useState, Suspense, lazy } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { 
   Sparkles, Activity, Shield, Info, Heart, Zap, Waves, Moon, Sun, 
-  LogOut, Lock, Clock, Quote, Star, MessageSquare, Play, Pause, Maximize, Minimize 
+  LogOut, Lock, Clock, Quote, Star, MessageSquare, Play, Pause, Maximize, Minimize,
+  Home, Grid, Compass, User
 } from 'lucide-react'
 import { aiKnowledgeBase } from './components/aiKnowledgeBase'
 import { Toaster, toast } from 'react-hot-toast'
@@ -452,6 +453,38 @@ const [showMyStories, setShowMyStories] = useState(false);
 const [healerAppsEnabled, setHealerAppsEnabled] = useState(localStorage.getItem('aura_applications_enabled') !== 'false');
 const [showCheckoutModal, setShowCheckoutModal] = useState(false);
 
+  // NEW: Tablet/Mobile App Shell States
+  const [viewMode, setViewMode] = useState('desktop'); // 'desktop' | 'mobile' | 'tablet'
+  const [activeTab, setActiveTab] = useState('home'); // 'home' | 'protocols' | 'ai-guide' | 'portal' | 'dashboard'
+
+
+  // NEW: PWA Install State
+  const [deferredPrompt, setDeferredPrompt] = useState(null);
+  const [showInstallBanner, setShowInstallBanner] = useState(false);
+  const [isIOS, setIsIOS] = useState(false);
+  const [showIOSInstruction, setShowIOSInstruction] = useState(false);
+
+  useEffect(() => {
+    // Detect iOS
+    const isIpadOrIphone = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+    const isStandalone = window.navigator.standalone === true || window.matchMedia('(display-mode: standalone)').matches;
+    setIsIOS(isIpadOrIphone);
+
+    // If not already running as installed app
+    if (!isStandalone) {
+      if (isIpadOrIphone) {
+        setShowInstallBanner(true);
+      } else {
+        const handlePrompt = (e) => {
+          e.preventDefault();
+          setDeferredPrompt(e);
+          setShowInstallBanner(true);
+        };
+        window.addEventListener('beforeinstallprompt', handlePrompt);
+        return () => window.removeEventListener('beforeinstallprompt', handlePrompt);
+      }
+    }
+  }, []);
 
   useEffect(() => {
     if (isFirebaseConfigured()) {
@@ -646,6 +679,758 @@ const [showCheckoutModal, setShowCheckoutModal] = useState(false);
     ? currentProtocol.video[videoIndex] 
     : currentProtocol?.video;
 
+  const handleInstallClick = async () => {
+    if (isIOS) {
+      setShowIOSInstruction(true);
+    } else if (deferredPrompt) {
+      deferredPrompt.prompt();
+      const { outcome } = await deferredPrompt.userChoice;
+      setDeferredPrompt(null);
+      setShowInstallBanner(false);
+    } else {
+      toast.error("Install prompt not available. You can install it directly via your browser's menu (e.g. click the install icon in the address bar).");
+    }
+  };
+
+  const renderInstallBanner = () => {
+    return (
+      <div className="container" style={{ margin: '2rem auto', position: 'relative', zIndex: 10 }}>
+        <div className="glass" style={{
+          padding: '2.25rem 2rem',
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          textAlign: 'center',
+          gap: '1.25rem',
+          border: '1px solid rgba(160, 210, 235, 0.22)',
+          background: 'rgba(10, 10, 20, 0.45)',
+          borderRadius: '28px',
+          boxShadow: '0 12px 45px rgba(0, 0, 0, 0.4)'
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', justifyContent: 'center' }}>
+            <span style={{ fontSize: '2rem' }}>📥</span>
+            <h3 style={{ fontSize: '1.4rem', fontFamily: 'Playfair Display', color: 'var(--accent-ethereal)' }}>Bring the Sanctuary to Your Device</h3>
+          </div>
+          <p style={{ fontSize: '0.85rem', opacity: 0.85, maxWidth: '600px', lineHeight: '1.6' }}>
+            Install the **Reiki & Sage App** on your phone, tablet, or desktop. Enjoy standalone full-screen access, faster load times, and offline support for your daily biofield calibration.
+          </p>
+          <button 
+            onClick={handleInstallClick} 
+            className="btn btn-primary"
+            style={{ padding: '0.8rem 2.5rem', fontSize: '0.9rem', display: 'inline-flex', alignItems: 'center', gap: '8px', borderRadius: '30px' }}
+          >
+            <Sparkles size={16} /> Install Standalone App
+          </button>
+        </div>
+      </div>
+    );
+  };
+
+  const renderIOSInstructionModal = () => {
+    if (!showIOSInstruction) return null;
+    return (
+      <div className="booking-overlay" style={{ backdropFilter: 'blur(10px)', zIndex: 10006 }} onClick={() => setShowIOSInstruction(false)}>
+        <div className="booking-modal glass" style={{ maxWidth: '400px', padding: '2.5rem', textAlign: 'center', border: '1px solid rgba(160, 210, 235, 0.3)', borderRadius: '28px' }} onClick={e => e.stopPropagation()}>
+          <button onClick={() => setShowIOSInstruction(false)} className="booking-close">×</button>
+          <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>📱</div>
+          <h3 style={{ color: 'var(--accent-ethereal)', fontFamily: 'Playfair Display', fontSize: '1.5rem', marginBottom: '1rem' }}>Install on iOS Safari</h3>
+          <p style={{ fontSize: '0.85rem', opacity: 0.9, lineHeight: '1.6', marginBottom: '1.5rem', textAlign: 'left' }}>
+            To install Reiki & Sage on your iPhone or iPad, follow these simple steps using the Safari browser:
+          </p>
+          <ol style={{ textAlign: 'left', fontSize: '0.85rem', paddingLeft: '1.25rem', display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '2rem', opacity: 0.9 }}>
+            <li>Tap the **Share** button <span style={{ background: 'rgba(255,255,255,0.1)', padding: '2px 6px', borderRadius: '4px' }}>📤</span> in Safari.</li>
+            <li>Scroll down and tap **Add to Home Screen** <span style={{ background: 'rgba(255,255,255,0.1)', padding: '2px 6px', borderRadius: '4px' }}>➕</span>.</li>
+            <li>Tap **Add** in the top right corner to confirm.</li>
+          </ol>
+          <button onClick={() => setShowIOSInstruction(false)} className="btn btn-primary" style={{ width: '100%', padding: '0.9rem', borderRadius: '20px' }}>
+            Got It
+          </button>
+        </div>
+      </div>
+    );
+  };
+
+  // ─── Mobile/Tablet UI Render Helpers ───
+  const renderHeroSection = (isMobileLayout = false) => {
+    return (
+      <section className="hero" style={isMobileLayout ? { padding: '3.5rem 1rem 1.5rem 1rem' } : {}}>
+        <div className="container">
+          <div style={isMobileLayout ? { display: 'flex', flexDirection: 'column', gap: '2rem', textAlign: 'center' } : { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '4rem', alignItems: 'center' }}>
+            <motion.div 
+              initial={{ opacity: 0, y: 30 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8 }}
+            >
+              <p style={{ fontSize: isMobileLayout ? '1.05rem' : '1.25rem', color: 'var(--text-muted)', marginBottom: '2.5rem', maxWidth: isMobileLayout ? '100%' : '500px' }}>
+                Experience the convergence of ancient wisdom and futuristic energy medicine. Our advanced Reiki system harmonizes your biofield with surgical precision.
+              </p>
+              
+              {user && !isMobileLayout && (
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.9rem', cursor: 'pointer', marginBottom: '1.5rem' }} onClick={() => document.getElementById('user-dashboard-section')?.scrollIntoView({ behavior: 'smooth' })}>
+                  <div style={{ width: '32px', height: '32px', borderRadius: '50%', background: 'var(--accent-gold)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'black', fontWeight: 'bold' }}>
+                    {user.name.charAt(0)}
+                  </div>
+                  {user.name}
+                </div>
+              )}
+
+              <div style={{ display: 'flex', gap: '1.25rem', flexDirection: isMobileLayout ? 'column' : 'row', alignItems: 'center', justifyContent: 'center' }}>
+                <button 
+                  className="btn btn-primary" 
+                  style={{ display: 'flex', alignItems: 'center', gap: '10px', width: isMobileLayout ? '100%' : 'auto', justifyContent: 'center', padding: '0.8rem 1.8rem' }}
+                  onClick={() => {
+                    if (!user) {
+                      const newState = !showSignupFlow;
+                      setShowSignupFlow(newState);
+                      if (newState) {
+                        if (isMobileLayout) {
+                          setActiveTab('dashboard');
+                          setShowSignupFlow(true);
+                        } else {
+                          setTimeout(() => {
+                            document.getElementById('signup-flow-section')?.scrollIntoView({ behavior: 'smooth' });
+                          }, 300);
+                        }
+                      }
+                    } else if (user.subscription === 'healing' || user.role === 'owner') {
+                      if (isMobileLayout) {
+                        setActiveTab('protocols');
+                      } else {
+                        document.getElementById('protocols-section').scrollIntoView({ behavior: 'smooth' });
+                      }
+                    } else {
+                      setShowSubscriptionPage(true);
+                    }
+                  }}
+                >
+                  <Zap size={18} /> {user && (user.subscription === 'healing' || user.role === 'owner') ? 'Access Sanctuary' : user ? 'Upgrade Resonance' : (showSignupFlow ? 'Close Application' : 'Start Your Journey')}
+                </button>
+                
+                {!user && (
+                  <p style={{ opacity: 0.8, fontSize: '0.85rem' }}>
+                    Already registered?{' '}
+                    <span 
+                      onClick={() => setShowLoginModal(true)}
+                      style={{ 
+                        color: 'var(--accent-gold)', 
+                        cursor: 'pointer', 
+                        textDecoration: 'underline' 
+                      }}
+                    >
+                      Log In
+                    </span>
+                  </p>
+                )}
+                
+                <button 
+                  className="btn" 
+                  style={{ background: 'transparent', border: '1px solid var(--accent-gold)', color: 'var(--accent-gold)', width: isMobileLayout ? '100%' : 'auto', padding: '0.8rem 1.8rem' }}
+                  onClick={() => setShowScience(true)}
+                >
+                  See the Science
+                </button>
+              </div>
+            </motion.div>
+            
+            <motion.div 
+               initial={{ opacity: 0, scale: 0.9 }}
+               animate={{ opacity: 1, scale: 1 }}
+               transition={{ duration: 1, ease: "easeOut" }}
+               style={{ position: 'relative', width: '100%' }}
+            >
+              <div className="glass" style={{ padding: '0', overflow: 'hidden', borderRadius: '24px', boxShadow: '0 0 40px rgba(160, 210, 235, 0.15)' }}>
+                <img 
+                  src="/assets/hero-energy.png" 
+                  alt="Ethereal Energy Flow" 
+                  style={{ width: '100%', height: isMobileLayout ? '280px' : '500px', objectFit: 'cover', display: 'block' }}
+                />
+              </div>
+              <motion.div 
+                animate={{ y: [0, -10, 0] }}
+                transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
+                style={{ position: 'absolute', top: '-10px', right: '-10px', background: 'rgba(255,255,255,0.1)', backdropFilter: 'blur(5px)', padding: '10px', borderRadius: '50%', border: '1px solid rgba(255,255,255,0.2)', cursor: 'pointer' }}
+                onClick={() => setShowMyStories(true)}
+              >
+                <Sparkles color="var(--accent-gold)" size={16} />
+              </motion.div>
+            </motion.div>
+          </div>
+        </div>
+      </section>
+    );
+  };
+
+  const renderDailyResonance = (isMobileLayout = false) => {
+    return (
+      <div className="container" style={{ marginTop: isMobileLayout ? '0rem' : '-4rem', padding: '1rem', position: 'relative', zIndex: 10 }}>
+        <DailyFrequency />
+      </div>
+    );
+  };
+
+  const renderPhilosophySection = (isMobileLayout = false) => {
+    return (
+      <section id="about" style={{ backgroundColor: 'var(--bg-section)', padding: isMobileLayout ? '3rem 1rem' : '8rem 0' }}>
+        <div className="container">
+          <div style={{ textAlign: 'center', marginBottom: isMobileLayout ? '2rem' : '4rem' }}>
+            <h2 style={{ fontSize: isMobileLayout ? '2rem' : '3rem', color: 'var(--text-main)' }}>Complete Compassion & Caring</h2>
+            <div style={{ width: '60px', height: '3px', background: 'var(--accent-compassion)', margin: '1rem auto' }}></div>
+          </div>
+          
+          <div style={isMobileLayout ? { display: 'flex', flexDirection: 'column', gap: '2rem' } : { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '4rem', alignItems: 'center' }}>
+            <div className="glass" style={{ position: 'relative', height: isMobileLayout ? '260px' : '500px', overflow: 'hidden', borderRadius: '24px' }}>
+              <img 
+                src="/assets/compassion-glow.png" 
+                alt="Compassion Glow" 
+                style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+              />
+            </div>
+            <div>
+              <h3 style={{ fontSize: '1.6rem', marginBottom: '1.5rem', color: 'var(--accent-compassion)', textAlign: isMobileLayout ? 'center' : 'left' }}>Deeply Empathetic Care</h3>
+              <ul style={{ listStyle: 'none', padding: 0 }}>
+                <li style={{ marginBottom: '1.5rem' }}>
+                  <strong style={{ display: 'block', fontSize: '1.1rem' }}>Aura Calibration</strong>
+                  <span style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>Using high-frequency resonance to gently realign your spiritual frequency with precision-engineered compassion.</span>
+                </li>
+                <li style={{ marginBottom: '1.5rem', padding: '1rem', background: 'rgba(229, 179, 187, 0.08)', borderRadius: '15px', borderLeft: '4px solid var(--accent-compassion)' }}>
+                  <strong style={{ display: 'block', fontSize: '1.1rem' }}>Compassionate Flow Monitoring</strong>
+                  <span style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>Real-time ethical energy scanning that respects your personal boundaries while providing deep intuitive insights.</span>
+                </li>
+                <li>
+                  <strong style={{ display: 'block', fontSize: '1.1rem' }}>Quantum Heart Connection</strong>
+                  <span style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>Bridging the gap between the physical and the metaphysical through unconditional loving intent.</span>
+                </li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </section>
+    );
+  };
+
+  const renderProtocolsSection = (isMobileLayout = false) => {
+    return (
+      <section id="protocols-section" style={{ backgroundColor: 'var(--bg-section)', padding: isMobileLayout ? '2.5rem 1rem' : '8rem 0' }}>
+        <div className="container" style={{ textAlign: 'center' }}>
+          <h2 style={{ fontSize: isMobileLayout ? '2rem' : '2.5rem', marginBottom: '1rem', color: 'var(--text-main)' }}>Advanced Harmonization Protocols</h2>
+          <p style={{ marginBottom: isMobileLayout ? '2rem' : '4rem', opacity: '0.7', color: 'var(--text-muted)', fontSize: '0.9rem' }}>Select a protocol below to synchronize with the Gemstone Core.</p>
+          
+          {/* Gemstone Core Sync Section */}
+          <div style={{ position: 'relative', maxWidth: '500px', margin: '0 auto 3rem auto' }}>
+            <div className="glass portal-frame" style={{ padding: '0.75rem', background: 'rgba(212, 175, 55, 0.1)', border: '2px solid var(--accent-gold)', borderRadius: '20px' }}>
+              <img 
+                src="/assets/energy-portal.png" 
+                alt="Gemstone Energy Portal" 
+                style={{ width: '100%', height: 'auto', display: 'block', borderRadius: '12px' }}
+              />
+              <div className="core-overlay" style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(0,0,0,0.3)', borderRadius: '20px' }}>
+                <button 
+                  className="btn btn-primary" 
+                  style={{
+                    backgroundColor: selectedProtocol ? 'var(--accent-gold)' : '#ccc', 
+                    borderColor: selectedProtocol ? 'var(--accent-gold)' : '#ccc', 
+                    cursor: selectedProtocol ? 'pointer' : 'not-allowed',
+                    padding: '0.6rem 1.5rem',
+                    fontSize: '0.85rem',
+                    display: 'block'
+                  }}
+                  onClick={() => selectedProtocol && setShowPortal(true)}
+                  disabled={!selectedProtocol}
+                >
+                  {selectedProtocol ? 'Synchronize with Core' : 'Select a Protocol First'}
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div style={{ display: 'grid', gridTemplateColumns: isMobileLayout ? '1fr' : 'repeat(2, 1fr)', gap: '1.5rem', maxWidth: '1000px', margin: '0 auto' }}>
+            {protocols.map((protocol) => (
+              <div 
+                key={protocol.id}
+                className={`glass card-hover ${selectedProtocol === protocol.id ? 'protocol-selected' : ''}`} 
+                style={{
+                  padding: isMobileLayout ? '1.5rem' : '2.5rem', 
+                  borderBottom: `6px solid ${protocol.borderColor}`,
+                  cursor: 'pointer',
+                  position: 'relative',
+                  transition: 'all 0.3s ease',
+                  border: selectedProtocol === protocol.id ? `2px solid ${protocol.color}` : '1px solid var(--glass-border)',
+                  borderRadius: '20px'
+                }}
+                onClick={() => {
+                  if (protocol.tier === 'advanced' && (!user || user.subscription !== 'healing')) {
+                    toast.error("Advanced Protocol Locked. Upgrade to access.");
+                    setShowSubscriptionPage(true);
+                    return;
+                  }
+                  setSelectedProtocol(protocol.id);
+                }}
+              >
+                <div style={{
+                  height: '160px', 
+                  overflow: 'hidden', 
+                  borderRadius: '12px', 
+                  marginBottom: '1rem',
+                  border: '1px solid rgba(255,255,255,0.1)',
+                  position: 'relative'
+                }}>
+                  <img 
+                    src={`/assets/${protocol.video[0]}`} 
+                    alt={protocol.name} 
+                    style={{
+                      width: '100%', 
+                      height: '100%', 
+                      objectFit: 'cover',
+                      transition: 'transform 0.5s ease'
+                    }} 
+                  />
+                  {protocol.isImmersive && (
+                    <div style={{
+                      position: 'absolute',
+                      top: '10px',
+                      left: '10px',
+                      background: 'var(--accent-gold)',
+                      color: '#000',
+                      fontSize: '0.6rem',
+                      fontWeight: 'bold',
+                      padding: '3px 8px',
+                      borderRadius: '20px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '4px',
+                      boxShadow: '0 4px 12px rgba(0,0,0,0.5)'
+                    }}>
+                      <Clock size={10} /> 10 MIN IMMERSION
+                    </div>
+                  )}
+                </div>
+                <h4 style={{ fontSize: '1.25rem', marginBottom: '0.5rem', color: protocol.color }}>{protocol.name}</h4>
+                <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', lineHeight: '1.4' }}>{protocol.desc}</p>
+                {selectedProtocol === protocol.id && (
+                  <div style={{ marginTop: '1rem', color: protocol.color, fontWeight: '700', fontSize: '0.8rem' }}>PROTOCOL SELECTED</div>
+                )}
+                {protocol.tier === 'advanced' && (!user || user.subscription !== 'healing') && (
+                  <div style={{
+                    position: 'absolute', top: '1rem', right: '1rem', 
+                    background: 'rgba(0,0,0,0.6)', padding: '0.4rem', borderRadius: '50%'
+                  }}>
+                    <Lock size={16} color="#bdc3c7" />
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+    );
+  };
+
+  const renderMobileTabContent = () => {
+    switch (activeTab) {
+      case 'home':
+        return (
+          <>
+            {renderHeroSection(true)}
+            {renderDailyResonance(true)}
+            {showInstallBanner && renderInstallBanner()}
+            {renderPhilosophySection(true)}
+            
+            {/* Mobile Footer */}
+            <footer style={{ padding: '2rem 1.5rem', textAlign: 'center', borderTop: '1px solid rgba(255,255,255,0.05)', marginTop: 'auto', background: 'rgba(0,0,0,0.1)' }}>
+              <p style={{ fontSize: '0.8rem', opacity: 0.6, marginBottom: '1rem' }}>© 2026 Reiki & Sage Healing Arts.</p>
+              <div style={{ display: 'flex', justifyContent: 'center', gap: '15px', fontSize: '0.75rem', opacity: 0.8 }}>
+                <span onClick={() => setShowAdminLogin(true)} style={{ cursor: 'pointer', textDecoration: 'underline' }}>Staff</span>
+                <span>|</span>
+                <span onClick={() => {
+                  if (!user) {
+                    toast.error("Please log in to apply.");
+                    setShowLoginModal(true);
+                  } else {
+                    setShowHealerApp(true);
+                  }
+                }} style={{ cursor: 'pointer', textDecoration: 'underline' }}>Apply as Healer</span>
+              </div>
+            </footer>
+          </>
+        );
+      case 'protocols':
+        return renderProtocolsSection(true);
+      case 'ai-guide':
+        return (
+          <div style={{ flex: 1, display: 'flex', flexDirection: 'column', height: 'calc(100vh - 125px)' }}>
+            <Suspense fallback={<LoadingSpinner />}>
+              <AIHealerInterface 
+                user={user} 
+                onClose={() => setActiveTab('home')} 
+                inlineMode={true}
+              />
+            </Suspense>
+          </div>
+        );
+      case 'portal':
+        return (
+          <div style={{ padding: '3rem 1.5rem', display: 'flex', flexDirection: 'column', gap: '2rem', flex: 1, justifyContent: 'center', alignItems: 'center', textAlign: 'center' }}>
+            <div style={{ fontSize: '3rem', animation: 'gentleDrift 4s infinite alternate' }}>🔮</div>
+            <h2 style={{ color: 'var(--accent-ethereal)', fontFamily: 'Playfair Display', fontSize: '1.8rem' }}>Quantum Resonance Portal</h2>
+            <p style={{ fontSize: '0.85rem', opacity: 0.8, maxWidth: '280px', lineHeight: '1.5' }}>Enter a session code provided by your healer to synchronize your biofields in real time.</p>
+            <button 
+              onClick={() => setShowJoinPortalModal(true)} 
+              className="btn btn-primary"
+              style={{ width: '100%', maxWidth: '280px', padding: '1rem', fontSize: '0.9rem' }}
+            >
+              🔑 ENTER PORTAL CODE
+            </button>
+            <div style={{ width: '60px', height: '1px', background: 'rgba(255,255,255,0.1)' }}></div>
+            <p style={{ fontSize: '0.7rem', opacity: 0.4, letterSpacing: '2px' }}>SECURE BIOFIELD CHANNEL</p>
+          </div>
+        );
+      case 'dashboard':
+        return (
+          <div style={{ padding: '1.5rem 1rem', flex: 1 }}>
+            {user ? (
+              <UserDashboardInline 
+                user={user} 
+                onUpdateUser={handleUpdateUser}
+                onOpenFullDashboard={() => {
+                  if (user.subscription === 'healing' || user.role === 'owner') {
+                    setShowUserFullDashboard(true);
+                  } else {
+                    toast.error("Guardian status required for Full Dashboard view.");
+                    setShowSubscriptionPage(true);
+                  }
+                }}
+                onNavigateToBooking={() => {
+                  setActiveTab('home');
+                  toast.success("Scroll to appointment section below.");
+                }}
+                onNavigateToProtocols={() => setActiveTab('protocols')}
+                onUpgrade={() => setShowSubscriptionPage(true)}
+              />
+            ) : (
+              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100%', minHeight: '350px', textAlign: 'center', gap: '1.5rem' }}>
+                <div style={{ fontSize: '3rem', filter: 'drop-shadow(0 0 15px rgba(212,175,55,0.4))' }}>🧘</div>
+                <h3 style={{ fontFamily: 'Playfair Display', fontSize: '1.4rem' }}>Seeker Sanctuary Dashboard</h3>
+                <p style={{ fontSize: '0.85rem', opacity: 0.7, maxWidth: '260px' }}>Log in to view your daily alignment, healing history, and manage your sessions.</p>
+                <button 
+                  onClick={() => setShowLoginModal(true)} 
+                  className="btn btn-primary"
+                  style={{ padding: '0.8rem 2rem', fontSize: '0.9rem' }}
+                >
+                  Log In to Sanctuary
+                </button>
+              </div>
+            )}
+          </div>
+        );
+      default:
+        return null;
+    }
+  };
+
+  const renderMobileTabletShell = () => {
+    const mainAppContent = (
+      <div className="device-screen">
+        {/* Mobile top header bar */}
+        <header className="mobile-header">
+          <a href="#" className="logo" onClick={(e) => { e.preventDefault(); setActiveTab('home'); }}>Reiki & Sage</a>
+          <div className="mobile-header-actions">
+            <button 
+              onClick={toggleTheme}
+              style={{
+                background: 'none', border: 'none', cursor: 'pointer',
+                color: 'var(--text-main)', display: 'inline-flex', alignItems: 'center'
+              }}
+              title={theme === 'dark' ? 'Switch to Light' : 'Switch to Dark'}
+            >
+              {theme === 'dark' ? <Sun size={18} /> : <Moon size={18} />}
+            </button>
+            {user ? (
+              <button 
+                onClick={() => {
+                  if (user.role === 'owner') {
+                    setShowHealerDashboard(true);
+                  } else {
+                    setActiveTab('dashboard');
+                  }
+                }}
+                style={{
+                  background: 'none', border: '1px solid var(--accent-gold)', cursor: 'pointer',
+                  color: 'var(--accent-gold)', padding: '0.3rem 0.75rem', borderRadius: '15px',
+                  fontSize: '0.65rem', display: 'inline-flex', alignItems: 'center', gap: '4px'
+                }}
+              >
+                <Sparkles size={10} /> {user.name.split(' ')[0]}
+              </button>
+            ) : (
+              <button
+                onClick={() => setShowLoginModal(true)}
+                style={{
+                  background: 'none', border: '1px solid var(--accent-gold)', cursor: 'pointer',
+                  color: 'var(--accent-gold)', padding: '0.3rem 0.75rem', borderRadius: '15px',
+                  fontSize: '0.65rem'
+                }}
+              >
+                LOG IN
+              </button>
+            )}
+          </div>
+        </header>
+
+        {/* Tab content area */}
+        <div className="tab-content-container">
+          {renderMobileTabContent()}
+        </div>
+
+        {/* Bottom navigation bar */}
+        <nav className="bottom-nav">
+          <button className={`bottom-nav-item ${activeTab === 'home' ? 'active' : ''}`} onClick={() => setActiveTab('home')}>
+            <div className="bottom-nav-icon-wrapper">
+              <Home size={20} />
+              {activeTab === 'home' && <div className="bottom-nav-dot"></div>}
+            </div>
+            <span>Home</span>
+          </button>
+          <button className={`bottom-nav-item ${activeTab === 'protocols' ? 'active' : ''}`} onClick={() => setActiveTab('protocols')}>
+            <div className="bottom-nav-icon-wrapper">
+              <Grid size={20} />
+              {activeTab === 'protocols' && <div className="bottom-nav-dot"></div>}
+            </div>
+            <span>Protocols</span>
+          </button>
+          <button className={`bottom-nav-item ${activeTab === 'ai-guide' ? 'active' : ''}`} onClick={() => setActiveTab('ai-guide')}>
+            <div className="bottom-nav-icon-wrapper">
+              <Sparkles size={20} />
+              {activeTab === 'ai-guide' && <div className="bottom-nav-dot"></div>}
+            </div>
+            <span>AI Guide</span>
+          </button>
+          <button className={`bottom-nav-item ${activeTab === 'portal' ? 'active' : ''}`} onClick={() => setActiveTab('portal')}>
+            <div className="bottom-nav-icon-wrapper">
+              <Waves size={20} />
+              {activeTab === 'portal' && <div className="bottom-nav-dot"></div>}
+            </div>
+            <span>Portal</span>
+          </button>
+          <button className={`bottom-nav-item ${activeTab === 'dashboard' ? 'active' : ''}`} onClick={() => setActiveTab('dashboard')}>
+            <div className="bottom-nav-icon-wrapper">
+              <User size={20} />
+              {activeTab === 'dashboard' && <div className="bottom-nav-dot"></div>}
+            </div>
+            <span>Dashboard</span>
+          </button>
+        </nav>
+      </div>
+    );
+
+    return (
+      <div className={`app theme-${theme}`} style={{ 
+        background: theme === 'dark' 
+          ? 'radial-gradient(circle at 50% -20%, #1a1a2e 0%, #0a0a0f 100%)' 
+          : 'radial-gradient(circle at 50% -20%, #fffafa 0%, #ffeef2 100%)',
+        minHeight: '100vh',
+        color: 'var(--text-main)',
+        transition: 'all 0.8s cubic-bezier(0.4, 0, 0.2, 1)',
+        position: 'relative'
+      }}>
+        <Toaster position="top-center" />
+        {renderIOSInstructionModal()}
+        
+        {/* Floating Layout Switcher for Desktop Preview */}
+        <div className="device-switcher">
+          <button className={viewMode === 'desktop' ? 'active' : ''} onClick={() => setViewMode('desktop')}>💻 Desktop</button>
+          <button className={viewMode === 'tablet' ? 'active' : ''} onClick={() => setViewMode('tablet')}>📟 Tablet</button>
+          <button className={viewMode === 'mobile' ? 'active' : ''} onClick={() => setViewMode('mobile')}>📱 Mobile</button>
+        </div>
+
+        {/* Immersive Playback Portal */}
+        {showPortal && currentProtocol && (
+          <div id="protocol-portal-root" className="healing-portal-overlay fade-in" style={{ zIndex: 10005 }}>
+            <div className="portal-content">
+              <div style={{ position: 'absolute', top: '2rem', right: '2rem', zIndex: 10, display: 'flex', gap: '1rem' }}>
+                <button 
+                  className="close-portal" 
+                  style={{ position: 'static', width: '45px', height: '45px', fontSize: '1.5rem' }} 
+                  onClick={toggleFullscreen}
+                >
+                  {isFullscreen ? <Minimize size={20} /> : <Maximize size={20} />}
+                </button>
+                <button 
+                  className="close-portal" 
+                  style={{ position: 'static', width: '45px', height: '45px', fontSize: '2rem' }} 
+                  onClick={() => setShowPortal(false)}
+                >
+                  ×
+                </button>
+              </div>
+              <div className="video-background" style={{ overflow: 'hidden' }}>
+                {Array.isArray(currentProtocol.video) ? (
+                  <div style={{ width: '100%', height: '100%', position: 'relative' }}>
+                    {currentProtocol.video.map((src, idx) => (
+                      <img 
+                        key={src}
+                        src={`/assets/${src}`}
+                        alt="Healing Visual"
+                        className={`${idx === videoIndex ? 'ken-burns-active' : ''} ${isPaused ? 'paused' : ''}`}
+                        style={{
+                          position: 'absolute',
+                          top: 0, left: 0,
+                          width: '100%', height: '100%', 
+                          objectFit: 'cover',
+                          opacity: idx === videoIndex ? 1 : 0,
+                          transition: 'opacity 2s ease-in-out',
+                          transform: idx === videoIndex ? 'scale(1.1)' : 'scale(1)'
+                        }}
+                      />
+                    ))}
+                  </div>
+                ) : (
+                  <iframe 
+                    width="100%" 
+                    height="100%" 
+                    src={`https://www.youtube.com/embed/${currentProtocol.audio}?enablejsapi=1&autoplay=1&mute=1&controls=0&loop=1&playlist=${currentProtocol.audio}`} 
+                    title="Healing Audio" 
+                    frameBorder="0" 
+                    id="healing-audio-iframe"
+                    style={{ border: 'none', pointerEvents: 'none' }}
+                  ></iframe>
+                )}
+              </div>
+              <div className="healing-ui">
+                <div className="glass healing-status">
+                  <div style={{ color: currentProtocol.color, fontSize: '1rem', fontWeight: '700', marginBottom: '0.25rem', letterSpacing: '1px' }}>
+                    {currentProtocol.name} ACTIVE
+                  </div>
+                  <div style={{ marginTop: '0.5rem', width: '100%', maxWidth: '160px', margin: '0.5rem auto' }}>
+                    <label style={{ fontSize: '0.7rem', opacity: 0.7, marginBottom: '3px', display: 'block' }}>
+                      Resonance Intensity
+                    </label>
+                    <input 
+                      type="range" 
+                      min="0" 
+                      max="100" 
+                      value={volume} 
+                      onChange={handleVolumeChange}
+                      style={{ width: '100%', accentColor: currentProtocol.color, cursor: 'pointer' }}
+                    />
+                  </div>
+                  <div style={{ marginBottom: '0.8rem' }}>
+                    <button 
+                      onClick={() => setIsPaused(!isPaused)}
+                      className="glass"
+                      style={{
+                        background: 'rgba(255,255,255,0.1)',
+                        border: '1px solid rgba(255,255,255,0.2)',
+                        width: '40px', height: '40px',
+                        borderRadius: '50%',
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        cursor: 'pointer', margin: '0 auto', color: 'white',
+                        transition: 'all 0.3s ease'
+                      }}
+                    >
+                      {isPaused ? <Play size={20} fill="currentColor" /> : <Pause size={20} fill="currentColor" />}
+                    </button>
+                  </div>
+                  <div className="frequency-visualizer">
+                    {[...Array(20)].map((_, i) => (
+                      <div key={i} className={`bar ${isPaused ? 'paused' : ''}`} style={{ animationDelay: `${i * 0.1}s`, backgroundColor: currentProtocol.color }}></div>
+                    ))}
+                  </div>
+                  <p style={{ fontSize: '0.75rem', opacity: '0.7', marginTop: '0.5rem' }}>
+                    Maximum Crystal Core Power Healing Effect Engaged...
+                  </p>
+                </div>
+              </div>
+            </div>
+            {/* Audio Player */}
+            <DuckingAudioPlayer 
+              audioId={currentProtocol.audio} 
+              voiceSrc={currentProtocol.voice} 
+              isPaused={isPaused} 
+              volume={volume} 
+              onComplete={handleProtocolComplete}
+            />
+          </div>
+        )}
+
+        {/* Modals & Subpages */}
+        <Suspense fallback={null}>
+          {showAdminLogin && (
+            <AdminLogin 
+              onClose={() => setShowAdminLogin(false)}
+              onLogin={() => {
+                const profile = JSON.parse(localStorage.getItem('user_profile'));
+                setUser(profile);
+                setShowAdminLogin(false);
+                setShowHealerDashboard(true);
+                toast.success(`Welcome back, ${profile.name}`);
+              }}
+            />
+          )}
+          {showScience && <ScienceModal onClose={() => setShowScience(false)} />}
+          {showHealerDashboard && (
+            <HealerDashboard 
+              onClose={() => setShowHealerDashboard(false)} 
+              onJoinPortal={(session) => {
+                setShowHealerDashboard(false);
+                setActiveSession(session);
+                setShowLivePortal(true);
+              }}
+            />
+          )}
+          {showSubscriptionPage && <SubscriptionPage onClose={() => setShowSubscriptionPage(false)} user={user} onUpdateUser={handleUpdateUser} />}
+          {showAuraGuide && <AuraGuide onClose={() => setShowAuraGuide(false)} user={user} onUpdateUser={handleUpdateUser} />}
+          {showSignupFlow && !user && (
+            <SignupFlow
+              onComplete={(profile) => {
+                setUser(profile);
+                localStorage.setItem('user_profile', JSON.stringify(profile));
+                setShowSignupFlow(false);
+                toast.success(`Welcome to the sanctuary, ${profile.name}!`);
+              }}
+              onCancel={() => setShowSignupFlow(false)}
+            />
+          )}
+          {showLoginModal && (
+            <Login 
+              onLogin={(loggedInUser) => {
+                setUser(loggedInUser);
+                localStorage.setItem('user_profile', JSON.stringify(loggedInUser));
+                setShowLoginModal(false);
+                toast.success(`Welcome back, ${loggedInUser.name}!`);
+              }}
+              onClose={() => setShowLoginModal(false)}
+              onSignupClick={() => {
+                setShowLoginModal(false);
+                setShowSignupFlow(true);
+                setActiveTab('dashboard');
+              }}
+            />
+          )}
+          {showHealerApp && <HealerApplicationModal onClose={() => setShowHealerApp(false)} user={user} />}
+          {showLivePortal && <LiveResonancePortal session={activeSession} onClose={() => setShowLivePortal(false)} user={user} />}
+          {showJoinPortalModal && <JoinPortalModal onClose={() => setShowJoinPortalModal(false)} onJoin={({ session }) => {
+            setActiveSession(session);
+            setShowLivePortal(true);
+            setShowJoinPortalModal(false);
+          }} />}
+          {showMyStories && <MyStoriesPortal onClose={() => setShowMyStories(false)} user={user} />}
+        </Suspense>
+
+        {/* Device Bezel Simulator Wrapper */}
+        <div className="device-container">
+          <div className={`device-frame mode-${viewMode}`}>
+            {viewMode === 'mobile' && <div className="device-island"></div>}
+            {mainAppContent}
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  if (viewMode !== 'desktop') {
+    return renderMobileTabletShell();
+  }
+
   return (
     <div className={`app theme-${theme}`} style={{ 
       background: theme === 'dark' 
@@ -656,6 +1441,14 @@ const [showCheckoutModal, setShowCheckoutModal] = useState(false);
       transition: 'all 0.8s cubic-bezier(0.4, 0, 0.2, 1)'
     }}>
       <Toaster position="top-center" />
+      
+      {/* Floating Layout Switcher for Desktop Preview */}
+      <div className="device-switcher">
+        <button className={viewMode === 'desktop' ? 'active' : ''} onClick={() => setViewMode('desktop')}>💻 Desktop</button>
+        <button className={viewMode === 'tablet' ? 'active' : ''} onClick={() => setViewMode('tablet')}>📟 Tablet</button>
+        <button className={viewMode === 'mobile' ? 'active' : ''} onClick={() => setViewMode('mobile')}>📱 Mobile</button>
+      </div>
+
       <Stardust />
       {showPortal && currentProtocol && (
         <div id="protocol-portal-root" className="healing-portal-overlay fade-in">
@@ -1162,6 +1955,8 @@ const [showCheckoutModal, setShowCheckoutModal] = useState(false);
       <div className="container" style={{ marginTop: '-4rem', position: 'relative', zIndex: 10 }}>
         <DailyFrequency />
       </div>
+
+      {showInstallBanner && renderInstallBanner()}
 
       <section id="about" style={{backgroundColor: 'var(--bg-section)'}}>
         <div className="container">
@@ -1720,6 +2515,9 @@ const [showCheckoutModal, setShowCheckoutModal] = useState(false);
           )}
         </AnimatePresence>
       </Suspense>
+
+      {/* iOS Safari PWA Install Modal */}
+      {renderIOSInstructionModal()}
 
     </div>
   )
