@@ -26,7 +26,7 @@ An immersive digital platform offering **crystal-powered Reiki healing protocols
 
 ## 🌐 Live Demo
 
-🔗 **[reiki-healing-sanctuary.vercel.app](https://reiki-healing-sanctuary.vercel.app)**
+🔗 **[chrissas-project.vercel.app](https://chrissas-project.vercel.app)**
 
 ---
 
