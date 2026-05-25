@@ -1,0 +1,62 @@
+// Firestore Security Rules for Reiki & Sage
+// Deploy via: firebase deploy --only firestore:rules
+// Or paste into Firebase Console → Firestore → Rules
+
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Helper: check if the user is an admin/owner
+    function isAdmin() {
+      return request.auth != null &&
+        get(/databases/$(database)/documents/profiles/$(request.auth.uid)).data.role in ['admin', 'owner'];
+    }
+
+    // Helper: check if user is staff+
+    function isStaff() {
+      return request.auth != null &&
+        get(/databases/$(database)/documents/profiles/$(request.auth.uid)).data.role in ['admin', 'owner', 'staff', 'healer'];
+    }
+
+    // Profiles: users can read/update own; admins can read all
+    match /profiles/{userId} {
+      allow read: if request.auth != null && (request.auth.uid == userId || isAdmin());
+      allow create: if request.auth != null && request.auth.uid == userId;
+      allow update: if request.auth != null && (request.auth.uid == userId || isAdmin());
+      allow delete: if false; // Never delete profiles from client
+    }
+
+    // Applications: users can create; users can read own; staff+ can read all; admins can update
+    match /applications/{appId} {
+      allow create: if request.auth != null;
+      allow read: if request.auth != null &&
+        (resource.data.userId == request.auth.uid || isStaff());
+      allow update: if isAdmin();
+      allow delete: if false;
+    }
+
+    // Stories: anyone can read approved; users can create; admins can update status
+    match /stories/{storyId} {
+      allow read: if resource.data.status == 'approved' ||
+        (request.auth != null && resource.data.userId == request.auth.uid) ||
+        isStaff();
+      allow create: if request.auth != null;
+      allow update: if isAdmin();
+      allow delete: if false;
+    }
+
+    // Session logs: users can read/create own only
+    match /session_logs/{logId} {
+      allow read: if request.auth != null && resource.data.userId == request.auth.uid;
+      allow create: if request.auth != null && request.resource.data.userId == request.auth.uid;
+      allow update, delete: if false;
+    }
+
+    // Pricing plans: anyone can read
+    match /pricing_plans/{planId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+  }
+}

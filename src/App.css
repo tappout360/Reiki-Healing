@@ -1,0 +1,138 @@
+/* Cleared for Reiki Project */
+
+/* === Styles migrated from inline dangerouslySetInnerHTML in App.jsx === */
+
+.hero {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  background: radial-gradient(circle at 80% 20%, rgba(160, 210, 235, 0.1) 0%, transparent 40%);
+}
+
+.portal-frame:hover {
+  box-shadow: 0 0 50px rgba(212, 175, 55, 0.4);
+  transform: scale(1.01);
+  transition: all 0.5s ease;
+}
+
+.core-overlay {
+  position: absolute;
+  top: 0; left: 0; width: 100%; height: 100%;
+  display: flex; align-items: center; justify-content: center;
+  background: rgba(0,0,0,0.1);
+  opacity: 0; transition: opacity 0.5s ease;
+  border-radius: 15px;
+}
+
+.portal-frame:hover .core-overlay {
+  opacity: 1;
+}
+
+.card-hover:hover {
+  transform: translateY(-10px);
+  transition: all 0.3s ease;
+}
+
+.protocol-selected {
+  transform: translateY(-5px);
+  box-shadow: 0 15px 45px rgba(0,0,0,0.15) !important;
+  background: rgba(255,255,255,0.95);
+}
+
+.healing-portal-overlay {
+  position: fixed;
+  top: 0; left: 0; width: 100%; height: 100%;
+  background: black;
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  align-items: center; justify-content: center;
+}
+
+.portal-content {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+.video-background {
+  position: absolute;
+  top: 0; left: 0; width: 100%; height: 100%;
+  pointer-events: none;
+}
+
+.close-portal {
+  position: absolute;
+  top: 2rem; right: 2rem;
+  background: rgba(255,255,255,0.2);
+  border: none; color: white;
+  font-size: 3rem; cursor: pointer;
+  width: 60px; height: 60px;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  z-index: 10;
+  transition: all 0.3s ease;
+}
+
+.close-portal:hover {
+  background: rgba(255,255,255,0.4);
+  transform: rotate(90deg);
+}
+
+.healing-ui {
+  position: absolute;
+  bottom: 2rem; left: 50%;
+  transform: translateX(-50%);
+  z-index: 5;
+  width: 90%;
+  max-width: 400px;
+}
+
+.healing-status {
+  padding: 1rem;
+  text-align: center;
+  background: rgba(0,0,0,0.6);
+  border: 1px solid rgba(255,255,255,0.15);
+  color: white;
+  border-radius: 20px;
+}
+
+.healing-status h2 {
+  font-size: 1.2rem !important;
+  margin-bottom: 0.2rem;
+}
+
+.healing-status p {
+  font-size: 0.8rem;
+  margin-bottom: 0.5rem;
+}
+
+.frequency-visualizer {
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  gap: 3px;
+  height: 30px;
+  margin-top: 0.5rem;
+}
+
+.bar {
+  width: 4px;
+  background-color: white;
+  animation: barBounce 1s infinite ease-in-out;
+}
+
+.ken-burns-active {
+  animation: kenBurns 12s infinite alternate ease-in-out;
+  will-change: transform, opacity;
+}
+
+@keyframes kenBurns {
+  0% { transform: scale(1) translate(0, 0); }
+  100% { transform: scale(1.15) translate(-1%, -1%); }
+}
+
+@keyframes barBounce {
+  0%, 100% { height: 10px; }
+  50% { height: 40px; }
+}

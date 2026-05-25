@@ -1,0 +1,151 @@
+import React, { useState } from 'react';
+import { motion } from 'framer-motion';
+import toast from 'react-hot-toast';
+import { auth, db, isFirebaseConfigured } from '../lib/firebase';
+
+const AdminLogin = ({ onLogin, onClose }) => {
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setError('');
+    setLoading(true);
+
+    try {
+      if (isFirebaseConfigured()) {
+        // Firebase Auth + role check
+        const user = await auth.signIn(email.trim(), password);
+        const profile = await db.getProfile(user.uid);
+
+        if (!profile) {
+          setError('Profile not found. Please contact an administrator.');
+          await auth.signOut();
+          setLoading(false);
+          return;
+        }
+
+        const isAuthorized = ['admin', 'owner', 'staff', 'healer'].includes(profile.role);
+        if (!isAuthorized) {
+          setError('Access Denied: Your account does not have Healer privileges.');
+          await auth.signOut();
+          setLoading(false);
+          return;
+        }
+
+        // Success — store profile for App.jsx and trigger dashboard
+        localStorage.setItem('user_profile', JSON.stringify(profile));
+        setLoading(false);
+        onLogin();
+      } else {
+        // Fallback: localStorage check for local dev
+        const clients = JSON.parse(localStorage.getItem('aura_clients') || '[]');
+        const team = JSON.parse(localStorage.getItem('aura_team') || '[]');
+        const normalizedEmail = email.trim().toLowerCase();
+
+        const userMatch = clients.find(c =>
+          c.email?.toLowerCase() === normalizedEmail || c.username?.toLowerCase() === normalizedEmail
+        );
+
+        if (userMatch) {
+          const isTeamMember = team.find(t =>
+            t.email?.toLowerCase() === userMatch.email?.toLowerCase() && t.status === 'Active'
+          );
+          const isAdmin = ['admin', 'owner', 'healer'].includes(userMatch.role);
+
+          if (isTeamMember || isAdmin) {
+            setTimeout(() => {
+              setLoading(false);
+              const adminUser = {
+                name: userMatch.name, email: userMatch.email,
+                role: userMatch.role, subscription: 'healing', status: 'Active'
+              };
+              localStorage.setItem('user_profile', JSON.stringify(adminUser));
+              onLogin();
+            }, 1000);
+            return;
+          } else {
+            setLoading(false);
+            setError('Access Denied: Your account does not have Healer privileges.');
+            return;
+          }
+        }
+
+        setLoading(false);
+        setError('Invalid credentials. Please check your email and password.');
+      }
+    } catch (err) {
+      setLoading(false);
+      const msg = err.code === 'auth/invalid-credential'
+        ? 'Invalid email or password.'
+        : err.code === 'auth/too-many-requests'
+        ? 'Too many attempts. Please wait and try again.'
+        : 'Login failed. Please try again.';
+      setError(msg);
+    }
+  };
+
+  return (
+    <div className="booking-overlay" style={{backdropFilter: 'blur(15px)', zIndex: 10001}}>
+      <div className="booking-modal glass" style={{maxWidth: '400px', textAlign: 'center', border: '1px solid rgba(142, 68, 173, 0.3)', padding: '3rem 2.5rem'}}>
+        <button onClick={onClose} className="booking-close">×</button>
+
+        <div style={{marginBottom: '2rem'}}>
+          <h2 style={{color: 'var(--accent-ethereal)', fontFamily: 'Playfair Display', fontSize: '2rem', marginBottom: '0.5rem'}}>Sanctuary Access</h2>
+          <div style={{width: '40px', height: '2px', background: 'var(--accent-gold)', margin: '0 auto'}}></div>
+        </div>
+
+        <form onSubmit={handleSubmit} style={{display: 'flex', flexDirection: 'column', gap: '1rem'}}>
+          <div className="form-group">
+            <input
+              type="email"
+              placeholder="Email Address"
+              value={email} onChange={e => setEmail(e.target.value)}
+              className="booking-input"
+              style={{ background: '#ffffff', color: '#000000', borderColor: 'var(--glass-border)', borderRadius: '12px' }}
+              autoFocus
+            />
+          </div>
+          <div className="form-group" style={{position: 'relative'}}>
+            <input
+              type={showPassword ? "text" : "password"}
+              placeholder="Password"
+              value={password} onChange={e => setPassword(e.target.value)}
+              className="booking-input"
+              style={{ background: '#ffffff', color: '#000000', borderColor: 'var(--glass-border)', borderRadius: '12px', paddingRight: '3rem' }}
+            />
+            <span
+              onMouseEnter={() => setShowPassword(true)}
+              onMouseLeave={() => setShowPassword(false)}
+              style={{
+                position: 'absolute', right: '15px', top: '50%',
+                transform: 'translateY(-50%)', cursor: 'pointer', opacity: 0.4, fontSize: '1.2rem'
+              }}
+            >👁️</span>
+          </div>
+
+          {error && (
+            <motion.p
+              initial={{opacity: 0}} animate={{opacity: 1}}
+              style={{color: '#ff7675', fontSize: '0.85rem', margin: '0.5rem 0'}}
+            >{error}</motion.p>
+          )}
+
+          <button
+            type="submit" className="btn-primary"
+            style={{marginTop: '1rem', width: '100%', padding: '1.1rem', opacity: loading ? 0.7 : 1}}
+            disabled={loading}
+          >
+            {loading ? 'Aligning Frequencies...' : 'Calibrate & Enter'}
+          </button>
+        </form>
+        <p style={{marginTop: '2rem', fontSize: '0.75rem', opacity: 0.4, letterSpacing: '1px'}}>AUTHORIZED HEALERS ONLY</p>
+      </div>
+    </div>
+  );
+};
+
+export default AdminLogin;
