@@ -130,8 +130,8 @@ Whether you're beginning your healing journey or deepening an existing practice,
 
 ```bash
 # Clone the repository
-git clone https://github.com/your-username/reiki-healing-sanctuary.git
-cd reiki-healing-sanctuary
+git clone https://github.com/tappout360/Reiki-Healing.git
+cd Reiki-Healing
 
 # Install dependencies
 npm install
