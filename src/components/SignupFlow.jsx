@@ -796,6 +796,28 @@ const SignupFlow = ({ onComplete, onCancel }) => {
                   )}
                 </div>
 
+                <p style={{ 
+                  fontSize: '0.78rem', 
+                  color: 'rgba(255, 255, 255, 0.4)', 
+                  textAlign: 'center', 
+                  marginBottom: '1.5rem',
+                  lineHeight: 1.6 
+                }}>
+                  By completing registration, you agree to our{' '}
+                  <a href="https://reikiandsage.com" onClick={(e) => { e.preventDefault(); window.open('https://reikiandsage.com', '_blank'); }} 
+                    style={{ color: 'var(--accent-ethereal)', textDecoration: 'underline', cursor: 'pointer' }}>
+                    Terms of Service
+                  </a>,{' '}
+                  <a href="https://reikiandsage.com" onClick={(e) => { e.preventDefault(); window.open('https://reikiandsage.com', '_blank'); }} 
+                    style={{ color: 'var(--accent-ethereal)', textDecoration: 'underline', cursor: 'pointer' }}>
+                    Privacy Policy
+                  </a>, and{' '}
+                  <a href="https://reikiandsage.com" onClick={(e) => { e.preventDefault(); window.open('https://reikiandsage.com', '_blank'); }} 
+                    style={{ color: 'var(--accent-ethereal)', textDecoration: 'underline', cursor: 'pointer' }}>
+                    Healing Disclaimer
+                  </a>.
+                </p>
+
                 <div style={{ display: 'flex', gap: '1rem' }}>
                   <button
                     className="btn"

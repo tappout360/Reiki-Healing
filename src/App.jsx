@@ -29,6 +29,7 @@ const LiveResonancePortal = lazy(() => import('./components/LiveResonancePortal'
 const JoinPortalModal = lazy(() => import('./components/JoinPortalModal'));
 const MyStoriesPortal = lazy(() => import('./components/MyStoriesPortal'));
 const SubscriptionPage = lazy(() => import('./components/SubscriptionPage'));
+const LegalModal = lazy(() => import('./components/LegalModal'));
 import DuckingAudioPlayer from './components/DuckingAudioPlayer';
 import BillingForm from './components/BillingForm';
 
@@ -451,6 +452,7 @@ function App() {
   const [showScience, setShowScience] = useState(false); // Science Modal
   const [showHealerDashboard, setShowHealerDashboard] = useState(false); // Admin access
   const [showAdminLogin, setShowAdminLogin] = useState(false); // NEW: Staff/Admin login
+  const [showLegalModal, setShowLegalModal] = useState(null); // 'terms' | 'privacy' | 'disclaimer' | null
   const [bookingType, setBookingType] = useState(null); 
   const [videoIndex, setVideoIndex] = useState(0);
   const [volume, setVolume] = useState(50);
@@ -1164,7 +1166,13 @@ const [showCheckoutModal, setShowCheckoutModal] = useState(false);
             {/* Mobile Footer */}
             <footer style={{ padding: '2rem 1.5rem', textAlign: 'center', borderTop: '1px solid rgba(255,255,255,0.05)', marginTop: 'auto', background: 'rgba(0,0,0,0.1)' }}>
               <p style={{ fontSize: '0.8rem', opacity: 0.6, marginBottom: '1rem' }}>© 2026 Reiki & Sage Healing Arts.</p>
-              <div style={{ display: 'flex', justifyContent: 'center', gap: '15px', fontSize: '0.75rem', opacity: 0.8 }}>
+              <div style={{ display: 'flex', justifyContent: 'center', gap: '15px', fontSize: '0.75rem', opacity: 0.8, flexWrap: 'wrap' }}>
+                <span onClick={() => setShowLegalModal('terms')} style={{ cursor: 'pointer', textDecoration: 'underline' }}>Terms</span>
+                <span>|</span>
+                <span onClick={() => setShowLegalModal('privacy')} style={{ cursor: 'pointer', textDecoration: 'underline' }}>Privacy</span>
+                <span>|</span>
+                <span onClick={() => setShowLegalModal('disclaimer')} style={{ cursor: 'pointer', textDecoration: 'underline' }}>Disclaimer</span>
+                <span>|</span>
                 <span onClick={() => setShowAdminLogin(true)} style={{ cursor: 'pointer', textDecoration: 'underline' }}>Staff</span>
                 <span>|</span>
                 <span onClick={() => {
@@ -1360,6 +1368,13 @@ const [showCheckoutModal, setShowCheckoutModal] = useState(false);
       }}>
         <Toaster position="top-center" />
         {renderIOSInstructionModal()}
+        <Suspense fallback={null}>
+          <AnimatePresence>
+            {showLegalModal && (
+              <LegalModal initialTab={showLegalModal} onClose={() => setShowLegalModal(null)} />
+            )}
+          </AnimatePresence>
+        </Suspense>
         
         {/* Floating Layout Switcher for Desktop Preview */}
         <div className="device-switcher">
@@ -2441,6 +2456,27 @@ const [showCheckoutModal, setShowCheckoutModal] = useState(false);
           <div style={{fontSize: '0.8rem', opacity: '0.6', color: 'var(--text-muted)', display: 'flex', justifyContent: 'flex-start', alignItems: 'center', gap: '15px', flexWrap: 'wrap'}}>
             <span>© 2026 Reiki & Sage Healing Arts. All rights reserved.</span>
             <span>|</span>
+            <span
+              onClick={() => setShowLegalModal('terms')}
+              style={{cursor: 'pointer', textDecoration: 'underline', color: 'var(--text-muted)'}}
+            >
+              Terms
+            </span>
+            <span>|</span>
+            <span
+              onClick={() => setShowLegalModal('privacy')}
+              style={{cursor: 'pointer', textDecoration: 'underline', color: 'var(--text-muted)'}}
+            >
+              Privacy
+            </span>
+            <span>|</span>
+            <span
+              onClick={() => setShowLegalModal('disclaimer')}
+              style={{cursor: 'pointer', textDecoration: 'underline', color: 'var(--text-muted)'}}
+            >
+              Disclaimer
+            </span>
+            <span>|</span>
             <span 
               onClick={() => setShowAdminLogin(true)}
               style={{cursor: 'pointer', textDecoration: 'underline', color: 'var(--text-muted)'}}
@@ -2636,6 +2672,18 @@ const [showCheckoutModal, setShowCheckoutModal] = useState(false);
                 setShowHealerDashboard(true);
                 toast.success(`Welcome back, ${profile.name}`);
               }}
+            />
+          )}
+        </AnimatePresence>
+      </Suspense>
+
+      {/* Legal Modal (Terms, Privacy, Disclaimer) */}
+      <Suspense fallback={null}>
+        <AnimatePresence>
+          {showLegalModal && (
+            <LegalModal
+              initialTab={showLegalModal}
+              onClose={() => setShowLegalModal(null)}
             />
           )}
         </AnimatePresence>
