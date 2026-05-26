@@ -469,7 +469,14 @@ const [healerAppsEnabled, setHealerAppsEnabled] = useState(localStorage.getItem(
 const [showCheckoutModal, setShowCheckoutModal] = useState(false);
 
   // NEW: Tablet/Mobile App Shell States
-  const [viewMode, setViewMode] = useState('desktop'); // 'desktop' | 'mobile' | 'tablet'
+  const [viewMode, setViewMode] = useState(() => {
+    if (typeof window !== 'undefined') {
+      const w = window.innerWidth;
+      if (w <= 768) return 'mobile';
+      if (w <= 1023) return 'tablet';
+    }
+    return 'desktop';
+  });
   const [activeTab, setActiveTab] = useState('home'); // 'home' | 'protocols' | 'ai-guide' | 'portal' | 'dashboard'
 
 
@@ -482,6 +489,17 @@ const [showCheckoutModal, setShowCheckoutModal] = useState(false);
   // Gamification State
   const [gamificationState, setGamificationState] = useState(null);
   const [showLevelUp, setShowLevelUp] = useState(null);
+
+  // Auto-detect device on resize (orientation changes etc.)
+  useEffect(() => {
+    const handleResize = () => {
+      const w = window.innerWidth;
+      if (w <= 768) setViewMode('mobile');
+      else if (w <= 1023) setViewMode('tablet');
+    };
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   useEffect(() => {
     // Detect iOS
