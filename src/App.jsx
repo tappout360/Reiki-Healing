@@ -840,7 +840,7 @@ const [showCheckoutModal, setShowCheckoutModal] = useState(false);
             <h3 style={{ fontSize: '1.4rem', fontFamily: 'Playfair Display', color: 'var(--accent-ethereal)' }}>Bring the Sanctuary to Your Device</h3>
           </div>
           <p style={{ fontSize: '0.85rem', opacity: 0.85, maxWidth: '600px', lineHeight: '1.6' }}>
-            Install the **Reiki & Sage App** on your phone, tablet, or desktop. Enjoy standalone full-screen access, faster load times, and offline support for your daily biofield calibration.
+            Install the <strong>Reiki &amp; Sage App</strong> on your phone, tablet, or desktop. Enjoy standalone full-screen access, faster load times, and offline support for your daily biofield calibration.
           </p>
           <button 
             onClick={handleInstallClick} 
@@ -866,9 +866,9 @@ const [showCheckoutModal, setShowCheckoutModal] = useState(false);
             To install Reiki & Sage on your iPhone or iPad, follow these simple steps using the Safari browser:
           </p>
           <ol style={{ textAlign: 'left', fontSize: '0.85rem', paddingLeft: '1.25rem', display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '2rem', opacity: 0.9 }}>
-            <li>Tap the **Share** button <span style={{ background: 'rgba(255,255,255,0.1)', padding: '2px 6px', borderRadius: '4px' }}>📤</span> in Safari.</li>
-            <li>Scroll down and tap **Add to Home Screen** <span style={{ background: 'rgba(255,255,255,0.1)', padding: '2px 6px', borderRadius: '4px' }}>➕</span>.</li>
-            <li>Tap **Add** in the top right corner to confirm.</li>
+            <li>Tap the <strong>Share</strong> button <span style={{ background: 'rgba(255,255,255,0.1)', padding: '2px 6px', borderRadius: '4px' }}>📤</span> in Safari.</li>
+            <li>Scroll down and tap <strong>Add to Home Screen</strong> <span style={{ background: 'rgba(255,255,255,0.1)', padding: '2px 6px', borderRadius: '4px' }}>➕</span>.</li>
+            <li>Tap <strong>Add</strong> in the top right corner to confirm.</li>
           </ol>
           <button onClick={() => setShowIOSInstruction(false)} className="btn btn-primary" style={{ width: '100%', padding: '0.9rem', borderRadius: '20px' }}>
             Got It
@@ -2101,7 +2101,7 @@ const [showCheckoutModal, setShowCheckoutModal] = useState(false);
         <div className="container">
           <div style={{textAlign: 'center', marginBottom: '4rem'}}>
             <h2 style={{fontSize: '3rem', color: 'var(--text-main)'}}>Complete Compassion & Caring</h2>
-            <div style={{width: '60px', h: '3px', background: 'var(--accent-compassion)', margin: '1rem auto'}}></div>
+            <div style={{width: '60px', height: '3px', background: 'var(--accent-compassion)', margin: '1rem auto'}}></div>
           </div>
           
           <div style={{display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '4rem', alignItems: 'center'}}>

@@ -99,7 +99,6 @@ const BookingInterface = ({ type, onClose }) => {
     
     // Simulated email dispatch
     const emailSettings = JSON.parse(localStorage.getItem('aura_email_settings')) || { fromEmail: 'healing@reikiandsage.com', signature: 'Balance & Blessing, Carissa' };
-    console.log(`[AURA SIMULATION] Email sent from ${emailSettings.fromEmail} to ${email}. Subject: Appointment Confirmed. Signature: ${emailSettings.signature}`);
     
     // Log Transaction
     logTransaction(
