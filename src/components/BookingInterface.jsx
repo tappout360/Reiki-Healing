@@ -4,12 +4,7 @@ import Calendar from 'react-calendar';
 import 'react-calendar/dist/Calendar.css';
 import './BookingInterface.css';
 import { logTransaction } from '../utils/logger';
-import BillingForm from './BillingForm';
-
-const maskCardData = (number) => {
-  if (!number || number.length < 4) return '****';
-  return `**** **** **** ${number.slice(-4)}`;
-};
+import { isFirebaseConfigured, db } from '../lib/firebase';
 
 const BookingInterface = ({ type, onClose }) => {
   const [date, setDate] = useState(new Date());
@@ -19,12 +14,63 @@ const BookingInterface = ({ type, onClose }) => {
   const [name, setName] = useState('');
   const [phone, setPhone] = useState('');
   const [email, setEmail] = useState('');
-  const [subType, setSubType] = useState(type === 'onsite' ? 'visit' : 'live'); // 'visit', 'live', 'recorded'
+  const [subType, setSubType] = useState(type === 'onsite' ? 'visit' : 'live'); // 'visit' or 'live' only (recorded removed)
   const [distance, setDistance] = useState('');
-  const [blockedDates] = useState(JSON.parse(localStorage.getItem('aura_blocked_dates') || '[]'));
-  const [blockedSlots] = useState(JSON.parse(localStorage.getItem('aura_blocked_slots') || '{}'));
-  const [existingBookings] = useState(JSON.parse(localStorage.getItem('aura_bookings') || '[]'));
-  const [currentBooking, setCurrentBooking] = useState(null);
+  const [blockedDates, setBlockedDates] = useState([]);
+  const [blockedSlots, setBlockedSlots] = useState({});
+  const [existingBookings, setExistingBookings] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [onsitePrice, setOnsitePrice] = useState('150');
+  const [videoPrice, setVideoPrice] = useState('88');
+
+  // Load restrictions and settings from localStorage & Firestore
+  useEffect(() => {
+    const localBlockedDates = JSON.parse(localStorage.getItem('aura_blocked_dates') || '[]');
+    const localBlockedSlots = JSON.parse(localStorage.getItem('aura_blocked_slots') || '{}');
+    const localBookings = JSON.parse(localStorage.getItem('aura_bookings') || '[]');
+    
+    setBlockedDates(localBlockedDates);
+    setBlockedSlots(localBlockedSlots);
+    setExistingBookings(localBookings);
+
+    // If Firebase is configured, fetch real-time availability, bookings, and pricing settings
+    if (isFirebaseConfigured()) {
+      db.getSettings('availability')
+        .then(data => {
+          if (data) {
+            if (data.blockedDates) setBlockedDates(data.blockedDates);
+            if (data.blockedSlots) setBlockedSlots(data.blockedSlots);
+          }
+        })
+        .catch(err => console.error("Error loading availability settings:", err));
+
+      db.getAllBookings()
+        .then(list => {
+          if (list && list.length > 0) {
+            // Map Firestore bookingDate and bookingTime keys to date and time fields expected in getAvailableSlots
+            setExistingBookings(list.map(b => ({
+              id: b.id,
+              date: b.bookingDate,
+              time: b.bookingTime,
+              status: b.status
+            })));
+          }
+        })
+        .catch(err => console.error("Error loading bookings from Firestore:", err));
+
+      db.getSettings('pricing')
+        .then(data => {
+          if (data) {
+            if (data.onsitePrice) setOnsitePrice(data.onsitePrice);
+            if (data.videoPrice) setVideoPrice(data.videoPrice);
+          }
+        })
+        .catch(err => console.error("Error loading pricing settings:", err));
+    } else {
+      setOnsitePrice(localStorage.getItem('aura_onsite_price') || '150');
+      setVideoPrice(localStorage.getItem('aura_video_price') || '88');
+    }
+  }, []);
 
   // Auto-fill logic for returning clients
   useEffect(() => {
@@ -58,57 +104,61 @@ const BookingInterface = ({ type, onClose }) => {
     return blockedDates.includes(d.toDateString());
   };
 
-  const handleBooking = (paymentData) => {
-    const sessionCode = type !== 'onsite' && subType === 'live' 
-        ? Math.random().toString(36).substring(2, 8).toUpperCase() 
-        : null;
+  const handleCheckoutRedirect = async () => {
+    setLoading(true);
+    toast.loading("Initiating secure payment flow...");
+    try {
+      const priceVal = subType === 'visit' 
+        ? parseInt(onsitePrice) 
+        : parseInt(videoPrice);
 
-    const booking = {
-      id: Date.now(),
-      type: type === 'onsite' ? 'On-Site Session' : `Portal Resonance (${subType === 'live' ? 'Live' : 'Recorded'})`,
-      subType,
-      date: date.toDateString(),
-      time: subType === 'recorded' ? 'Instant Access' : time,
-      client: { name, phone, email },
-      status: subType === 'recorded' ? 'completed' : 'pending',
-      sessionCode,
-      created: new Date().toISOString(),
-      paymentStatus: 'paid'
-    };
+      // Stripe expects amount in cents
+      const priceCents = priceVal * 100;
 
-    setCurrentBooking(booking);
+      const response = await fetch('/api/create-booking-checkout', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          serviceType: subType === 'visit' ? 'onsite' : 'live',
+          price: priceCents,
+          customerEmail: email,
+          customerName: name,
+          bookingDate: date.toDateString(),
+          bookingTime: time,
+          notes: `Phone: ${phone}${distance ? `, Distance: ${distance} miles` : ''}`
+        })
+      });
 
-    // Save booking
-    const bookingsList = JSON.parse(localStorage.getItem('aura_bookings') || '[]');
-    localStorage.setItem('aura_bookings', JSON.stringify([...bookingsList, booking]));
-    
-    // Save/Update client in archive
-    const clients = JSON.parse(localStorage.getItem('aura_clients') || '[]');
-    const clientIdx = clients.findIndex(c => c.name.toLowerCase() === name.toLowerCase());
-    const clientData = { 
-        name, phone, email, lastBooking: booking.date,
-        card: paymentData?.saveCard ? maskCardData(paymentData.number) : null 
-    };
-    
-    if (clientIdx > -1) {
-      clients[clientIdx] = clientData;
-    } else {
-      clients.push(clientData);
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || "Failed to initiate payment");
+      }
+
+      const data = await response.json();
+      toast.dismiss();
+      
+      // Save tentative booking info to localStorage for recovery/verification
+      const tentativeBooking = {
+        name, phone, email,
+        serviceType: subType === 'visit' ? 'onsite' : 'live',
+        date: date.toDateString(),
+        time,
+        price: priceVal,
+        sessionId: data.sessionId
+      };
+      localStorage.setItem('tentative_booking', JSON.stringify(tentativeBooking));
+
+      // Redirect to Stripe Checkout
+      window.location.href = data.url;
+    } catch (err) {
+      toast.dismiss();
+      toast.error(err.message || "Failed to start payment checkout.");
+      console.error(err);
+    } finally {
+      setLoading(false);
     }
-    localStorage.setItem('aura_clients', JSON.stringify(clients));
-    
-    // Simulated email dispatch
-    const emailSettings = JSON.parse(localStorage.getItem('aura_email_settings')) || { fromEmail: 'healing@reikiandsage.com', signature: 'Balance & Blessing, Carissa' };
-    
-    // Log Transaction
-    logTransaction(
-        'New Appointment',
-        name,
-        email,
-        `${type} on ${date.toDateString()} at ${time}`
-    );
-
-    setStep(3);
   };
 
   return (
@@ -121,28 +171,22 @@ const BookingInterface = ({ type, onClose }) => {
             <h2 className="booking-header">Resonance Selection</h2>
             <div className="type-selector" style={{display: 'flex', gap: '10px', marginBottom: '2rem'}}>
                 {type === 'onsite' ? (
-                    <div className={`selection-card ${subType === 'visit' ? 'active' : ''}`} onClick={() => setSubType('visit')} style={{flex: 1, padding: '1rem', border: '1px solid var(--glass-border)', borderRadius: '12px', cursor: 'pointer'}}>
+                    <div className={`selection-card ${subType === 'visit' ? 'active' : ''}`} onClick={() => setSubType('visit')} style={{flex: 1, padding: '1.5rem', border: '1px solid var(--glass-border)', borderRadius: '12px', cursor: 'pointer', background: 'rgba(255,255,255,0.03)'}}>
                         <h4>On-Site Visit</h4>
-                        <p style={{fontSize: '0.75rem', opacity: 0.7}}>Physical calibration at the Sanctuary.</p>
+                        <p style={{fontSize: '0.75rem', opacity: 0.7, marginTop: '5px'}}>Physical calibration at the Sanctuary.</p>
                     </div>
                 ) : (
-                    <>
-                        <div className={`selection-card ${subType === 'live' ? 'active' : ''}`} onClick={() => setSubType('live')} style={{flex: 1, padding: '1rem', border: '1px solid var(--glass-border)', borderRadius: '12px', cursor: 'pointer'}}>
-                            <h4>Live Session</h4>
-                            <p style={{fontSize: '0.75rem', opacity: 0.7}}>Video resonance with a live healer.</p>
-                        </div>
-                        <div className={`selection-card ${subType === 'recorded' ? 'active' : ''}`} onClick={() => setSubType('recorded')} style={{flex: 1, padding: '1rem', border: '1px solid var(--glass-border)', borderRadius: '12px', cursor: 'pointer'}}>
-                            <h4>Recorded Access</h4>
-                            <p style={{fontSize: '0.75rem', opacity: 0.7}}>Instant vibrational archives.</p>
-                        </div>
-                    </>
+                    <div className={`selection-card ${subType === 'live' ? 'active' : ''}`} onClick={() => setSubType('live')} style={{flex: 1, padding: '1.5rem', border: '1px solid var(--glass-border)', borderRadius: '12px', cursor: 'pointer', background: 'rgba(255,255,255,0.03)'}}>
+                        <h4>Live Video Session</h4>
+                        <p style={{fontSize: '0.75rem', opacity: 0.7, marginTop: '5px'}}>Video resonance alignment with healer.</p>
+                    </div>
                 )}
             </div>
 
             <button 
               onClick={() => {
                 setVibrationMatched(true);
-                setTimeout(() => setStep(subType === 'recorded' ? 2 : 1), 1000);
+                setTimeout(() => setStep(1), 1000);
               }}
               className="btn-primary"
               style={{ width: '100%' }}
@@ -155,7 +199,7 @@ const BookingInterface = ({ type, onClose }) => {
         {step === 1 && (
           <div className="fade-in">
             <h2 className="booking-header">{subType === 'visit' ? 'Sanctuary Availability' : 'Live Portal Timing'}</h2>
-            <p style={{color: '#666', marginBottom: '1.5rem'}}>Select an open window in the ether.</p>
+            <p style={{color: '#888', fontSize: '0.85rem', marginBottom: '1.5rem'}}>Select an open window in the ether.</p>
             <Calendar 
               onChange={setDate} 
               value={date} 
@@ -180,6 +224,7 @@ const BookingInterface = ({ type, onClose }) => {
               disabled={!time || getAvailableSlots().length === 0}
               onClick={() => setStep(2)}
               className="btn-primary"
+              style={{ width: '100%', marginTop: '1.5rem' }}
             >
               Continue
             </button>
@@ -189,7 +234,7 @@ const BookingInterface = ({ type, onClose }) => {
         {step === 2 && (
           <div className="fade-in">
             <h2 className="booking-header">Your Details</h2>
-            <p style={{marginBottom: '1.5rem', opacity: 0.7}}>So we can contact you.</p>
+            <p style={{marginBottom: '1.5rem', opacity: 0.7, fontSize: '0.85rem'}}>Provide your coordination data.</p>
             
             <input 
               type="text" placeholder="Your Name" value={name} onChange={e => setName(e.target.value)}
@@ -210,87 +255,44 @@ const BookingInterface = ({ type, onClose }) => {
               className="booking-input"
             />
 
-            <div className="summary-card" style={{marginTop: '1.5rem', padding: '1.5rem', background: 'rgba(255,255,255,0.05)', borderRadius: '12px'}}>
-              <p><strong>Service:</strong> {subType === 'visit' ? 'In-Person Healing' : (subType === 'live' ? 'Live Portal Session' : 'Recorded Access')}</p>
-              {subType !== 'recorded' && (
-                  <>
-                    <p><strong>Date:</strong> {date.toDateString()}</p>
-                    <p><strong>Time:</strong> {time}</p>
-                  </>
-              )}
+            <div className="summary-card" style={{marginTop: '1.5rem', padding: '1.5rem', background: 'rgba(255,255,255,0.05)', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.08)'}}>
+              <p style={{fontSize: '0.9rem'}}><strong>Service:</strong> {subType === 'visit' ? 'In-Person Healing Session' : 'Live Video Portal Session'}</p>
+              <p style={{fontSize: '0.9rem'}}><strong>Date:</strong> {date.toDateString()}</p>
+              <p style={{fontSize: '0.9rem'}}><strong>Time:</strong> {time}</p>
               
               <div style={{marginTop: '1rem', paddingTop: '1rem', borderTop: '1px solid rgba(255,255,255,0.1)'}}>
                 {subType === 'visit' ? (
                    <>
-                     <p style={{fontSize: '1.1rem'}}><strong>Total:</strong> ${(() => {
-                        return localStorage.getItem('aura_onsite_price') || '150';
-                     })()}</p>
-                     <p style={{fontSize: '0.9rem', color: 'var(--accent-gold)'}}><strong>15% Deposit Required:</strong> ${(() => {
-                        const total = parseInt(localStorage.getItem('aura_onsite_price') || '150');
-                        return (total * 0.15).toFixed(2);
-                     })()}</p>
-                     <p style={{fontSize: '0.8rem', opacity: 0.7, fontStyle: 'italic'}}>Balance due on arrival at the Sanctuary.</p>
+                     <p style={{fontSize: '1.1rem', margin: 0}}><strong>Total Session Price:</strong> ${onsitePrice}</p>
+                     <p style={{fontSize: '0.95rem', color: 'var(--accent-gold)', margin: '5px 0 0 0'}}><strong>15% Booking Deposit:</strong> ${((parseInt(onsitePrice)) * 0.15).toFixed(2)}</p>
+                     <p style={{fontSize: '0.78rem', opacity: 0.7, fontStyle: 'italic', marginTop: '5px'}}>Remaining balance is due at time of service.</p>
                    </>
-                ) : subType === 'live' ? (
-                   <p style={{fontSize: '1.1rem'}}><strong>Session Fee:</strong> ${localStorage.getItem('aura_video_price') || '88'}</p>
                 ) : (
-                   <p style={{fontSize: '1.1rem'}}><strong>Access Fee:</strong> ${(() => {
-                        const savedPricing = JSON.parse(localStorage.getItem('aura_pricing') || '{}');
-                        return savedPricing['1_month'] || 22;
-                   })()}</p>
+                   <p style={{fontSize: '1.1rem', margin: 0}}><strong>Total Session Fee:</strong> ${videoPrice}</p>
                 )}
               </div>
             </div>
 
             {subType === 'visit' && parseInt(distance) > 50 && (
                 <p style={{color: '#e74c3c', fontSize: '0.8rem', marginBottom: '1rem', marginTop: '1rem'}}>
-                    *On-site visits are only available within a 50-mile radius. Please select "Portal Resonance" for remote healing.
+                    *On-site visits are only available within a 50-mile radius. Please select "Portal Resonance" for remote video healing.
                 </p>
             )}
 
+            {/* HIPAA Intake Disclaimer */}
+            <div style={{ marginTop: '1.25rem', padding: '10px 12px', background: 'rgba(0,184,148,0.05)', border: '1px solid rgba(0,184,148,0.2)', borderRadius: '8px', textAlign: 'left' }}>
+              <p style={{ fontSize: '0.7rem', color: '#a8d8a8', margin: 0, lineHeight: '1.4' }}>
+                <strong>🔒 HIPAA Intake Rule:</strong> No medical or health records are collected or stored in our systems. Reiki is a spiritual wellness practice; healers do not diagnose or treat medical conditions.
+              </p>
+            </div>
+
             <button 
-              onClick={() => setStep(4)} // Proceed to payment
-              disabled={!name || !phone || !email || (subType === 'visit' && parseInt(distance) > 50)}
+              onClick={handleCheckoutRedirect} 
+              disabled={!name || !phone || !email || (subType === 'visit' && parseInt(distance) > 50) || loading}
               className="btn-primary"
               style={{width: '100%', marginTop: '1.5rem'}}
             >
-              {subType === 'recorded' ? 'Proceed to Access' : 'Proceed to Payment'}
-            </button>
-          </div>
-        )}
-
-        {step === 4 && (
-          <div className="fade-in">
-             <button onClick={() => setStep(2)} className="btn" style={{marginBottom: '1rem', padding: '0.5rem 1rem', fontSize: '0.8rem'}}>← Back to Details</button>
-             <BillingForm 
-                buttonText={subType === 'visit' ? `Pay 15% Deposit ($${(parseInt(localStorage.getItem('aura_onsite_price') || '150') * 0.15).toFixed(2)})` : `Align with ${subType === 'live' ? 'Live Healer' : 'Archives'}`}
-                onSubmit={(paymentData) => handleBooking(paymentData)}
-             />
-          </div>
-        )}
-
-        {step === 3 && (
-          <div className="fade-in" style={{textAlign: 'center'}}>
-            <div style={{fontSize: '4rem', margin: '1rem 0'}}>✨</div>
-            <h2 style={{color: '#2ecc71'}}>Booking Confirmed!</h2>
-            <p>Your session has been reserved in our system.</p>
-            {currentBooking?.sessionCode && (
-                <div className="glass" style={{padding: '1.5rem', margin: '1.5rem 0', background: 'rgba(212, 175, 55, 0.1)', border: '1px solid var(--accent-gold)'}}>
-                    <p style={{fontSize: '0.8rem', opacity: 0.7, marginBottom: '0.5rem'}}>Your Video Portal session code:</p>
-                    <h1 style={{color: 'var(--accent-gold)', letterSpacing: '5px'}}>{currentBooking.sessionCode}</h1>
-                    <p style={{fontSize: '0.75rem', marginTop: '0.5rem', opacity: 0.6}}>Keep this code ready for your session.</p>
-                </div>
-            )}
-            <p>We have sent a confirmation to <strong>{email}</strong>.</p>
-            <p style={{marginTop: '2rem', fontStyle: 'italic', color: '#888'}}>
-              "The universe has aligned this time for you."
-            </p>
-            <button 
-              onClick={onClose}
-              className="btn-primary"
-              style={{background: '#2ecc71', marginTop: '2rem'}}
-            >
-              Return into Light
+              {loading ? 'Routing to Secure Stripe...' : 'Proceed to Stripe Payment'}
             </button>
           </div>
         )}

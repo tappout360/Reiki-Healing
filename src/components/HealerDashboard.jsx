@@ -10,15 +10,16 @@ import { toast } from 'react-hot-toast';
 import Calendar from 'react-calendar';
 import 'react-calendar/dist/Calendar.css';
 import { logTransaction } from '../utils/logger';
+import { isFirebaseConfigured, db } from '../lib/firebase';
 import './HealerDashboard.css';
 
-const HealerDashboard = ({ onClose, onJoinPortal, healerAppsEnabled, onToggleHealerApps }) => {
+const HealerDashboard = ({ onClose, onJoinPortal, healerAppsEnabled, onToggleHealerApps, protocols, onToggleProtocol }) => {
   const [activeTab, setActiveTab] = useState('bookings');
   const [filter, setFilter] = useState('all');
   const [storyFilter, setStoryFilter] = useState('pending'); // 'pending', 'approved', 'archived'
   const [bookings, setBookings] = useState([]);
   const [clients, setClients] = useState([]);
-  const [stories, setStories] = useState(() => JSON.parse(localStorage.getItem('aura_stories') || '[]'));
+  const [stories, setStories] = useState([]);
   const [onlineSouls, setOnlineSouls] = useState(30); // Stable default during render
   
   // Real-time soul fluctuation
@@ -45,6 +46,9 @@ const HealerDashboard = ({ onClose, onJoinPortal, healerAppsEnabled, onToggleHea
     JSON.parse(localStorage.getItem('aura_promotions')) || []
   );
   const [teamMembers, setTeamMembers] = useState([]);
+  const [onsitePrice, setOnsitePrice] = useState(() => {
+    return localStorage.getItem('aura_onsite_price') || '150';
+  });
   const [emailSettings, setEmailSettings] = useState(() => {
     const savedSettings = JSON.parse(localStorage.getItem('aura_email_settings')) || {};
     return {
@@ -62,6 +66,7 @@ const HealerDashboard = ({ onClose, onJoinPortal, healerAppsEnabled, onToggleHea
   );
   const [availabilityDate, setAvailabilityDate] = useState(new Date().toDateString());
   const [bankInfo, setBankInfo] = useState(() => {
+    if (isFirebaseConfigured()) return { bankName: '', routingNumber: '', accountNumber: '' };
     const saved = JSON.parse(localStorage.getItem('aura_bank_info') || '{}');
     return {
       bankName: saved.bankName || '',
@@ -69,6 +74,46 @@ const HealerDashboard = ({ onClose, onJoinPortal, healerAppsEnabled, onToggleHea
       accountNumber: saved.accountNumber || ''
     };
   });
+
+  useEffect(() => {
+    if (isFirebaseConfigured()) {
+      db.getSettings('bank_info')
+        .then(data => {
+          if (data) {
+            setBankInfo({
+              bankName: data.bankName || '',
+              routingNumber: data.routingNumber || '',
+              accountNumber: data.accountNumber || ''
+            });
+          }
+        })
+        .catch(err => console.error("Failed to load bank info from Firestore:", err));
+
+      db.getSettings('pricing')
+        .then(data => {
+          if (data) {
+            if (data.onsitePrice) {
+              setOnsitePrice(data.onsitePrice);
+              localStorage.setItem('aura_onsite_price', data.onsitePrice);
+            }
+            if (data.videoPrice) {
+              setEmailSettings(prev => ({ ...prev, videoSessionPrice: data.videoPrice }));
+              localStorage.setItem('aura_video_price', data.videoPrice);
+            }
+          }
+        })
+        .catch(err => console.error("Failed to load pricing from Firestore:", err));
+
+      db.getSettings('availability')
+        .then(data => {
+          if (data) {
+            if (data.blockedDates) setBlockedDates(data.blockedDates);
+            if (data.blockedSlots) setBlockedSlots(data.blockedSlots);
+          }
+        })
+        .catch(err => console.error("Failed to load availability from Firestore:", err));
+    }
+  }, []);
 
   // Simulated trend data based on bookings
   const trendData = [
@@ -87,19 +132,69 @@ const HealerDashboard = ({ onClose, onJoinPortal, healerAppsEnabled, onToggleHea
     // Set random presence on mount to keep it dynamic and pure
     setOnlineSouls(Math.floor(Math.random() * 31) + 20);
 
-    // Load data from simulated database
-    const savedBookings = JSON.parse(localStorage.getItem('aura_bookings') || '[]');
-    setBookings(savedBookings.sort((a, b) => b.id - a.id));
-    
-    const savedClients = JSON.parse(localStorage.getItem('aura_clients') || '[]');
-    setClients(savedClients.sort((a, b) => a.name.localeCompare(b.name)));
+    if (isFirebaseConfigured()) {
+      db.getAllBookings()
+        .then(list => {
+          setBookings(list.sort((a, b) => {
+            const dateA = new Date(a.bookingDate || a.date);
+            const dateB = new Date(b.bookingDate || b.date);
+            return dateB - dateA;
+          }));
+        })
+        .catch(err => console.error("Failed to load bookings from Firestore:", err));
 
+      db.getAllClients()
+        .then(list => {
+          setClients(list.map(c => ({
+            name: c.name || c.username || 'Anonymous Seeker',
+            phone: c.experience || '',
+            email: c.email || '',
+            lastBooking: c.lastSessionDate || 'No sessions yet',
+            subscription: c.subscription || 'seeker'
+          })).sort((a, b) => a.name.localeCompare(b.name)));
+        })
+        .catch(err => console.error("Failed to load clients from Firestore:", err));
 
-    const savedTeam = JSON.parse(localStorage.getItem('aura_team') || '[]');
-    setTeamMembers(savedTeam);
+      db.getTeamMembers()
+        .then(list => {
+          setTeamMembers(list.map(t => ({
+            name: t.name || t.username || 'Anonymous Healer',
+            email: t.email || '',
+            status: t.status || 'Active',
+            role: t.role || 'Healer',
+            joined: t.createdAt ? new Date(t.createdAt.seconds * 1000).toISOString().split('T')[0] : new Date().toISOString().split('T')[0]
+          })));
+        })
+        .catch(err => console.error("Failed to load team members from Firestore:", err));
 
-    const savedApplications = JSON.parse(localStorage.getItem('aura_applications') || '[]');
-    setApplications(savedApplications);
+      db.getApplications()
+        .then(list => {
+          setApplications(list);
+        })
+        .catch(err => console.error("Failed to load healer applications from Firestore:", err));
+
+      db.getAllStories()
+        .then(list => {
+          setStories(list);
+        })
+        .catch(err => console.error("Failed to load stories from Firestore:", err));
+    } else {
+      // Load data from simulated database
+      const savedBookings = JSON.parse(localStorage.getItem('aura_bookings') || '[]');
+      setBookings(savedBookings.sort((a, b) => b.id - a.id));
+      
+      const savedClients = JSON.parse(localStorage.getItem('aura_clients') || '[]');
+      setClients(savedClients.sort((a, b) => a.name.localeCompare(b.name)));
+
+      const savedTeam = JSON.parse(localStorage.getItem('aura_team') || '[]');
+      setTeamMembers(savedTeam);
+
+      const savedApplications = JSON.parse(localStorage.getItem('aura_applications') || '[]');
+      setApplications(savedApplications);
+
+      const savedStories = JSON.parse(localStorage.getItem('aura_stories') || '[]');
+      setStories(savedStories);
+    }
 
     // Simulation: Dynamic presence fluctuation
     const presenceInterval = setInterval(() => {
@@ -208,6 +303,15 @@ const HealerDashboard = ({ onClose, onJoinPortal, healerAppsEnabled, onToggleHea
     );
     setBookings(updated);
     localStorage.setItem('aura_bookings', JSON.stringify(updated));
+
+    if (isFirebaseConfigured()) {
+      db.updateBookingStatus(id, newStatus)
+        .then(() => toast.success(`Booking status updated to ${newStatus}`))
+        .catch(err => {
+          console.error("Failed to update booking status in Firestore:", err);
+          toast.error("Failed to sync booking status update.");
+        });
+    }
   };
 
   const handleApproveStory = (id) => {
@@ -216,6 +320,11 @@ const HealerDashboard = ({ onClose, onJoinPortal, healerAppsEnabled, onToggleHea
     localStorage.setItem('aura_stories', JSON.stringify(updated));
     toast.success('Story resonated with the community.');
     logTransaction('[ADMIN] Story Approved', 'Community Mod', '-', `Story ${id} approved.`);
+
+    if (isFirebaseConfigured()) {
+      db.updateStoryStatus(id, 'approved')
+        .catch(err => console.error("Failed to approve story in Firestore:", err));
+    }
   };
 
   const handleArchiveStory = (id) => {
@@ -224,6 +333,11 @@ const HealerDashboard = ({ onClose, onJoinPortal, healerAppsEnabled, onToggleHea
     localStorage.setItem('aura_stories', JSON.stringify(updated));
     toast.success('Story safely archived.');
     logTransaction('[ADMIN] Story Archived', 'Community Mod', '-', `Story ${id} archived.`);
+
+    if (isFirebaseConfigured()) {
+      db.updateStoryStatus(id, 'archived')
+        .catch(err => console.error("Failed to archive story in Firestore:", err));
+    }
   };
 
   const filteredBookings = bookings.filter(b => {
@@ -602,40 +716,55 @@ const HealerDashboard = ({ onClose, onJoinPortal, healerAppsEnabled, onToggleHea
                                                 setApplications(updated);
                                                 localStorage.setItem('aura_applications', JSON.stringify(updated));
                                                 
-                                                // Create User Account (Automated)
-                                                const newUser = {
-                                                    name: app.name,
-                                                    username: app.name.toLowerCase().replace(/\s+/g, '_'),
-                                                    email: app.email,
-                                                    password: app.password, // PCI Masked in logs, but stored here for first login
-                                                    role: 'healer',
-                                                    subscription: 'healing',
-                                                    birthDate: app.birthDate,
-                                                    status: 'Active',
-                                                    joined: new Date().toISOString()
-                                                };
-                                                
-                                                const clients = JSON.parse(localStorage.getItem('aura_clients') || '[]');
-                                                if (!clients.find(c => c.email === app.email)) {
-                                                    clients.push(newUser);
-                                                    localStorage.setItem('aura_clients', JSON.stringify(clients));
-                                                }
+                                                if (isFirebaseConfigured()) {
+                                                  db.updateApplicationStatus(app.id, 'Approved')
+                                                    .then(() => {
+                                                      if (app.userId) {
+                                                        db.updateRole(app.userId, 'healer')
+                                                          .then(() => toast.success("Applicant role promoted to healer in cloud."))
+                                                          .catch(err => console.error("Failed to update role:", err));
+                                                      }
+                                                    })
+                                                    .catch(err => {
+                                                      console.error("Failed to approve application in Firestore:", err);
+                                                      toast.error("Failed to sync approval in cloud.");
+                                                    });
+                                                } else {
+                                                  // Create User Account (Automated)
+                                                  const newUser = {
+                                                      name: app.name,
+                                                      username: app.name.toLowerCase().replace(/\s+/g, '_'),
+                                                      email: app.email,
+                                                      password: app.password, // PCI Masked in logs, but stored here for first login
+                                                      role: 'healer',
+                                                      subscription: 'healing',
+                                                      birthDate: app.birthDate,
+                                                      status: 'Active',
+                                                      joined: new Date().toISOString()
+                                                  };
+                                                  
+                                                  const clients = JSON.parse(localStorage.getItem('aura_clients') || '[]');
+                                                  if (!clients.find(c => c.email === app.email)) {
+                                                      clients.push(newUser);
+                                                      localStorage.setItem('aura_clients', JSON.stringify(clients));
+                                                  }
 
-                                                // Create Team Member record for dashboard visibility
-                                                const newMember = { 
-                                                    name: app.name, 
-                                                    email: app.email, 
-                                                    status: 'Active',
-                                                    role: 'Healer',
-                                                    joined: new Date().toISOString()
-                                                };
-                                                const updatedTeam = [...(JSON.parse(localStorage.getItem('aura_team') || '[]')), newMember];
-                                                localStorage.setItem('aura_team', JSON.stringify(updatedTeam));
-                                                setTeamMembers(updatedTeam);
+                                                  // Create Team Member record for dashboard visibility
+                                                  const newMember = { 
+                                                      name: app.name, 
+                                                      email: app.email, 
+                                                      status: 'Active',
+                                                      role: 'Healer',
+                                                      joined: new Date().toISOString()
+                                                  };
+                                                  const updatedTeam = [...(JSON.parse(localStorage.getItem('aura_team') || '[]')), newMember];
+                                                  localStorage.setItem('aura_team', JSON.stringify(updatedTeam));
+                                                  setTeamMembers(updatedTeam);
+                                                }
                                                 
                                                 toast.success(`${app.name} promoted to Healing Team. Account created.`);
                                                 logTransaction('[ADMIN] Application Approved', app.name, app.email, 'User promoted to Healer and account created.');
-                                            }}
+                                             }}
                                         >
                                             Approve
                                         </button>
@@ -645,6 +774,13 @@ const HealerDashboard = ({ onClose, onJoinPortal, healerAppsEnabled, onToggleHea
                                                 const updated = applications.map(a => a.id === app.id ? { ...a, status: 'Rejected' } : a);
                                                 setApplications(updated);
                                                 localStorage.setItem('aura_applications', JSON.stringify(updated));
+                                                
+                                                if (isFirebaseConfigured()) {
+                                                  db.updateApplicationStatus(app.id, 'Rejected')
+                                                    .then(() => toast.success("Application marked Rejected in cloud."))
+                                                    .catch(err => console.error("Failed to reject application in Firestore:", err));
+                                                }
+                                                
                                                 toast.success('Application rejected.');
                                             }}
                                         >
@@ -1249,7 +1385,8 @@ const HealerDashboard = ({ onClose, onJoinPortal, healerAppsEnabled, onToggleHea
                     <span style={{color: 'var(--accent-gold)', marginRight: '10px'}}>$</span>
                     <input 
                       type="number" 
-                      defaultValue={localStorage.getItem('aura_onsite_price') || '150'} 
+                      value={onsitePrice} 
+                      onChange={e => setOnsitePrice(e.target.value)}
                       id="onsite-price-input"
                     />
                   </div>
@@ -1260,9 +1397,21 @@ const HealerDashboard = ({ onClose, onJoinPortal, healerAppsEnabled, onToggleHea
                   className="btn-primary"
                   onClick={(e) => {
                     e.preventDefault();
-                    const onsiteVal = document.getElementById('onsite-price-input').value;
-                    localStorage.setItem('aura_onsite_price', onsiteVal);
+                    localStorage.setItem('aura_onsite_price', onsitePrice);
+                    localStorage.setItem('aura_video_price', emailSettings.videoSessionPrice);
                     saveEmailSettings(e);
+
+                    if (isFirebaseConfigured()) {
+                      db.updateSettings('pricing', {
+                        onsitePrice: onsitePrice,
+                        videoPrice: emailSettings.videoSessionPrice
+                      })
+                      .then(() => toast.success("Pricing synchronized in cloud."))
+                      .catch(err => {
+                        console.error("Failed to sync pricing to Firestore:", err);
+                        toast.error("Cloud secure sync failed.");
+                      });
+                    }
                   }}
                 >
                   Update Calibration
@@ -1335,6 +1484,60 @@ const HealerDashboard = ({ onClose, onJoinPortal, healerAppsEnabled, onToggleHea
                   >
                     Save Pricing Calibration
                   </button>
+                </div>
+
+                <div className="glass" style={{padding: '1.5rem', marginBottom: '1.5rem'}}>
+                  <h4 style={{color: 'var(--accent-gold)', marginBottom: '1rem'}}>Gemstone Core Protocols</h4>
+                  <p style={{fontSize: '0.9rem', color: 'var(--text-muted)', marginBottom: '1.5rem'}}>
+                    Select which gemstone frequencies are currently active and available for customers in the app.
+                  </p>
+                  
+                  <div style={{display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '15px'}}>
+                    {protocols && protocols.map(protocol => (
+                      <div 
+                        key={protocol.id} 
+                        style={{
+                          display: 'flex', 
+                          alignItems: 'center', 
+                          justifyContent: 'space-between',
+                          background: 'rgba(255,255,255,0.03)',
+                          padding: '10px 14px',
+                          borderRadius: '12px',
+                          border: '1px solid rgba(255,255,255,0.05)'
+                        }}
+                      >
+                        <span style={{ fontWeight: '500', color: protocol.color }}>{protocol.name}</span>
+                        <div 
+                          onClick={() => {
+                            if (onToggleProtocol) {
+                              onToggleProtocol(protocol.id);
+                            }
+                          }}
+                          style={{
+                            width: '50px',
+                            height: '26px',
+                            background: protocol.active ? 'var(--accent-gold)' : 'rgba(255,255,255,0.1)',
+                            borderRadius: '13px',
+                            position: 'relative',
+                            cursor: 'pointer',
+                            transition: 'all 0.3s ease',
+                            border: '1px solid rgba(255,255,255,0.1)'
+                          }}
+                        >
+                          <div style={{
+                            position: 'absolute',
+                            top: '2px',
+                            left: protocol.active ? '26px' : '2px',
+                            width: '20px',
+                            height: '20px',
+                            background: protocol.active ? '#000' : '#fff',
+                            borderRadius: '50%',
+                            transition: 'all 0.3s ease'
+                          }} />
+                        </div>
+                      </div>
+                    ))}
+                  </div>
                 </div>
 
                 <div className="glass" style={{padding: '1.5rem', marginBottom: '1.5rem'}}>
@@ -1479,12 +1682,29 @@ const HealerDashboard = ({ onClose, onJoinPortal, healerAppsEnabled, onToggleHea
                        localStorage.setItem('aura_onsite_price', onsiteVal);
                        
                        const bankInfoUpdate = {
-                         bankName: document.getElementById('bank-name-input').value,
-                         routingNumber: document.getElementById('routing-number-input').value,
-                         accountNumber: document.getElementById('account-number-input').value
-                       };
-                       localStorage.setItem('aura_bank_info', JSON.stringify(bankInfoUpdate));
-                       setBankInfo(bankInfoUpdate);
+                          bankName: document.getElementById('bank-name-input').value,
+                          routingNumber: document.getElementById('routing-number-input').value,
+                          accountNumber: document.getElementById('account-number-input').value
+                        };
+                        setBankInfo(bankInfoUpdate);
+
+                        if (isFirebaseConfigured()) {
+                          db.updateSettings('bank_info', bankInfoUpdate)
+                            .then(() => toast.success("Payout details synchronized securely in cloud."))
+                            .catch(err => {
+                              console.error("Failed to sync bank info to Firestore:", err);
+                              toast.error("Cloud secure sync failed.");
+                            });
+                          localStorage.removeItem('aura_bank_info');
+                          
+                          db.updateSettings('pricing', {
+                            onsitePrice: onsiteVal,
+                            videoPrice: emailSettings.videoSessionPrice
+                          })
+                          .catch(err => console.error("Failed to sync pricing to Firestore:", err));
+                        } else {
+                          localStorage.setItem('aura_bank_info', JSON.stringify(bankInfoUpdate));
+                        }
 
                        setPricing(simplePricing); 
                        localStorage.setItem('aura_questions_override', JSON.stringify({ q1, q2 }));
@@ -1566,6 +1786,11 @@ const HealerDashboard = ({ onClose, onJoinPortal, healerAppsEnabled, onToggleHea
                                         setSelectedClient({...selectedClient, subscription: 'healing'});
                                         toast.success('Subscription Upgraded');
                                         logTransaction('[ADMIN] Subscription Change', selectedClient.name, selectedClient.email, 'Healer manually upgraded user to Healing Tier');
+                                        
+                                        if (isFirebaseConfigured() && selectedClient.id) {
+                                          db.updateProfile(selectedClient.id, { subscription: 'healing' })
+                                            .catch(err => console.error("Failed to update profile subscription in Firestore:", err));
+                                        }
                                     }}
                                 >
                                     Healing Tier (Active)
@@ -1585,6 +1810,11 @@ const HealerDashboard = ({ onClose, onJoinPortal, healerAppsEnabled, onToggleHea
                                         setSelectedClient({...selectedClient, subscription: 'seeker'});
                                         toast.success('Subscription Downgraded');
                                         logTransaction('[ADMIN] Subscription Change', selectedClient.name, selectedClient.email, 'Healer manually downgraded user to Seeker Tier');
+                                        
+                                        if (isFirebaseConfigured() && selectedClient.id) {
+                                          db.updateProfile(selectedClient.id, { subscription: 'seeker' })
+                                            .catch(err => console.error("Failed to update profile subscription in Firestore:", err));
+                                        }
                                     }}
                                 >
                                     Seeker (Free)
@@ -1610,6 +1840,11 @@ const HealerDashboard = ({ onClose, onJoinPortal, healerAppsEnabled, onToggleHea
                                                 toast.success(`Granted ${months} Months Free Access`);
                                                 logTransaction('[ADMIN] Free Access Grant', selectedClient.name, selectedClient.email, `Granted ${months} months free access. Expires: ${expiryDate.toLocaleDateString()}`);
                                                 setSelectedClient({...selectedClient, subscription: 'healing'});
+                                                
+                                                if (isFirebaseConfigured() && selectedClient.id) {
+                                                  db.updateProfile(selectedClient.id, { subscription: 'healing', freeAccessUntil: expiryDate.toISOString() })
+                                                    .catch(err => console.error("Failed to grant free access in Firestore:", err));
+                                                }
                                             }}
                                         >
                                             {months} Month{months > 1 ? 's' : ''} Record
@@ -1633,6 +1868,11 @@ const HealerDashboard = ({ onClose, onJoinPortal, healerAppsEnabled, onToggleHea
                                              setTeamMembers(updatedTeam);
                                              toast.success('Healer privileges revoked.');
                                              logTransaction('[ADMIN] Role Downgrade', selectedClient.name, selectedClient.email, 'User removed from Healer Team');
+                                             
+                                             if (isFirebaseConfigured() && selectedClient.id) {
+                                                db.updateRole(selectedClient.id, 'seeker')
+                                                  .catch(err => console.error("Failed to revoke role in Firestore:", err));
+                                             }
                                          }}
                                      >
                                          Revoke Healer Privileges
@@ -1648,6 +1888,11 @@ const HealerDashboard = ({ onClose, onJoinPortal, healerAppsEnabled, onToggleHea
                                              setTeamMembers(updatedTeam);
                                              toast.success('User promoted to Healer.');
                                              logTransaction('[ADMIN] Role Upgrade', selectedClient.name, selectedClient.email, 'User promoted to Healer Team');
+                                             
+                                             if (isFirebaseConfigured() && selectedClient.id) {
+                                                db.updateRole(selectedClient.id, 'healer')
+                                                  .catch(err => console.error("Failed to promote role in Firestore:", err));
+                                             }
                                          }}
                                      >
                                          Promote to Healer (Admin Access)

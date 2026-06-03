@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { 
   Sparkles, Activity, Shield, Info, Heart, Zap, Waves, Moon, Sun, 
   LogOut, Lock, Clock, Quote, Star, MessageSquare, Play, Pause, Maximize, Minimize,
-  Home, Grid, Compass, User
+  Home, Grid, Compass, User, Shuffle, BookOpen, Bell, ArrowRight, Calendar
 } from 'lucide-react'
 import { aiKnowledgeBase } from './components/aiKnowledgeBase'
 import { Toaster, toast } from 'react-hot-toast'
@@ -30,6 +30,7 @@ const JoinPortalModal = lazy(() => import('./components/JoinPortalModal'));
 const MyStoriesPortal = lazy(() => import('./components/MyStoriesPortal'));
 const SubscriptionPage = lazy(() => import('./components/SubscriptionPage'));
 const LegalModal = lazy(() => import('./components/LegalModal'));
+const LearnSection = lazy(() => import('./components/LearnSection'));
 import DuckingAudioPlayer from './components/DuckingAudioPlayer';
 import BillingForm from './components/BillingForm';
 
@@ -128,6 +129,10 @@ const Stardust = () => {
   );
 };
 
+const getRandomItem = (arr) => {
+  return arr[Math.floor(Math.random() * arr.length)];
+};
+
 const protocols = [
   /* Protocols with sequence data and audio IDs */
   {
@@ -136,6 +141,7 @@ const protocols = [
     color: '#8e44ad',
     borderColor: '#9b59b6',
     isImmersive: true,
+    active: true,
     video: [
       'amethyst_aura_realistic_1769877822836.png',
       'sage_protocol_cosmic_alignment_1770424972911.png',
@@ -161,6 +167,7 @@ const protocols = [
     color: '#2980b9',
     borderColor: '#3498db',
     isImmersive: true,
+    active: false,
     video: [
       'quartz_macro_realistic_1769877835658.png',
       'quartz_aura_realistic_1769877849374.png',
@@ -181,6 +188,7 @@ const protocols = [
     color: '#c2185b',
     borderColor: '#e91e63',
     isImmersive: true,
+    active: true,
     video: [
       'rose_macro_realistic_1769877861535.png',
       'rose_aura_realistic_1769877874595.png',
@@ -202,6 +210,7 @@ const protocols = [
     color: '#3498db',
     borderColor: '#2980b9',
     isImmersive: true,
+    active: true,
     video: [
       'lapis_macro.png',
       'lapis_aura.png',
@@ -222,6 +231,7 @@ const protocols = [
     color: '#f1c40f',
     borderColor: '#d4af37',
     isImmersive: true,
+    active: false,
     video: [
       'citrine_macro.png',
       'citrine_aura.png',
@@ -244,6 +254,7 @@ const protocols = [
     color: '#27ae60',
     borderColor: '#2ecc71',
     isImmersive: true,
+    active: true,
     video: [
       'sage_protocol_shoreline_1770441338466.png',
       'sage_smoke_ethereal_cleansing_1770423820855.png',
@@ -269,6 +280,7 @@ const protocols = [
     color: '#f39c12',
     borderColor: '#e67e22',
     isImmersive: true,
+    active: false,
     video: [
       'reiki_crown_chakra_light_1770423834100.png',
       'energy-portal.png',
@@ -292,6 +304,7 @@ const protocols = [
     color: '#1a1a4e',
     borderColor: '#4a2f8a',
     isImmersive: true,
+    active: false,
     video: [
       'sage_protocol_cosmic_alignment_1770424972911.png',
       'energy-portal.png',
@@ -456,6 +469,10 @@ function App() {
   const [bookingType, setBookingType] = useState(null); 
   const [videoIndex, setVideoIndex] = useState(0);
   const [volume, setVolume] = useState(50);
+  const [binauralEnabled, setBinauralEnabled] = useState(false);
+  const [binauralCarrier, setBinauralCarrier] = useState(432);
+  const [binauralBeat, setBinauralBeat] = useState(6);
+  const [binauralVolume, setBinauralVolume] = useState(30);
   // NEW: User Account State
   const [user, setUser] = useState(null);
   const [showSignupFlow, setShowSignupFlow] = useState(false); // NEW: Single-page signup flow
@@ -479,7 +496,41 @@ const [showCheckoutModal, setShowCheckoutModal] = useState(false);
     }
     return 'desktop';
   });
-  const [activeTab, setActiveTab] = useState('home'); // 'home' | 'protocols' | 'ai-guide' | 'portal' | 'dashboard'
+  const [activeTab, setActiveTab] = useState('home'); // 'home' | 'protocols' | 'learning' | 'ai-guide' | 'dashboard'
+  const [protocolList, setProtocolList] = useState(() => {
+    const saved = localStorage.getItem('aura_protocols_active');
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        return protocols.map(p => ({
+          ...p,
+          active: Object.prototype.hasOwnProperty.call(parsed, p.id) ? parsed[p.id] : p.active
+        }));
+      } catch (e) {
+        return protocols;
+      }
+    }
+    return protocols;
+  });
+
+  const handleToggleProtocol = (id) => {
+    const updated = protocolList.map(p => p.id === id ? { ...p, active: !p.active } : p);
+    setProtocolList(updated);
+    
+    // Save to local storage
+    const activeMap = {};
+    updated.forEach(p => { activeMap[p.id] = p.active; });
+    localStorage.setItem('aura_protocols_active', JSON.stringify(activeMap));
+    
+    // Sync to Firestore if configured
+    if (isFirebaseConfigured()) {
+      db.updateSettings('protocols', activeMap)
+        .then(() => toast.success("Gemstone Core status updated in cloud."))
+        .catch(err => console.error("Failed to sync protocols to Firestore:", err));
+    } else {
+      toast.success("Protocol status updated locally.");
+    }
+  };
 
 
   // NEW: PWA Install State
@@ -522,6 +573,81 @@ const [showCheckoutModal, setShowCheckoutModal] = useState(false);
         window.addEventListener('beforeinstallprompt', handlePrompt);
         return () => window.removeEventListener('beforeinstallprompt', handlePrompt);
       }
+    }
+  }, []);
+
+  useEffect(() => {
+    if (isFirebaseConfigured()) {
+      db.getSettings('protocols')
+        .then(savedActiveMap => {
+          if (savedActiveMap) {
+            setProtocolList(prevList => prevList.map(p => ({
+              ...p,
+              active: Object.prototype.hasOwnProperty.call(savedActiveMap, p.id) ? savedActiveMap[p.id] : p.active
+            })));
+            
+            // Sync local storage
+            localStorage.setItem('aura_protocols_active', JSON.stringify(savedActiveMap));
+          }
+        })
+        .catch(err => console.error("Failed to load active protocols from Firestore:", err));
+    }
+  }, []);
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const bookingStatus = params.get('booking');
+    const sessionId = params.get('session_id');
+
+    if (bookingStatus === 'success') {
+      const tentative = localStorage.getItem('tentative_booking');
+      if (tentative) {
+        try {
+          const booking = JSON.parse(tentative);
+          if (!sessionId || booking.sessionId === sessionId) {
+            const finalBooking = {
+              id: Date.now(),
+              type: booking.serviceType === 'onsite' ? 'On-Site Session' : 'Live Portal Session',
+              serviceType: booking.serviceType,
+              date: booking.date,
+              time: booking.time,
+              client: { name: booking.name, email: booking.email, phone: booking.phone },
+              status: 'confirmed',
+              paymentStatus: 'paid',
+              stripeSessionId: booking.sessionId,
+              created: new Date().toISOString()
+            };
+
+            const bookingsList = JSON.parse(localStorage.getItem('aura_bookings') || '[]');
+            if (!bookingsList.some(b => b.stripeSessionId === booking.sessionId)) {
+              localStorage.setItem('aura_bookings', JSON.stringify([...bookingsList, finalBooking]));
+            }
+
+            const clients = JSON.parse(localStorage.getItem('aura_clients') || '[]');
+            if (!clients.some(c => c.email.toLowerCase() === booking.email.toLowerCase())) {
+              clients.push({
+                name: booking.name,
+                email: booking.email,
+                phone: booking.phone,
+                lastBooking: booking.date
+              });
+              localStorage.setItem('aura_clients', JSON.stringify(clients));
+            }
+
+            toast.success("Booking confirmed! Check your email for confirmation.", { duration: 6000 });
+            localStorage.removeItem('tentative_booking');
+          }
+        } catch (e) {
+          console.error("Failed to recover tentative booking:", e);
+        }
+      } else {
+        toast.success("Booking successful!");
+      }
+      window.history.replaceState({}, document.title, window.location.pathname);
+    } else if (bookingStatus === 'cancelled') {
+      toast.error("Booking cancelled. Your biofield alignment was not charged.");
+      localStorage.removeItem('tentative_booking');
+      window.history.replaceState({}, document.title, window.location.pathname);
     }
   }, []);
 
@@ -670,6 +796,25 @@ const [showCheckoutModal, setShowCheckoutModal] = useState(false);
     }
   }, [showPortal, selectedProtocol, isPaused]);
 
+  // Set default carrier/beat frequencies for protocols
+  useEffect(() => {
+    if (selectedProtocol) {
+      const protocolFreqs = {
+        amethyst: { carrier: 528, beat: 6 },
+        quartz: { carrier: 432, beat: 6 },
+        rose: { carrier: 432, beat: 10 },
+        lapis: { carrier: 528, beat: 10 },
+        citrine: { carrier: 528, beat: 15 },
+        sage: { carrier: 432, beat: 6 },
+        reiki: { carrier: 528, beat: 6 },
+        celestial: { carrier: 432, beat: 10 }
+      };
+      const settings = protocolFreqs[selectedProtocol] || { carrier: 432, beat: 6 };
+      setBinauralCarrier(settings.carrier);
+      setBinauralBeat(settings.beat);
+    }
+  }, [selectedProtocol]);
+
   const handleUpdateUser = (updatedProfile) => {
     setUser(updatedProfile);
     localStorage.setItem('user_profile', JSON.stringify(updatedProfile));
@@ -801,6 +946,16 @@ const [showCheckoutModal, setShowCheckoutModal] = useState(false);
 
 
   const currentProtocol = protocols.find(p => p.id === selectedProtocol);
+  const activeProtocols = protocols.filter(p => p.active);
+
+  const selectRandomProtocol = () => {
+    const available = activeProtocols.filter(p => p.id !== selectedProtocol);
+    if (available.length > 0) {
+      const random = getRandomItem(available);
+      setSelectedProtocol(random.id);
+      toast.success(`🎲 Random selection: ${random.name}`);
+    }
+  };
 
 
   const videoSrc = Array.isArray(currentProtocol?.video) 
@@ -920,18 +1075,21 @@ const [showCheckoutModal, setShowCheckoutModal] = useState(false);
                           }, 300);
                         }
                       }
-                    } else if (user.subscription === 'healing' || user.role === 'owner') {
-                      if (isMobileLayout) {
-                        setActiveTab('protocols');
-                      } else {
-                        document.getElementById('protocols-section').scrollIntoView({ behavior: 'smooth' });
-                      }
                     } else {
-                      setShowSubscriptionPage(true);
+                      // Logged in user: scroll to scheduling section
+                      const element = document.getElementById('mobile-service');
+                      if (element) {
+                        element.scrollIntoView({ behavior: 'smooth' });
+                      } else if (isMobileLayout) {
+                        setActiveTab('home');
+                        setTimeout(() => {
+                          document.getElementById('mobile-service')?.scrollIntoView({ behavior: 'smooth' });
+                        }, 100);
+                      }
                     }
                   }}
                 >
-                  <Zap size={18} /> {user && (user.subscription === 'healing' || user.role === 'owner') ? 'Access Sanctuary' : user ? 'Upgrade Resonance' : (showSignupFlow ? 'Close Application' : 'Start Your Journey')}
+                  <Zap size={18} /> {user ? 'Book a Session' : (showSignupFlow ? 'Close Application' : 'Start Your Journey')}
                 </button>
                 
                 {!user && (
@@ -1040,9 +1198,32 @@ const [showCheckoutModal, setShowCheckoutModal] = useState(false);
     return (
       <section id="protocols-section" style={{ backgroundColor: 'var(--bg-section)', padding: isMobileLayout ? '2.5rem 1rem' : '8rem 0' }}>
         <div className="container" style={{ textAlign: 'center' }}>
-          <h2 style={{ fontSize: isMobileLayout ? '2rem' : '2.5rem', marginBottom: '1rem', color: 'var(--text-main)' }}>Advanced Harmonization Protocols</h2>
-          <p style={{ marginBottom: isMobileLayout ? '2rem' : '4rem', opacity: '0.7', color: 'var(--text-muted)', fontSize: '0.9rem' }}>Select a protocol below to synchronize with the Gemstone Core.</p>
+          <h2 style={{ fontSize: isMobileLayout ? '2rem' : '2.5rem', marginBottom: '1rem', color: 'var(--text-main)' }}>Healing Protocols</h2>
+          <p style={{ marginBottom: isMobileLayout ? '1rem' : '2rem', opacity: '0.7', color: 'var(--text-muted)', fontSize: '0.9rem' }}>Select a protocol below to synchronize with the Gemstone Core.</p>
           
+          {/* Random Protocol Button */}
+          <div style={{ marginBottom: isMobileLayout ? '1.5rem' : '2rem' }}>
+            <button
+              onClick={selectRandomProtocol}
+              className="btn"
+              style={{
+                background: 'rgba(212, 175, 55, 0.1)',
+                border: '1px solid var(--accent-gold)',
+                color: 'var(--accent-gold)',
+                padding: '0.6rem 1.5rem',
+                borderRadius: '30px',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '8px',
+                cursor: 'pointer',
+                fontSize: '0.85rem',
+                transition: 'all 0.3s ease'
+              }}
+            >
+              <Shuffle size={16} /> Random Protocol
+            </button>
+          </div>
+
           {/* Gemstone Core Sync Section */}
           <div style={{ position: 'relative', maxWidth: '500px', margin: '0 auto 3rem auto' }}>
             <div className="glass portal-frame" style={{ padding: '0.75rem', background: 'rgba(212, 175, 55, 0.1)', border: '2px solid var(--accent-gold)', borderRadius: '20px' }}>
@@ -1072,7 +1253,7 @@ const [showCheckoutModal, setShowCheckoutModal] = useState(false);
           </div>
 
           <div style={{ display: 'grid', gridTemplateColumns: isMobileLayout ? '1fr' : 'repeat(2, 1fr)', gap: '1.5rem', maxWidth: '1000px', margin: '0 auto' }}>
-            {protocols.map((protocol) => (
+            {activeProtocols.map((protocol) => (
               <div 
                 key={protocol.id}
                 className={`glass card-hover ${selectedProtocol === protocol.id ? 'protocol-selected' : ''}`} 
@@ -1085,14 +1266,7 @@ const [showCheckoutModal, setShowCheckoutModal] = useState(false);
                   border: selectedProtocol === protocol.id ? `2px solid ${protocol.color}` : '1px solid var(--glass-border)',
                   borderRadius: '20px'
                 }}
-                onClick={() => {
-                  if (protocol.tier === 'advanced' && (!user || user.subscription !== 'healing')) {
-                    toast.error("Advanced Protocol Locked. Upgrade to access.");
-                    setShowSubscriptionPage(true);
-                    return;
-                  }
-                  setSelectedProtocol(protocol.id);
-                }}
+                onClick={() => setSelectedProtocol(protocol.id)}
               >
                 <div style={{
                   height: '160px', 
@@ -1137,16 +1311,102 @@ const [showCheckoutModal, setShowCheckoutModal] = useState(false);
                 {selectedProtocol === protocol.id && (
                   <div style={{ marginTop: '1rem', color: protocol.color, fontWeight: '700', fontSize: '0.8rem' }}>PROTOCOL SELECTED</div>
                 )}
-                {protocol.tier === 'advanced' && (!user || user.subscription !== 'healing') && (
-                  <div style={{
-                    position: 'absolute', top: '1rem', right: '1rem', 
-                    background: 'rgba(0,0,0,0.6)', padding: '0.4rem', borderRadius: '50%'
-                  }}>
-                    <Lock size={16} color="#bdc3c7" />
-                  </div>
-                )}
               </div>
             ))}
+          </div>
+        </div>
+      </section>
+    );
+
+  };
+
+  const renderSchedulingSection = (isMobileLayout = false) => {
+    return (
+      <section id="mobile-service" style={{ background: 'var(--bg-section-alt)', padding: isMobileLayout ? '3.5rem 1rem' : '8rem 0' }}>
+        <div className="container">
+          <div style={isMobileLayout ? { display: 'flex', flexDirection: 'column', gap: '2rem' } : { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '4rem', alignItems: 'center' }}>
+            <div style={isMobileLayout ? { textAlign: 'center' } : {}}>
+              <h3 style={{ fontSize: isMobileLayout ? '1.8rem' : '2.2rem', marginBottom: '1.25rem', color: 'var(--text-main)', fontFamily: 'Playfair Display' }}>The Advanced Resonance Model</h3>
+              <p style={{ fontSize: isMobileLayout ? '0.9rem' : '1.1rem', marginBottom: '2.5rem', color: 'var(--text-muted)', lineHeight: '1.6' }}>
+                The sanctuary now comes to you. Our advanced mobile systems allow us to calibrate your energy field in the comfort of your own space, using our proprietary portable resonance technology.
+              </p>
+              
+              {/* HIPAA Rules Text */}
+              <div className="glass" style={{ padding: '1rem 1.25rem', borderLeft: '4px solid #00b894', background: 'rgba(0, 184, 148, 0.04)', borderRadius: '0 12px 12px 0', marginBottom: '2.5rem', textAlign: 'left' }}>
+                <p style={{ fontSize: '0.75rem', color: '#a8d8a8', margin: 0, lineHeight: '1.5' }}>
+                  <strong>🛡️ HIPAA Privacy Rule:</strong> We do not ask for or collect health/medical information. Reiki is a spiritual wellness practice; healers do not diagnose, prescribe, or provide medical advice.
+                </p>
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: isMobileLayout ? '1fr' : '1fr 1fr', gap: '1.5rem' }}>
+                <div 
+                  className="glass card-hover" 
+                  style={{ padding: '2rem', textAlign: 'center', cursor: 'pointer', border: '1px solid rgba(255,255,255,0.06)', borderRadius: '20px' }}
+                  onClick={() => setBookingType('onsite')}
+                >
+                  <div style={{ fontSize: '2rem', color: 'var(--accent-gold)', marginBottom: '0.75rem' }}>🚚</div>
+                  <div style={{ fontWeight: '600', color: 'var(--text-main)', fontSize: '1.05rem', marginBottom: '0.25rem' }}>On-Site Alignment</div>
+                  <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>$150 • Home/Office Visit (15% Deposit)</div>
+                </div>
+                <div 
+                  className="glass card-hover" 
+                  style={{ padding: '2rem', textAlign: 'center', cursor: 'pointer', border: '1px solid rgba(255,255,255,0.06)', borderRadius: '20px' }}
+                  onClick={() => setBookingType('portal')}
+                >
+                  <div style={{ fontSize: '2rem', color: 'var(--accent-gold)', marginBottom: '0.75rem' }}>⚡</div>
+                  <div style={{ fontWeight: '600', color: 'var(--text-main)', fontSize: '1.05rem', marginBottom: '0.25rem' }}>Live Video Portal</div>
+                  <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>$88 • Secure Video Alignment Session</div>
+                </div>
+              </div>
+            </div>
+            
+            <div className="glass" style={{ padding: '0', overflow: 'hidden', borderRadius: '24px', boxShadow: '0 10px 40px rgba(0,0,0,0.3)', display: isMobileLayout ? 'none' : 'block' }}>
+              <img 
+                src="/assets/crystal-resonance.png" 
+                alt="Crystal Resonance Technology" 
+                style={{ width: '100%', height: 'auto', display: 'block' }}
+              />
+            </div>
+          </div>
+        </div>
+      </section>
+    );
+  };
+
+  const renderComingSoonSection = (isMobileLayout = false) => {
+    return (
+      <section id="coming-soon" style={{ backgroundColor: 'var(--bg-section-alt)', padding: isMobileLayout ? '3rem 1rem' : '6rem 0', borderTop: '1px solid rgba(255,255,255,0.05)' }}>
+        <div className="container" style={{ textAlign: 'center', maxWidth: '800px', margin: '0 auto' }}>
+          <span style={{ fontSize: '0.75rem', color: 'var(--accent-gold)', fontWeight: 'bold', letterSpacing: '2px', textTransform: 'uppercase', display: 'block', marginBottom: '1rem' }}>✦ Cosmic Expansion Teaser ✦</span>
+          <h2 style={{ fontSize: isMobileLayout ? '1.8rem' : '2.5rem', fontFamily: 'Playfair Display', color: 'var(--text-main)', marginBottom: '1.25rem' }}>Coming Soon to the Sanctuary</h2>
+          <p style={{ color: 'var(--text-muted)', marginBottom: '2.5rem', fontSize: '0.9rem', lineHeight: '1.6' }}>
+            We are hard at work engineering new dimensions of energetic connection. Soon, you will be able to unlock the full potential of your spiritual journey through:
+          </p>
+
+          <div style={{ display: 'grid', gridTemplateColumns: isMobileLayout ? '1fr' : 'repeat(3, 1fr)', gap: '1.5rem', textAlign: 'left' }}>
+            <div className="glass" style={{ padding: '1.5rem', borderRadius: '20px', border: '1px solid rgba(255,255,255,0.05)' }}>
+              <div style={{ fontSize: '1.8rem', marginBottom: '0.75rem' }}>📈</div>
+              <h4 style={{ color: 'var(--accent-gold)', marginBottom: '0.5rem', fontSize: '1rem' }}>Personal Profiles</h4>
+              <p style={{ fontSize: '0.78rem', color: 'var(--text-muted)', lineHeight: '1.5', margin: 0 }}>
+                Track your daily alignment scores, meditation streaks, and review your historical biofield calibration logs with deep statistics.
+              </p>
+            </div>
+            
+            <div className="glass" style={{ padding: '1.5rem', borderRadius: '20px', border: '1px solid rgba(255,255,255,0.05)' }}>
+              <div style={{ fontSize: '1.8rem', marginBottom: '0.75rem' }}>🤝</div>
+              <h4 style={{ color: 'var(--accent-gold)', marginBottom: '0.5rem', fontSize: '1rem' }}>Energetic Community</h4>
+              <p style={{ fontSize: '0.78rem', color: 'var(--text-muted)', lineHeight: '1.5', margin: 0 }}>
+                Join group resonance portals, share reflections in the collective feed, and coordinate spiritual intentions with seekers worldwide.
+              </p>
+            </div>
+
+            <div className="glass" style={{ padding: '1.5rem', borderRadius: '20px', border: '1px solid rgba(255,255,255,0.05)' }}>
+              <div style={{ fontSize: '1.8rem', marginBottom: '0.75rem' }}>👑</div>
+              <h4 style={{ color: 'var(--accent-gold)', marginBottom: '0.5rem', fontSize: '1rem' }}>Premium Memberships</h4>
+              <p style={{ fontSize: '0.78rem', color: 'var(--text-muted)', lineHeight: '1.5', margin: 0 }}>
+                Access recorded guided meditations, cosmic frequency sound baths, and masterclasses from certified Reiki masters on demand.
+              </p>
+            </div>
           </div>
         </div>
       </section>
@@ -1161,7 +1421,9 @@ const [showCheckoutModal, setShowCheckoutModal] = useState(false);
             {renderHeroSection(true)}
             {renderDailyResonance(true)}
             {showInstallBanner && renderInstallBanner()}
+            {renderSchedulingSection(true)}
             {renderPhilosophySection(true)}
+            {renderComingSoonSection(true)}
             
             {/* Mobile Footer */}
             <footer style={{ padding: '2rem 1.5rem', textAlign: 'center', borderTop: '1px solid rgba(255,255,255,0.05)', marginTop: 'auto', background: 'rgba(0,0,0,0.1)' }}>
@@ -1201,21 +1463,12 @@ const [showCheckoutModal, setShowCheckoutModal] = useState(false);
             </Suspense>
           </div>
         );
-      case 'portal':
+      case 'learning':
         return (
-          <div style={{ padding: '3rem 1.5rem', display: 'flex', flexDirection: 'column', gap: '2rem', flex: 1, justifyContent: 'center', alignItems: 'center', textAlign: 'center' }}>
-            <div style={{ fontSize: '3rem', animation: 'gentleDrift 4s infinite alternate' }}>🔮</div>
-            <h2 style={{ color: 'var(--accent-ethereal)', fontFamily: 'Playfair Display', fontSize: '1.8rem' }}>Quantum Resonance Portal</h2>
-            <p style={{ fontSize: '0.85rem', opacity: 0.8, maxWidth: '280px', lineHeight: '1.5' }}>Enter a session code provided by your healer to synchronize your biofields in real time.</p>
-            <button 
-              onClick={() => setShowJoinPortalModal(true)} 
-              className="btn btn-primary"
-              style={{ width: '100%', maxWidth: '280px', padding: '1rem', fontSize: '0.9rem' }}
-            >
-              🔑 ENTER PORTAL CODE
-            </button>
-            <div style={{ width: '60px', height: '1px', background: 'rgba(255,255,255,0.1)' }}></div>
-            <p style={{ fontSize: '0.7rem', opacity: 0.4, letterSpacing: '2px' }}>SECURE BIOFIELD CHANNEL</p>
+          <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 'calc(100vh - 125px)' }}>
+            <Suspense fallback={<LoadingSpinner />}>
+              <LearnSection isMobileLayout={true} />
+            </Suspense>
           </div>
         );
       case 'dashboard':
@@ -1338,12 +1591,12 @@ const [showCheckoutModal, setShowCheckoutModal] = useState(false);
             </div>
             <span>AI Guide</span>
           </button>
-          <button className={`bottom-nav-item ${activeTab === 'portal' ? 'active' : ''}`} onClick={() => setActiveTab('portal')}>
+          <button className={`bottom-nav-item ${activeTab === 'learning' ? 'active' : ''}`} onClick={() => setActiveTab('learning')}>
             <div className="bottom-nav-icon-wrapper">
-              <Waves size={20} />
-              {activeTab === 'portal' && <div className="bottom-nav-dot"></div>}
+              <BookOpen size={20} />
+              {activeTab === 'learning' && <div className="bottom-nav-dot"></div>}
             </div>
-            <span>Portal</span>
+            <span>Learning</span>
           </button>
           <button className={`bottom-nav-item ${activeTab === 'dashboard' ? 'active' : ''}`} onClick={() => setActiveTab('dashboard')}>
             <div className="bottom-nav-icon-wrapper">
@@ -1479,6 +1732,69 @@ const [showCheckoutModal, setShowCheckoutModal] = useState(false);
                   <p style={{ fontSize: '0.75rem', opacity: '0.7', marginTop: '0.5rem' }}>
                     Maximum Crystal Core Power Healing Effect Engaged...
                   </p>
+
+                  {/* Binaural Beats Mixer */}
+                  <div style={{ marginTop: '1rem', borderTop: '1px solid rgba(255,255,255,0.1)', paddingTop: '1rem', width: '100%' }}>
+                    <label style={{ fontSize: '0.75rem', fontWeight: 'bold', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', cursor: 'pointer', color: 'var(--accent-gold)' }}>
+                      <input 
+                        type="checkbox" 
+                        checked={binauralEnabled} 
+                        onChange={(e) => setBinauralEnabled(e.target.checked)}
+                        style={{ accentColor: 'var(--accent-gold)' }}
+                      />
+                      Binaural Beats Layer
+                    </label>
+                    
+                    {binauralEnabled && (
+                      <motion.div 
+                        initial={{ opacity: 0, height: 0 }}
+                        animate={{ opacity: 1, height: 'auto' }}
+                        style={{ marginTop: '0.75rem', display: 'flex', flexDirection: 'column', gap: '0.5rem', textAlign: 'left' }}
+                      >
+                        <div>
+                          <label style={{ fontSize: '0.65rem', opacity: 0.8, display: 'block', marginBottom: '2px' }}>
+                            Binaural Volume: {binauralVolume}%
+                          </label>
+                          <input 
+                            type="range" min="0" max="100" value={binauralVolume} 
+                            onChange={(e) => setBinauralVolume(parseInt(e.target.value))}
+                            style={{ width: '100%', accentColor: 'var(--accent-gold)', cursor: 'pointer' }}
+                          />
+                        </div>
+                        
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
+                          <div>
+                            <label style={{ fontSize: '0.65rem', opacity: 0.8, display: 'block', marginBottom: '2px' }}>
+                              Carrier Freq: {binauralCarrier}Hz
+                            </label>
+                            <input 
+                              type="range" min="200" max="800" value={binauralCarrier} 
+                              onChange={(e) => setBinauralCarrier(parseInt(e.target.value))}
+                              style={{ width: '100%', accentColor: 'var(--accent-gold)', cursor: 'pointer' }}
+                            />
+                          </div>
+                          
+                          <div>
+                            <label style={{ fontSize: '0.65rem', opacity: 0.8, display: 'block', marginBottom: '2px' }}>
+                              Brainwave State
+                            </label>
+                            <select 
+                              value={binauralBeat} 
+                              onChange={(e) => setBinauralBeat(parseFloat(e.target.value))}
+                              className="glass"
+                              style={{ width: '100%', padding: '4px', fontSize: '0.65rem', border: '1px solid rgba(255,255,255,0.2)', borderRadius: '6px', background: 'rgba(0,0,0,0.6)', color: 'white' }}
+                            >
+                              <option value="2">2 Hz (Delta - Deep Sleep)</option>
+                              <option value="6">6 Hz (Theta - Meditation)</option>
+                              <option value="10">10 Hz (Alpha - Relaxation)</option>
+                              <option value="15">15 Hz (Beta - Focus)</option>
+                              <option value="30">30 Hz (Gamma - Cosmic Peak)</option>
+                            </select>
+                          </div>
+                        </div>
+                      </motion.div>
+                    )}
+                  </div>
                 </div>
               </div>
             </div>
@@ -1489,6 +1805,10 @@ const [showCheckoutModal, setShowCheckoutModal] = useState(false);
               voiceSrc={currentProtocol.voice}
               isPlaying={showPortal && !isPaused}
               volume={volume}
+              binauralEnabled={binauralEnabled}
+              binauralCarrier={binauralCarrier}
+              binauralBeat={binauralBeat}
+              binauralVolume={binauralVolume}
               onEnded={handleProtocolEnd}
             />
           </div>
@@ -1517,6 +1837,8 @@ const [showCheckoutModal, setShowCheckoutModal] = useState(false);
                 setActiveSession(session);
                 setShowLivePortal(true);
               }}
+              protocols={protocolList}
+              onToggleProtocol={handleToggleProtocol}
             />
           )}
           {showSubscriptionPage && <SubscriptionPage onClose={() => setShowSubscriptionPage(false)} user={user} onUpdateUser={handleUpdateUser} />}
@@ -1679,6 +2001,10 @@ const [showCheckoutModal, setShowCheckoutModal] = useState(false);
                   voiceSrc={currentProtocol.voice}
                   isPlaying={showPortal && !isPaused}
                   volume={volume}
+                  binauralEnabled={binauralEnabled}
+                  binauralCarrier={binauralCarrier}
+                  binauralBeat={binauralBeat}
+                  binauralVolume={binauralVolume}
                   onEnded={handleProtocolEnd}
                 />
               )}
@@ -1732,9 +2058,72 @@ const [showCheckoutModal, setShowCheckoutModal] = useState(false);
                     <div key={i} className={`bar ${isPaused ? 'paused' : ''}`} style={{animationDelay: `${i * 0.1}s`, backgroundColor: currentProtocol.color}}></div>
                   ))}
                 </div>
-                <p style={{fontSize: '0.75rem', opacity: '0.7', marginTop: '0.5rem'}}>
+                 <p style={{fontSize: '0.75rem', opacity: '0.7', marginTop: '0.5rem'}}>
                   Maximum Crystal Core Power Healing Effect Engaged...
                 </p>
+
+                {/* Binaural Beats Mixer */}
+                <div style={{ marginTop: '1rem', borderTop: '1px solid rgba(255,255,255,0.1)', paddingTop: '1rem', width: '100%' }}>
+                  <label style={{ fontSize: '0.75rem', fontWeight: 'bold', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', cursor: 'pointer', color: 'var(--accent-gold)' }}>
+                    <input 
+                      type="checkbox" 
+                      checked={binauralEnabled} 
+                      onChange={(e) => setBinauralEnabled(e.target.checked)}
+                      style={{ accentColor: 'var(--accent-gold)' }}
+                    />
+                    Binaural Beats Layer
+                  </label>
+                  
+                  {binauralEnabled && (
+                    <motion.div 
+                      initial={{ opacity: 0, height: 0 }}
+                      animate={{ opacity: 1, height: 'auto' }}
+                      style={{ marginTop: '0.75rem', display: 'flex', flexDirection: 'column', gap: '0.5rem', textAlign: 'left' }}
+                    >
+                      <div>
+                        <label style={{ fontSize: '0.65rem', opacity: 0.8, display: 'block', marginBottom: '2px' }}>
+                          Binaural Volume: {binauralVolume}%
+                        </label>
+                        <input 
+                          type="range" min="0" max="100" value={binauralVolume} 
+                          onChange={(e) => setBinauralVolume(parseInt(e.target.value))}
+                          style={{ width: '100%', accentColor: 'var(--accent-gold)', cursor: 'pointer' }}
+                        />
+                      </div>
+                      
+                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
+                        <div>
+                          <label style={{ fontSize: '0.65rem', opacity: 0.8, display: 'block', marginBottom: '2px' }}>
+                            Carrier Freq: {binauralCarrier}Hz
+                          </label>
+                          <input 
+                            type="range" min="200" max="800" value={binauralCarrier} 
+                            onChange={(e) => setBinauralCarrier(parseInt(e.target.value))}
+                            style={{ width: '100%', accentColor: 'var(--accent-gold)', cursor: 'pointer' }}
+                          />
+                        </div>
+                        
+                        <div>
+                          <label style={{ fontSize: '0.65rem', opacity: 0.8, display: 'block', marginBottom: '2px' }}>
+                            Brainwave State
+                          </label>
+                          <select 
+                            value={binauralBeat} 
+                            onChange={(e) => setBinauralBeat(parseFloat(e.target.value))}
+                            className="glass"
+                            style={{ width: '100%', padding: '4px', fontSize: '0.65rem', border: '1px solid rgba(255,255,255,0.2)', borderRadius: '6px', background: 'rgba(0,0,0,0.6)', color: 'white' }}
+                          >
+                            <option value="2">2 Hz (Delta - Deep Sleep)</option>
+                            <option value="6">6 Hz (Theta - Meditation)</option>
+                            <option value="10">10 Hz (Alpha - Relaxation)</option>
+                            <option value="15">15 Hz (Beta - Focus)</option>
+                            <option value="30">30 Hz (Gamma - Cosmic Peak)</option>
+                          </select>
+                        </div>
+                      </div>
+                    </motion.div>
+                  )}
+                </div>
                 <div 
                   className="frequency-unmute-overlay glass"
                   onClick={(e) => {
@@ -1814,16 +2203,9 @@ const [showCheckoutModal, setShowCheckoutModal] = useState(false);
 
           <div className="nav-links">
             <a href="#about" style={{ marginLeft: '1.5rem' }}>Philosophy</a>
-            <a href="#protocols" style={{ marginLeft: '0.8rem', marginRight: '2rem' }}>Protocols</a>
-            <button 
-                onClick={() => setShowSubscriptionPage(true)}
-                style={{
-                  background: 'none', border: 'none', cursor: 'pointer',
-                  color: 'var(--text-main)', fontSize: '1rem', fontFamily: 'inherit' 
-                }}
-            >
-                Membership
-            </button>
+            <a href="#mobile-service" style={{ marginLeft: '0.8rem', marginRight: '1rem' }}>Scheduling</a>
+            <a href="#protocols-section" style={{ marginLeft: '0.8rem', marginRight: '1rem' }}>Protocols</a>
+            <a href="#learning-section" style={{ marginLeft: '0.8rem', marginRight: '2rem' }}>Learning</a>
             
             <button 
               onClick={toggleTheme}
@@ -2212,9 +2594,20 @@ const [showCheckoutModal, setShowCheckoutModal] = useState(false);
       <section id="protocols-section" style={{backgroundColor: 'var(--bg-section)'}}>
         <div className="container" style={{textAlign: 'center'}}>
           <h2 style={{fontSize: '2.5rem', marginBottom: '1rem', color: 'var(--text-main)'}}>Advanced Harmonization Protocols</h2>
-          <p style={{marginBottom: '4rem', opacity: '0.7', color: 'var(--text-muted)'}}>Select a protocol below to synchronize with the Gemstone Core.</p>
+          <p style={{marginBottom: '2rem', opacity: '0.7', color: 'var(--text-muted)'}}>Select a protocol below to synchronize with the Gemstone Core.</p>
+          
+          <div style={{ display: 'flex', justifyContent: 'center', gap: '1rem', marginBottom: '3rem' }}>
+            <button
+              onClick={selectRandomProtocol}
+              className="btn btn-primary"
+              style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '0.8rem 2rem', background: 'rgba(212, 175, 55, 0.1)', border: '1px solid var(--accent-gold)', color: 'var(--accent-gold)' }}
+            >
+              <Shuffle size={16} /> Random Alignment Selection
+            </button>
+          </div>
+
           <div style={{display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '2rem', maxWidth: '1000px', margin: '0 auto'}}>
-            {protocols.map((protocol) => (
+            {protocolList.filter(p => p.active).map((protocol) => (
               <div 
                 key={protocol.id}
                 className={`glass card-hover ${selectedProtocol === protocol.id ? 'protocol-selected' : ''}`} 
@@ -2226,11 +2619,6 @@ const [showCheckoutModal, setShowCheckoutModal] = useState(false);
                   border: selectedProtocol === protocol.id ? `2px solid ${protocol.color}` : '1px solid var(--glass-border)'
                 }}
                 onClick={() => {
-                  if (protocol.tier === 'advanced' && (!user || user.subscription !== 'healing')) {
-                      toast.error("Advanced Protocol Locked. Upgrade to access.");
-                      setShowSubscriptionPage(true); // Direct to plan page
-                      return;
-                  }
                   setSelectedProtocol(protocol.id);
                 }}
               >
@@ -2279,19 +2667,21 @@ const [showCheckoutModal, setShowCheckoutModal] = useState(false);
                 {selectedProtocol === protocol.id && (
                   <div style={{marginTop: '1.5rem', color: protocol.color, fontWeight: '700'}}>PROTOCOL SELECTED</div>
                 )}
-                {protocol.tier === 'advanced' && (!user || user.subscription !== 'healing') && (
-                    <div style={{
-                        position: 'absolute', top: '1rem', right: '1rem', 
-                        background: 'rgba(0,0,0,0.6)', padding: '0.5rem', borderRadius: '50%'
-                    }}>
-                        <Lock size={24} color="#bdc3c7" />
-                    </div>
-                )}
               </div>
             ))}
           </div>
         </div>
       </section>
+
+      <section id="learning-section" style={{ backgroundColor: 'var(--bg-primary)', padding: '4rem 0', borderTop: '1px solid rgba(255,255,255,0.05)' }}>
+        <div className="container" style={{ maxWidth: '1200px', margin: '0 auto' }}>
+          <Suspense fallback={<LoadingSpinner />}>
+            <LearnSection isMobileLayout={false} />
+          </Suspense>
+        </div>
+      </section>
+
+      {renderComingSoonSection(false)}
 
       {/* Admin Login Modal */}
       <Suspense fallback={null}>
@@ -2321,6 +2711,8 @@ const [showCheckoutModal, setShowCheckoutModal] = useState(false);
               setActiveSession(session);
               setShowLivePortal(true);
             }}
+            protocols={protocolList}
+            onToggleProtocol={handleToggleProtocol}
           />
         )}
       </Suspense>

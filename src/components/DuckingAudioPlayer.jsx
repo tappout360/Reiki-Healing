@@ -8,6 +8,10 @@ const DuckingAudioPlayer = ({
   isPlaying, 
   volume = 50,
   duckingAmount = 0.3,
+  binauralEnabled = false,
+  binauralCarrier = 432,
+  binauralBeat = 6,
+  binauralVolume = 30,
   onEnded 
 }) => {
   const audioContextRef = useRef(null);
@@ -18,6 +22,10 @@ const DuckingAudioPlayer = ({
   const ambientGainRef = useRef(null);
   const voiceGainRef = useRef(null);
   
+  const binauralGainRef = useRef(null);
+  const leftOscRef = useRef(null);
+  const rightOscRef = useRef(null);
+
   const musicElementRef = useRef(new Audio());
   const ambientElementRef = useRef(new Audio());
   const voiceElementRef = useRef(new Audio());
@@ -188,6 +196,100 @@ const DuckingAudioPlayer = ({
       voiceEl.removeEventListener('timeupdate', handleVolumeShift);
     };
   }, [volume, duckingAmount, musicSrc]);
+
+  // Binaural Beat Oscillator Management
+  useEffect(() => {
+    const cleanupOscillators = () => {
+      if (leftOscRef.current) {
+        try {
+          leftOscRef.current.stop();
+        } catch (e) {
+          /* ignore error if oscillator is not started */
+        }
+        leftOscRef.current = null;
+      }
+      if (rightOscRef.current) {
+        try {
+          rightOscRef.current.stop();
+        } catch (e) {
+          /* ignore error if oscillator is not started */
+        }
+        rightOscRef.current = null;
+      }
+    };
+
+    if (!isPlaying || !binauralEnabled) {
+      cleanupOscillators();
+      return;
+    }
+
+    // Initialize Web Audio API only if it doesn't exist
+    if (!audioContextRef.current) {
+      const AudioContext = window.AudioContext || window.webkitAudioContext;
+      audioContextRef.current = new AudioContext();
+    }
+
+    const ctx = audioContextRef.current;
+    if (ctx.state === 'suspended') {
+      ctx.resume().catch(console.error);
+    }
+
+    // Initialize binaural gain node if not already
+    if (!binauralGainRef.current) {
+      binauralGainRef.current = ctx.createGain();
+      binauralGainRef.current.connect(ctx.destination);
+    }
+
+    // Stop any existing oscillators before creating new ones
+    cleanupOscillators();
+
+    const leftFreq = parseFloat(binauralCarrier);
+    const rightFreq = leftFreq + parseFloat(binauralBeat);
+
+    // Create Left and Right Oscillators
+    const leftOsc = ctx.createOscillator();
+    const rightOsc = ctx.createOscillator();
+    leftOsc.type = 'sine';
+    rightOsc.type = 'sine';
+    leftOsc.frequency.setValueAtTime(leftFreq, ctx.currentTime);
+    rightOsc.frequency.setValueAtTime(rightFreq, ctx.currentTime);
+
+    // Create Gain Nodes to pipe them
+    const leftGain = ctx.createGain();
+    const rightGain = ctx.createGain();
+    
+    // Merger Node
+    const merger = ctx.createChannelMerger(2);
+
+    leftOsc.connect(leftGain);
+    rightOsc.connect(rightGain);
+
+    leftGain.connect(merger, 0, 0); // Connect left gain to merger input 0 (Left channel)
+    rightGain.connect(merger, 0, 1); // Connect right gain to merger input 1 (Right channel)
+
+    merger.connect(binauralGainRef.current);
+
+    // Start oscillators
+    leftOsc.start(0);
+    rightOsc.start(0);
+
+    leftOscRef.current = leftOsc;
+    rightOscRef.current = rightOsc;
+
+    return () => {
+      cleanupOscillators();
+    };
+  }, [isPlaying, binauralEnabled, binauralCarrier, binauralBeat]);
+
+  // Binaural Beat Volume Control
+  useEffect(() => {
+    if (binauralGainRef.current && audioContextRef.current) {
+      const masterVolume = volume / 100;
+      const targetBinVol = (binauralVolume / 100) * masterVolume;
+      const now = audioContextRef.current.currentTime;
+      binauralGainRef.current.gain.linearRampToValueAtTime(targetBinVol, now + 0.1);
+    }
+  }, [volume, binauralVolume, isPlaying, binauralEnabled]);
 
   useEffect(() => {
     const handleEnded = () => {

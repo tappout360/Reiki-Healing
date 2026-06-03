@@ -58,5 +58,21 @@ service cloud.firestore {
       allow read: if true;
       allow write: if isAdmin();
     }
+
+    // Bookings: staff+ can read/write; authenticated clients can read their own bookings
+    match /bookings/{bookingId} {
+      allow read: if isStaff() || 
+        (request.auth != null && 
+          (resource.data.customerEmail == request.auth.token.email || 
+           resource.data.userId == request.auth.uid));
+      allow create, update: if isStaff() || request.auth != null;
+      allow delete: if isAdmin();
+    }
+
+    // Settings: bank_info read/write restricted to admin; others read by all, write by staff+
+    match /settings/{settingId} {
+      allow read: if settingId != 'bank_info' || isAdmin();
+      allow write: if (settingId == 'bank_info' && isAdmin()) || (settingId != 'bank_info' && isStaff());
+    }
   }
 }

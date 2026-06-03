@@ -244,5 +244,50 @@ export const db = {
       role,
       updatedAt: serverTimestamp()
     });
+  },
+
+  // --- Settings ---
+  getSettings: async (docId) => {
+    if (!firestore) return null;
+    const snap = await getDoc(doc(firestore, 'settings', docId));
+    return snap.exists() ? snap.data() : null;
+  },
+
+  updateSettings: async (docId, data) => {
+    if (!firestore) return null;
+    await setDoc(doc(firestore, 'settings', docId), { ...data, updatedAt: serverTimestamp() }, { merge: true });
+  },
+
+  // --- Bookings ---
+  getAllBookings: async () => {
+    if (!firestore) return [];
+    const q = query(collection(firestore, 'bookings'), orderBy('bookingDate', 'desc'));
+    const snap = await getDocs(q);
+    return snap.docs.map(d => ({ id: d.id, ...d.data() }));
+  },
+
+  getUserBookings: async (email) => {
+    if (!firestore) return [];
+    const q = query(
+      collection(firestore, 'bookings'),
+      where('customerEmail', '==', email.toLowerCase()),
+      orderBy('bookingDate', 'desc')
+    );
+    const snap = await getDocs(q);
+    return snap.docs.map(d => ({ id: d.id, ...d.data() }));
+  },
+
+  updateBookingStatus: async (bookingId, status) => {
+    if (!firestore) return null;
+    await updateDoc(doc(firestore, 'bookings', bookingId), { status, updatedAt: serverTimestamp() });
+  },
+
+  addBooking: async (booking) => {
+    if (!firestore) return null;
+    const ref = await addDoc(collection(firestore, 'bookings'), {
+      ...booking,
+      createdAt: serverTimestamp()
+    });
+    return { id: ref.id, ...booking };
   }
 };
