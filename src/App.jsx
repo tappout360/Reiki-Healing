@@ -10,6 +10,7 @@ import { Toaster, toast } from 'react-hot-toast'
 import { UserDashboardInline } from './components/UserDashboardInline'
 import { auth, db, isFirebaseConfigured } from './lib/firebase'
 import { loadGamificationState, saveGamificationState, processSessionComplete, syncToFirestore } from './utils/gamification'
+import { seedSandboxData, OWNER_PROFILE, SEEKER_PROFILE } from './utils/sandboxSeeder'
 import './App.css'
 import './components/AuraGuide.css'
 
@@ -449,6 +450,174 @@ const SacredReflections = () => {
         <div style={{ position: 'absolute', top: '20%', right: '-5%', width: '500px', height: '500px', background: 'radial-gradient(circle, rgba(212, 175, 55, 0.08) 0%, transparent 70%)', filter: 'blur(80px)', zIndex: 0, pointerEvents: 'none' }}></div>
         <div style={{ position: 'absolute', bottom: '10%', left: '-5%', width: '400px', height: '400px', background: 'radial-gradient(circle, rgba(155, 89, 182, 0.08) 0%, transparent 70%)', filter: 'blur(80px)', zIndex: 0, pointerEvents: 'none' }}></div>
     </section>
+  );
+};
+
+
+// Floating Sandbox panel visible in local development or Vercel preview environments when Firebase is not configured
+const SandboxPanel = ({ user, setUser, onLogout }) => {
+  const [isOpen, setIsOpen] = useState(false);
+  const isConfigured = isFirebaseConfigured();
+
+  // If Firebase is configured, do not show sandbox tool
+  if (isConfigured) return null;
+
+  const handleSeedAndLogin = (persona) => {
+    // 1. Seed simulated localStorage DB
+    seedSandboxData();
+    
+    // 2. Select persona profile
+    const profile = persona === 'owner' ? OWNER_PROFILE : SEEKER_PROFILE;
+    
+    // 3. Set profile in localStorage & React state
+    localStorage.setItem('user_profile', JSON.stringify(profile));
+    setUser(profile);
+    
+    toast.success(`Sandbox seeded! Logged in as ${profile.name}.`, {
+      icon: '✨',
+      duration: 4000
+    });
+    
+    setIsOpen(false);
+    setTimeout(() => {
+      window.location.reload();
+    }, 1000);
+  };
+
+  const handleResetSandbox = () => {
+    localStorage.clear();
+    onLogout();
+    toast.success("Sandbox reset. All simulated data cleared.");
+    setIsOpen(false);
+    setTimeout(() => {
+      window.location.reload();
+    }, 1000);
+  };
+
+  return (
+    <div style={{
+      position: 'fixed',
+      bottom: '2rem',
+      left: '2rem',
+      zIndex: 99999, // Super high z-index
+      fontFamily: "'Inter', sans-serif"
+    }}>
+      <AnimatePresence>
+        {isOpen && (
+          <motion.div
+            initial={{ opacity: 0, y: 20, scale: 0.95 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 20, scale: 0.95 }}
+            className="glass"
+            style={{
+              padding: '1.5rem',
+              borderRadius: '20px',
+              border: '1px solid rgba(212, 175, 55, 0.3)',
+              background: 'rgba(15, 15, 25, 0.95)',
+              backdropFilter: 'blur(20px)',
+              width: '300px',
+              marginBottom: '1rem',
+              boxShadow: '0 20px 50px rgba(0,0,0,0.6)'
+            }}
+          >
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+              <h4 style={{ margin: 0, color: 'var(--accent-gold)', display: 'flex', alignItems: 'center', gap: '8px', fontSize: '1rem' }}>
+                <Sparkles size={16} /> Sandbox Simulator
+              </h4>
+              <span style={{ fontSize: '0.65rem', background: 'rgba(255,255,255,0.05)', padding: '2px 8px', borderRadius: '10px', color: 'rgba(255,255,255,0.4)', fontWeight: 'bold' }}>DEMO</span>
+            </div>
+            
+            <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', margin: '0 0 1rem 0', lineHeight: '1.4' }}>
+              Firebase is offline or not configured. Use this simulator to populate mock bookings, reviews, healer apps, and profiles.
+            </p>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.8rem' }}>
+              <button 
+                onClick={() => handleSeedAndLogin('owner')}
+                className="btn"
+                style={{ 
+                  background: 'rgba(212, 175, 55, 0.1)', 
+                  border: '1px solid var(--accent-gold)', 
+                  color: 'var(--accent-gold)',
+                  fontSize: '0.8rem',
+                  padding: '0.7rem',
+                  fontWeight: 'bold',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '8px',
+                  width: '100%',
+                  cursor: 'pointer'
+                }}
+              >
+                <span>✨ Owner View (Carissa)</span>
+              </button>
+
+              <button 
+                onClick={() => handleSeedAndLogin('seeker')}
+                className="btn"
+                style={{ 
+                  background: 'rgba(160, 210, 235, 0.1)', 
+                  border: '1px solid var(--accent-ethereal)', 
+                  color: 'var(--accent-ethereal)',
+                  fontSize: '0.8rem',
+                  padding: '0.7rem',
+                  fontWeight: 'bold',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '8px',
+                  width: '100%',
+                  cursor: 'pointer'
+                }}
+              >
+                <span>🌙 Seeker View (Aria)</span>
+              </button>
+
+              <button 
+                onClick={handleResetSandbox}
+                className="btn"
+                style={{ 
+                  background: 'rgba(255, 118, 117, 0.1)', 
+                  border: '1px solid #ff7675', 
+                  color: '#ff7675',
+                  fontSize: '0.8rem',
+                  padding: '0.6rem',
+                  width: '100%',
+                  cursor: 'pointer',
+                  borderRadius: '8px'
+                }}
+              >
+                Reset Sandbox DB
+              </button>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      <motion.button
+        whileHover={{ scale: 1.05 }}
+        whileTap={{ scale: 0.95 }}
+        onClick={() => setIsOpen(!isOpen)}
+        className="glass"
+        style={{
+          padding: '10px 20px',
+          borderRadius: '30px',
+          background: 'rgba(212, 175, 55, 0.15)',
+          border: '1px solid var(--accent-gold)',
+          color: 'var(--accent-gold)',
+          fontWeight: 'bold',
+          fontSize: '0.8rem',
+          cursor: 'pointer',
+          boxShadow: '0 10px 30px rgba(0,0,0,0.3)',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '8px'
+        }}
+      >
+        <Sparkles size={14} /> {isOpen ? "Close Simulator" : "✨ Enter Demo Sandbox"}
+      </motion.button>
+    </div>
   );
 };
 
@@ -1534,7 +1703,9 @@ const [showCheckoutModal, setShowCheckoutModal] = useState(false);
             {user ? (
               <button 
                 onClick={() => {
-                  if (user.role === 'owner') {
+                  const isDemo = !isFirebaseConfigured();
+                  const isOwner = user.role === 'owner' && (isDemo || ['carissabright@gmail.com', 'jasonmounts77@yahoo.com'].includes(user.email?.toLowerCase()));
+                  if (isOwner) {
                     setShowHealerDashboard(true);
                   } else {
                     setActiveTab('dashboard');
@@ -2795,7 +2966,7 @@ const [showCheckoutModal, setShowCheckoutModal] = useState(false);
         )}
       </AnimatePresence>
 
-      {user && (user.role === 'admin' || user.role === 'owner') && (
+      {user && (user.role === 'admin' || user.role === 'owner') && (!isFirebaseConfigured() || ['carissabright@gmail.com', 'jasonmounts77@yahoo.com'].includes(user.email?.toLowerCase())) && (
         <div 
           style={{
             position: 'fixed', bottom: '2rem', right: '2rem', zIndex: 9000
@@ -3108,6 +3279,9 @@ const [showCheckoutModal, setShowCheckoutModal] = useState(false);
           </div>
         </div>
       )}
+
+      {/* Floating Sandbox Simulator Panel */}
+      <SandboxPanel user={user} setUser={setUser} onLogout={handleLogout} />
 
     </div>
   )

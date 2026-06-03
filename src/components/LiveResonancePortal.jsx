@@ -28,6 +28,12 @@ const LiveResonancePortal = ({ user, onClose }) => {
   const [seekerWaiting, setSeekerWaiting] = useState(true);
   const [seekerAdmitted, setSeekerAdmitted] = useState(false);
 
+  // Micro-interaction states
+  const [hearts, setHearts] = useState([]);
+  const [isAmplified, setIsAmplified] = useState(false);
+  const [isPurifying, setIsPurifying] = useState(false);
+  const [waveHeights, setWaveHeights] = useState(Array(16).fill(15));
+
   // Simulate resonance fluctuation
   useEffect(() => {
     const interval = setInterval(() => {
@@ -43,6 +49,88 @@ const LiveResonancePortal = ({ user, onClose }) => {
     }, 3000);
     return () => clearInterval(interval);
   }, []);
+
+  // 1. Audio Visualizer Pulse Simulator
+  useEffect(() => {
+    if (!isLive || !seekerAdmitted) return;
+    const interval = setInterval(() => {
+      setWaveHeights(prev => {
+        return prev.map(() => {
+          const min = isAmplified ? 35 : 12;
+          const max = isAmplified ? 98 : 65;
+          return Math.floor(Math.random() * (max - min)) + min;
+        });
+      });
+    }, 120);
+    return () => clearInterval(interval);
+  }, [isLive, seekerAdmitted, isAmplified]);
+
+  // 2. Chat Simulator Bot
+  useEffect(() => {
+    if (!isLive || !seekerAdmitted) return;
+    
+    const seekerComments = [
+      "So grateful to be part of this sanctuary today.",
+      "I can feel the crystal frequency pulsing through the stream.",
+      "My hands are tingling with warmth.",
+      "The crown chakra pressure is gently releasing...",
+      "Sending light and alignment to everyone here. 🙏",
+      "Carissa, the visual alignments are incredibly clear today.",
+      "Felt a deep release when we started the Amethyst protocol.",
+      "Pure peace in this field."
+    ];
+
+    const seekerNames = [
+      "Luna Rivers",
+      "Gavin Thorne",
+      "Estella Sky",
+      "Zev Brooks"
+    ];
+
+    const interval = setInterval(() => {
+      if (Math.random() > 0.5) {
+        const name = seekerNames[Math.floor(Math.random() * seekerNames.length)];
+        const text = seekerComments[Math.floor(Math.random() * seekerComments.length)];
+        const newMsg = {
+          id: Date.now() + Math.random(),
+          sender: name,
+          text,
+          time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+        };
+        setMessages(prev => [...prev, newMsg]);
+      }
+    }, 9000);
+
+    return () => clearInterval(interval);
+  }, [isLive, seekerAdmitted]);
+
+  // 3. Micro-Interaction Handlers
+  const handleGiveHeart = () => {
+    const newHeart = {
+      id: Date.now() + Math.random(),
+      left: Math.random() * 60 + 20 // 20% to 80% left
+    };
+    setHearts(prev => [...prev, newHeart]);
+    setTimeout(() => {
+      setHearts(prev => prev.filter(h => h.id !== newHeart.id));
+    }, 3500);
+  };
+
+  const handleAmplify = () => {
+    setIsAmplified(true);
+    toast.success("Resonance amplified. Boosting frequency flow!");
+    setTimeout(() => {
+      setIsAmplified(false);
+    }, 5000);
+  };
+
+  const handleOriginalPurify = () => {
+    setIsPurifying(true);
+    toast.success("Violet flame activated. Clearing energetic impurities.");
+    setTimeout(() => {
+      setIsPurifying(false);
+    }, 4000);
+  };
 
   const handleSendMessage = (e) => {
     e.preventDefault();
@@ -144,27 +232,55 @@ const LiveResonancePortal = ({ user, onClose }) => {
                 <div style={{ width: '100%', height: '100%', background: 'rgba(0,0,0,0.3)', position: 'relative' }}>
                     {/* Simulated Camera Feed */}
                     <div style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                         <div style={{ textAlign: 'center' }}>
-                            <motion.div
-                                animate={{ rotate: 360 }}
-                                transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
-                                style={{
-                                    width: '300px', height: '300px',
-                                    border: '1px dashed rgba(142, 68, 173, 0.3)',
-                                    borderRadius: '50%',
-                                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                    position: 'relative'
-                                }}
-                            >
-                                <motion.div 
-                                    animate={{ scale: [1, 1.2, 1] }}
-                                    transition={{ duration: 4, repeat: Infinity }}
-                                    style={{ width: '150px', height: '150px', background: 'radial-gradient(circle, rgba(142, 68, 173, 0.4), transparent)', borderRadius: '50%' }}
-                                />
-                            </motion.div>
-                             <h2 style={{ marginTop: '2rem', fontSize: '1.2rem', color: 'rgba(255,255,255,0.5)', letterSpacing: '2px' }}>
+                         <div style={{ textAlign: 'center', width: '100%' }}>
+                             {isLive && seekerAdmitted ? (
+                               <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '300px' }}>
+                                 {/* Dynamic Audio Waveform Visualizer */}
+                                 <div style={{ display: 'flex', alignItems: 'end', justifyContent: 'center', gap: '6px', height: '120px', width: '280px', marginBottom: '1.5rem' }}>
+                                   {waveHeights.map((h, i) => (
+                                     <motion.div
+                                       key={i}
+                                       animate={{ height: `${h}%` }}
+                                       transition={{ type: 'spring', stiffness: 300, damping: 20 }}
+                                       style={{
+                                         width: '8px',
+                                         borderRadius: '4px',
+                                         background: isAmplified 
+                                           ? 'linear-gradient(to top, var(--accent-gold), #fff)' 
+                                           : (isPurifying ? 'linear-gradient(to top, #9b59b6, var(--accent-ethereal))' : 'linear-gradient(to top, #8e44ad, var(--accent-ethereal))'),
+                                         boxShadow: isAmplified ? '0 0 15px var(--accent-gold)' : (isPurifying ? '0 0 10px rgba(155, 89, 182, 0.4)' : 'none'),
+                                         transformOrigin: 'bottom'
+                                       }}
+                                     />
+                                   ))}
+                                 </div>
+                               </div>
+                             ) : (
+                               <motion.div
+                                    animate={{ rotate: 360 }}
+                                    transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
+                                    style={{
+                                        width: '240px', height: '240px',
+                                        border: '1px dashed rgba(142, 68, 173, 0.3)',
+                                        borderRadius: '50%',
+                                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                        position: 'relative',
+                                        margin: '0 auto'
+                                    }}
+                                >
+                                    <motion.div 
+                                        animate={{ scale: [1, 1.2, 1] }}
+                                        transition={{ duration: 4, repeat: Infinity }}
+                                        style={{ width: '120px', height: '120px', background: 'radial-gradient(circle, rgba(142, 68, 173, 0.4), transparent)', borderRadius: '50%' }}
+                                    />
+                                </motion.div>
+                             )}
+
+                             <h2 style={{ marginTop: '2rem', fontSize: '1.1rem', color: 'rgba(255,255,255,0.5)', letterSpacing: '2px' }}>
                                 {!isLive ? 'INITIATE TRANSMISSION' : (seekerAdmitted ? 'RESONANCE ESTABLISHED' : 'WAITING FOR ADMISSION')}
                              </h2>
+
+                             {/* Healer Dashboard Controls */}
                              {isHealer && !isLive && (
                                 <button 
                                     onClick={() => {
@@ -182,9 +298,9 @@ const LiveResonancePortal = ({ user, onClose }) => {
                                     initial={{ y: 20, opacity: 0 }}
                                     animate={{ y: 0, opacity: 1 }}
                                     className="glass"
-                                    style={{ marginTop: '2rem', padding: '1.5rem', borderRadius: '20px', border: '1px solid var(--accent-gold)' }}
+                                    style={{ marginTop: '2rem', padding: '1.5rem', borderRadius: '20px', border: '1px solid var(--accent-gold)', display: 'inline-block' }}
                                 >
-                                    <p style={{ marginBottom: '1rem', color: 'var(--accent-gold)' }}>Seeker is waiting in the ether...</p>
+                                    <p style={{ marginBottom: '1rem', color: 'var(--accent-gold)', fontSize: '0.9rem' }}>Seeker is waiting in the ether...</p>
                                     <button 
                                         onClick={() => {
                                             setSeekerAdmitted(true);
@@ -197,11 +313,44 @@ const LiveResonancePortal = ({ user, onClose }) => {
                                     </button>
                                 </motion.div>
                              )}
-                         </div>
+
+                             {/* Seeker Self-Guided Test Controls */}
+                             {!isHealer && !isLive && (
+                                <div style={{ marginTop: '2rem' }}>
+                                   <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', marginBottom: '1rem' }}>Practitioner has not initiated transmission yet.</p>
+                                   <button 
+                                       onClick={() => {
+                                           setIsLive(true);
+                                           toast.success("Simulating Healer going Live!");
+                                       }}
+                                       className="btn-primary" 
+                                       style={{ padding: '0.8rem 2rem', borderRadius: '30px' }}
+                                   >
+                                       SIMULATE HEALER GOING LIVE
+                                   </button>
+                                </div>
+                             )}
+                             {!isHealer && isLive && !seekerAdmitted && (
+                                <div style={{ marginTop: '2rem' }}>
+                                   <p style={{ color: 'var(--accent-gold)', fontSize: '0.9rem', marginBottom: '1rem' }}>Practitioner is Live! Request entry into the Sanctuary.</p>
+                                   <button 
+                                       onClick={() => {
+                                           setSeekerAdmitted(true);
+                                           setSeekerWaiting(false);
+                                           toast.success("Admitted to Sanctuary!");
+                                       }}
+                                       className="btn-primary" 
+                                       style={{ padding: '0.8rem 2rem', borderRadius: '30px' }}
+                                   >
+                                       ENTER SANCTUARY
+                                   </button>
+                                </div>
+                             )}
+                          </div>
                     </div>
 
                     {/* HUD - Bottom Left: Resonance Metadata */}
-                    <div style={{ position: 'absolute', bottom: '2rem', left: '2rem' }}>
+                    <div style={{ position: 'absolute', bottom: '2rem', left: '2rem', zIndex: 10 }}>
                         <div className="glass" style={{ padding: '1.5rem', borderRadius: '16px', background: 'rgba(0,0,0,0.4)', minWidth: '200px' }}>
                             <div style={{ fontSize: '0.7rem', color: 'rgba(255,255,255,0.4)', marginBottom: '0.5rem', textTransform: 'uppercase' }}>Vibrational Sync</div>
                             <div style={{ display: 'flex', alignItems: 'baseline', gap: '8px' }}>
@@ -215,7 +364,7 @@ const LiveResonancePortal = ({ user, onClose }) => {
                     </div>
 
                     {/* HUD - Top Right: Participant Bubble */}
-                    <div style={{ position: 'absolute', top: '2rem', right: '2rem' }}>
+                    <div style={{ position: 'absolute', top: '2rem', right: '2rem', zIndex: 10 }}>
                         <div className="glass" style={{ width: '120px', height: '160px', borderRadius: '16px', overflow: 'hidden', border: '2px solid var(--accent-gold)' }}>
                             <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Carissa" alt="Healer" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                             <div style={{ position: 'absolute', bottom: 0, width: '100%', background: 'rgba(0,0,0,0.6)', padding: '5px', textAlign: 'center', fontSize: '0.7rem' }}>
@@ -223,6 +372,71 @@ const LiveResonancePortal = ({ user, onClose }) => {
                             </div>
                         </div>
                     </div>
+
+                    {/* Floating Hearts Overlay */}
+                    {hearts.map(h => (
+                      <motion.div
+                        key={h.id}
+                        initial={{ y: '80vh', opacity: 1, scale: 0.8 }}
+                        animate={{ y: '-20vh', opacity: 0, scale: [0.8, 1.3, 1] }}
+                        transition={{ duration: 3.5, ease: 'easeOut' }}
+                        style={{
+                          position: 'absolute',
+                          left: `${h.left}%`,
+                          bottom: 0,
+                          color: '#ff7675',
+                          fontSize: '2.5rem',
+                          pointerEvents: 'none',
+                          zIndex: 12
+                        }}
+                      >
+                        ❤️
+                      </motion.div>
+                    ))}
+
+                    {/* Golden Ripples for AMPLIFY */}
+                    <AnimatePresence>
+                      {isAmplified && (
+                        <motion.div
+                          initial={{ scale: 0.3, opacity: 0.8 }}
+                          animate={{ scale: 3.5, opacity: 0 }}
+                          exit={{ opacity: 0 }}
+                          transition={{ duration: 2, repeat: Infinity, ease: "easeOut" }}
+                          style={{
+                            position: 'absolute',
+                            top: 'calc(50% - 100px)',
+                            left: 'calc(50% - 100px)',
+                            width: '200px',
+                            height: '200px',
+                            border: '4px solid var(--accent-gold)',
+                            borderRadius: '50%',
+                            boxShadow: '0 0 50px var(--accent-gold)',
+                            pointerEvents: 'none',
+                            zIndex: 8
+                          }}
+                        />
+                      )}
+                    </AnimatePresence>
+
+                    {/* Violet Glow for PURIFY */}
+                    <AnimatePresence>
+                      {isPurifying && (
+                        <motion.div
+                          initial={{ opacity: 0 }}
+                          animate={{ opacity: [0, 0.3, 0] }}
+                          exit={{ opacity: 0 }}
+                          transition={{ duration: 4, ease: "easeInOut" }}
+                          style={{
+                            position: 'absolute',
+                            top: 0, left: 0, right: 0, bottom: 0,
+                            background: 'radial-gradient(circle, rgba(162, 155, 254, 0.4) 0%, rgba(142, 68, 173, 0.2) 100%)',
+                            mixBlendMode: 'screen',
+                            pointerEvents: 'none',
+                            zIndex: 9
+                          }}
+                        />
+                      )}
+                    </AnimatePresence>
                 </div>
 
                 {/* Bottom Overlay Controls */}
@@ -244,9 +458,9 @@ const LiveResonancePortal = ({ user, onClose }) => {
                     </div>
                     
                     <div className="glass" style={{ display: 'flex', gap: '0.5rem', padding: '0.5rem', borderRadius: '30px' }}>
-                         <IconButton icon={Heart} label="GIVE HEART" color="#ff7675" />
-                         <IconButton icon={Zap} label="AMPLIFY" color="var(--accent-gold)" />
-                         <IconButton icon={Sparkles} label="PURIFY" color="var(--accent-ethereal)" />
+                         <IconButton icon={Heart} label="GIVE HEART" color="#ff7675" onClick={handleGiveHeart} />
+                         <IconButton icon={Zap} label="AMPLIFY" color="var(--accent-gold)" onClick={handleAmplify} />
+                         <IconButton icon={Sparkles} label="PURIFY" color="var(--accent-ethereal)" onClick={handleOriginalPurify} />
                     </div>
 
                      <div style={{ display: 'flex', gap: '1rem' }}>
@@ -395,9 +609,10 @@ const ControlCircle = ({ icon, onClick, status = 'idle' }) => (
     </motion.button>
 );
 
-const IconButton = ({ icon, label, color }) => (
+const IconButton = ({ icon, label, color, onClick }) => (
     <motion.button
         whileHover={{ scale: 1.05, background: 'rgba(255,255,255,0.1)' }}
+        onClick={onClick}
         className="glass"
         style={{
             border: 'none',

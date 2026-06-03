@@ -208,9 +208,10 @@ const HealerDashboard = ({ onClose, onJoinPortal, healerAppsEnabled, onToggleHea
     return () => clearInterval(presenceInterval);
   }, []);
 
-  // Security Layer: Role-Based Access Control
   const profile = JSON.parse(localStorage.getItem('user_profile') || 'null');
-  const isAuthorized = profile && (profile.role === 'admin' || profile.role === 'owner');
+  const isDemo = !isFirebaseConfigured();
+  const isAuthorized = profile && (profile.role === 'admin' || profile.role === 'owner') && 
+    (isDemo || ['carissabright@gmail.com', 'jasonmounts77@yahoo.com'].includes(profile.email?.toLowerCase()));
 
   useEffect(() => {
     if (!isAuthorized) {

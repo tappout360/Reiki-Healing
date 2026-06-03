@@ -144,7 +144,7 @@ cp .env.example .env.local
 npm run dev
 ```
 
-The app runs at **http://localhost:4000**
+# The app runs at **http://localhost:4000**
 
 ### Build for Production
 
@@ -152,6 +152,45 @@ The app runs at **http://localhost:4000**
 npm run build    # Output in dist/
 npm run preview  # Preview production build locally
 ```
+
+---
+
+## 🛠️ Sandbox Simulator (Evaluator & Demo Guide)
+
+If you are reviewing this application and Firebase is not configured in your environment, the app will render a floating **✨ Enter Demo Sandbox** button in the bottom-left corner of the screen.
+
+Using this Sandbox Simulator:
+1. **Seed Simulated Database**: Instantly populates `localStorage` with realistic, high-fidelity mock bookings (upcoming, past, and pending), story submissions, healer applications, client listings, and pricing configurations.
+2. **Owner View (Carissa)**: Logs you in as the healer/owner (`Carissa`), giving you access to the **Healer Dashboard** (bottom-right button) to test calendar scheduling, approving/archiving seeker stories, pricing calibrations, and healer applications.
+3. **Seeker View (Aria)**: Logs you in as a seeker client (`Aria Winters`), allowing you to test the personalized subscriber Sanctuary dashboard, zodiac alignments, booking forms, and story submissions.
+4. **Reset Sandbox**: Clears all simulated database entries and logs you out.
+
+*Note: In production (when Firebase environment variables are loaded), the Sandbox button is automatically hidden, and access to the Healer Dashboard is strictly restricted to whitelisted administrator accounts (e.g. Carissa and Jason).*
+
+---
+
+## 🚀 Production Deployment & Custom Domains
+
+To maximize market readiness and complete the deployment flow:
+
+### 1. Linking a Custom Domain on Vercel
+1. Go to your **Vercel Dashboard** → Select the project.
+2. Navigate to **Settings** → **Domains**.
+3. Enter your custom domain name (e.g. `reikiandsage.com` or `www.reikiandsage.com`) and click **Add**.
+4. Configure your domain provider (GoDaddy, Namecheap, Google Domains, etc.) with Vercel's nameservers or the recommended DNS records:
+   - **Root Domain**: Add an `A` record pointing to `76.76.21.21`
+   - **Subdomains**: Add a `CNAME` record pointing to `cname.vercel-dns.com`
+
+### 2. Setting Environment Variables
+Ensure the following variables are configured in the Vercel Dashboard under **Settings** → **Environment Variables** for production build success:
+- `VITE_FIREBASE_API_KEY` (client-side)
+- `VITE_FIREBASE_AUTH_DOMAIN` (client-side)
+- `VITE_FIREBASE_PROJECT_ID` (client-side)
+- `VITE_STRIPE_PUBLISHABLE_KEY` (client-side)
+- `VITE_DEV_ADMIN_PASSWORD` (Sandbox local password)
+- `STRIPE_SECRET_KEY` (server-side, secret)
+- `STRIPE_WEBHOOK_SECRET` (server-side, secret)
+- `RESEND_API_KEY` (server-side, secret, Resend email client key)
 
 ---
 

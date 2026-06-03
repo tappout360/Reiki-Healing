@@ -73,7 +73,8 @@ const AdminLogin = ({ onLogin, onClose }) => {
         onLogin();
       } else {
         // Fallback: local development check with the whitelisted emails & password
-        if (isWhitelisted && password === '2014$Rogue10/31') {
+        const devPassword = import.meta.env.VITE_DEV_ADMIN_PASSWORD || 'ChangeMeForProduction_StrongPass!';
+        if (isWhitelisted && password === devPassword) {
           setTimeout(() => {
             setLoading(false);
             const adminUser = {
