@@ -151,19 +151,35 @@ const HealerDashboard = ({ onClose, onJoinPortal, healerAppsEnabled, onToggleHea
             email: c.email || '',
             lastBooking: c.lastSessionDate || 'No sessions yet',
             subscription: c.subscription || 'seeker'
-          })).sort((a, b) => a.name.localeCompare(b.name)));
+          })).sort((a, b) => (a.name || '').localeCompare(b.name || '')));
         })
         .catch(err => console.error("Failed to load clients from Firestore:", err));
 
       db.getTeamMembers()
         .then(list => {
-          setTeamMembers(list.map(t => ({
-            name: t.name || t.username || 'Anonymous Healer',
-            email: t.email || '',
-            status: t.status || 'Active',
-            role: t.role || 'Healer',
-            joined: t.createdAt ? new Date(t.createdAt.seconds * 1000).toISOString().split('T')[0] : new Date().toISOString().split('T')[0]
-          })));
+          setTeamMembers(list.map(t => {
+            let joinedDate = '';
+            try {
+              if (t.createdAt && typeof t.createdAt.seconds === 'number' && !isNaN(t.createdAt.seconds)) {
+                joinedDate = new Date(t.createdAt.seconds * 1000).toISOString().split('T')[0];
+              } else if (t.createdAt instanceof Date) {
+                joinedDate = t.createdAt.toISOString().split('T')[0];
+              } else if (typeof t.createdAt === 'string' && !isNaN(Date.parse(t.createdAt))) {
+                joinedDate = new Date(t.createdAt).toISOString().split('T')[0];
+              } else {
+                joinedDate = new Date().toISOString().split('T')[0];
+              }
+            } catch (e) {
+              joinedDate = new Date().toISOString().split('T')[0];
+            }
+            return {
+              name: t.name || t.username || 'Anonymous Healer',
+              email: t.email || '',
+              status: t.status || 'Active',
+              role: t.role || 'Healer',
+              joined: joinedDate
+            };
+          }));
         })
         .catch(err => console.error("Failed to load team members from Firestore:", err));
 
@@ -184,7 +200,7 @@ const HealerDashboard = ({ onClose, onJoinPortal, healerAppsEnabled, onToggleHea
       setBookings(savedBookings.sort((a, b) => b.id - a.id));
       
       const savedClients = JSON.parse(localStorage.getItem('aura_clients') || '[]');
-      setClients(savedClients.sort((a, b) => a.name.localeCompare(b.name)));
+      setClients(savedClients.sort((a, b) => (a.name || '').localeCompare(b.name || '')));
 
       const savedTeam = JSON.parse(localStorage.getItem('aura_team') || '[]');
       setTeamMembers(savedTeam);
