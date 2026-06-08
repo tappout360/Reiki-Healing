@@ -945,7 +945,10 @@ const UserDashboard = ({ user, onClose, onUpdateUser, onNavigateToBooking, onNav
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
                     {(() => {
                         const allBookings = JSON.parse(localStorage.getItem('aura_bookings') || '[]');
-                        const myBookings = allBookings.filter(b => b.client.email === user.email);
+                        const myBookings = allBookings.filter(b => {
+                            const email = b.client?.email || b.customerEmail || '';
+                            return email.toLowerCase() === user.email.toLowerCase();
+                        });
                         
                         if (myBookings.length === 0) {
                             return <div style={{padding: '3rem', textAlign: 'center', opacity: 0.5}}>No upcoming sessions found in the ether.</div>;
@@ -955,12 +958,12 @@ const UserDashboard = ({ user, onClose, onUpdateUser, onNavigateToBooking, onNav
                             <div key={b.id} className="glass" style={{ padding: '2rem', borderRadius: '24px', background: 'rgba(255,255,255,0.02)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', border: b.sessionCode ? '1px solid rgba(212, 175, 55, 0.2)' : '1px solid rgba(255,255,255,0.05)' }}>
                                 <div style={{ display: 'flex', gap: '2rem', alignItems: 'center' }}>
                                     <div style={{ textAlign: 'center', background: b.sessionCode ? 'rgba(212, 175, 55, 0.1)' : 'rgba(160, 210, 235, 0.1)', padding: '1rem', borderRadius: '16px', border: b.sessionCode ? '1px solid rgba(212, 175, 55, 0.2)' : '1px solid rgba(160, 210, 235, 0.2)' }}>
-                                        <div style={{ fontSize: '0.8rem', color: b.sessionCode ? 'var(--accent-gold)' : 'var(--accent-ethereal)' }}>{new Date(b.date).toLocaleString('default', { month: 'short' }).toUpperCase()}</div>
-                                        <div style={{ fontSize: '1.8rem', fontWeight: 'bold' }}>{new Date(b.date).getDate()}</div>
+                                        <div style={{ fontSize: '0.8rem', color: b.sessionCode ? 'var(--accent-gold)' : 'var(--accent-ethereal)' }}>{new Date(b.date || b.bookingDate).toLocaleString('default', { month: 'short' }).toUpperCase()}</div>
+                                        <div style={{ fontSize: '1.8rem', fontWeight: 'bold' }}>{new Date(b.date || b.bookingDate).getDate()}</div>
                                     </div>
                                     <div>
-                                        <h3 style={{ margin: 0 }}>{b.type}</h3>
-                                        <p style={{ color: 'rgba(255,255,255,0.4)', margin: '5px 0' }}>{b.time} • Status: {b.status.toUpperCase()}</p>
+                                        <h3 style={{ margin: 0 }}>{b.type || (b.serviceType === 'onsite' || b.sessionType === 'visit' ? 'On-Site Session' : 'Live Portal Session')}</h3>
+                                        <p style={{ color: 'rgba(255,255,255,0.4)', margin: '5px 0' }}>{b.time || b.bookingTime || b.timeSlot} • Status: {b.status.toUpperCase()}</p>
                                         {b.sessionCode && (
                                             <div style={{ marginTop: '0.5rem', display: 'flex', alignItems: 'center', gap: '8px' }}>
                                                 <Key size={14} color="var(--accent-gold)" />

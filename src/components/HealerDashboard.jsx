@@ -13,7 +13,7 @@ import { logTransaction } from '../utils/logger';
 import { isFirebaseConfigured, db } from '../lib/firebase';
 import './HealerDashboard.css';
 
-const HealerDashboard = ({ onClose, onJoinPortal, healerAppsEnabled, onToggleHealerApps, protocols, onToggleProtocol }) => {
+const HealerDashboard = ({ onClose, onJoinPortal, healerAppsEnabled = false, onToggleHealerApps = () => {}, protocols = [], onToggleProtocol = () => {} }) => {
   const [activeTab, setActiveTab] = useState('bookings');
   const [filter, setFilter] = useState('all');
   const [storyFilter, setStoryFilter] = useState('pending'); // 'pending', 'approved', 'archived'
@@ -64,6 +64,12 @@ const HealerDashboard = ({ onClose, onJoinPortal, healerAppsEnabled, onToggleHea
   const [blockedSlots, setBlockedSlots] = useState(
     JSON.parse(localStorage.getItem('aura_blocked_slots') || '{}')
   );
+  const syncAvailabilityToCloud = (dates, slots) => {
+    if (isFirebaseConfigured()) {
+      db.updateSettings('availability', { blockedDates: dates, blockedSlots: slots })
+        .catch(err => console.error("Failed to sync availability to Firestore:", err));
+    }
+  };
   const [availabilityDate, setAvailabilityDate] = useState(new Date().toDateString());
   const [bankInfo, setBankInfo] = useState(() => {
     if (isFirebaseConfigured()) return { bankName: '', routingNumber: '', accountNumber: '' };
@@ -358,6 +364,7 @@ const HealerDashboard = ({ onClose, onJoinPortal, healerAppsEnabled, onToggleHea
   };
 
   const filteredBookings = bookings.filter(b => {
+    if (!b) return false;
     if (filter === 'all') return true;
     return b.status === filter;
   });
@@ -632,25 +639,25 @@ const HealerDashboard = ({ onClose, onJoinPortal, healerAppsEnabled, onToggleHea
               </div>
 
               <div className="booking-list">
-                {filteredBookings.map(b => (
-                  <div key={b.id} className={`booking-card ${b.status}`}>
+                {filteredBookings && filteredBookings.filter(Boolean).map(b => (
+                  <div key={b?.id} className={`booking-card ${b?.status}`}>
                     <div className="booking-info">
-                      <h3>{b.client.name}</h3>
-                      <p>{b.type} • {b.date} at {b.time}</p>
-                      {b.sessionCode && (
+                      <h3>{b?.client?.name || b?.customerName || 'Anonymous Seeker'}</h3>
+                      <p>{b?.type || (b?.serviceType === 'onsite' || b?.sessionType === 'visit' ? 'On-Site Session' : 'Live Portal Session')} • {b?.date || b?.bookingDate} at {b?.time || b?.bookingTime || b?.timeSlot}</p>
+                      {b?.sessionCode && (
                         <p style={{color: 'var(--accent-gold)', fontSize: '0.85rem', marginTop: '4px', display: 'flex', alignItems: 'center', gap: '5px'}}>
-                           <Key size={14} /> <strong>Code: {b.sessionCode}</strong>
-                        </p>
+                           <Key size={14} /> <strong>Code: {b?.sessionCode}</strong>
+                         </p>
                       )}
                     </div>
                     <div className="booking-actions">
-                      {b.status === 'pending' && (
+                      {b?.status === 'pending' && (
                         <>
-                          <button onClick={() => updateStatus(b.id, 'accepted')} className="accept-btn">Accept</button>
-                          <button onClick={() => updateStatus(b.id, 'declined')} className="decline-btn">Decline</button>
+                          <button onClick={() => updateStatus(b?.id, 'accepted')} className="accept-btn">Accept</button>
+                          <button onClick={() => updateStatus(b?.id, 'declined')} className="decline-btn">Decline</button>
                         </>
                       )}
-                      {b.status === 'accepted' && b.type?.includes('Portal Resonance') && (
+                      {b?.status === 'accepted' && (b?.type?.includes('Portal') || b?.type?.includes('Live') || b?.serviceType === 'live' || b?.sessionType === 'live') && (
                         <button 
                           onClick={() => onJoinPortal(b)}
                           className="btn"
@@ -666,7 +673,7 @@ const HealerDashboard = ({ onClose, onJoinPortal, healerAppsEnabled, onToggleHea
                           Start Live Session
                         </button>
                       )}
-                      <span className="status-badge">{b.status}</span>
+                      <span className="status-badge">{b?.status}</span>
                     </div>
                   </div>
                 ))}
@@ -1133,6 +1140,7 @@ const HealerDashboard = ({ onClose, onJoinPortal, healerAppsEnabled, onToggleHea
                             }
                             setBlockedDates(updated);
                             localStorage.setItem('aura_blocked_dates', JSON.stringify(updated));
+                            syncAvailabilityToCloud(updated, blockedSlots);
                           }}
                         >
                           {blockedDates.includes(availabilityDate) ? 'Full Seclusion Active' : 'Block Entire Day'}
@@ -1157,6 +1165,7 @@ const HealerDashboard = ({ onClose, onJoinPortal, healerAppsEnabled, onToggleHea
                                   const updated = { ...blockedSlots, [availabilityDate]: newSlots };
                                   setBlockedSlots(updated);
                                   localStorage.setItem('aura_blocked_slots', JSON.stringify(updated));
+                                  syncAvailabilityToCloud(blockedDates, updated);
                                   toast.success(`${slot} ${isBlocked ? 'opened' : 'blocked'}.`);
                                 }}
                                 style={{
@@ -1199,6 +1208,7 @@ const HealerDashboard = ({ onClose, onJoinPortal, healerAppsEnabled, onToggleHea
                                 const updated = blockedDates.filter(d => d !== date);
                                 setBlockedDates(updated);
                                 localStorage.setItem('aura_blocked_dates', JSON.stringify(updated));
+                                syncAvailabilityToCloud(updated, blockedSlots);
                               }} style={{background: 'none', border: 'none', color: '#e74c3c', cursor: 'pointer'}}><X size={16} /></button>
                             </div>
                           ))}
@@ -1213,6 +1223,7 @@ const HealerDashboard = ({ onClose, onJoinPortal, healerAppsEnabled, onToggleHea
                                   const updated = { ...blockedSlots, [date]: [] };
                                   setBlockedSlots(updated);
                                   localStorage.setItem('aura_blocked_slots', JSON.stringify(updated));
+                                  syncAvailabilityToCloud(blockedDates, updated);
                                 }} style={{background: 'none', border: 'none', color: '#f39c12', cursor: 'pointer'}}><X size={16} /></button>
                               </div>
                               <div style={{display: 'flex', flexWrap: 'wrap', gap: '5px'}}>
@@ -1264,38 +1275,37 @@ const HealerDashboard = ({ onClose, onJoinPortal, healerAppsEnabled, onToggleHea
             </div>
           )}
 
-          {activeTab === 'clients' && (
+          {activeTab === 'archive' && (
             <div className="archive-view fade-in">
               <h3>Client Resonance Archive</h3>
               <p style={{fontSize: '0.9rem', color: 'var(--text-muted)', marginBottom: '1rem'}}>
-                 Verified Client Database (FDA Compliance Records). Click on a spirit to manage their journey.
+                 Verified Client Database (Sanctuary Compliance Records). Click on a spirit to manage their journey.
               </p>
               <div className="archive-table-container">
                 <table className="archive-table">
                   <thead>
                     <tr><th>Name</th><th>Contact info</th><th>Sub Status</th><th>Last Connection</th><th>Security</th></tr>
                   </thead>
-                  <tbody>
-                    {clients.map((c, i) => (
+                  <tbody>                    {clients && clients.filter(Boolean).map((c, i) => (
                       <tr key={i} style={{transition: 'background 0.2s'}}>
-                        <td onClick={() => setSelectedClient(c)} style={{cursor: 'pointer'}}><strong>{c.name}</strong></td>
-                        <td onClick={() => setSelectedClient(c)} style={{cursor: 'pointer'}}>{c.phone}<br/><span style={{opacity: 0.6}}>{c.email}</span></td>
+                        <td onClick={() => setSelectedClient(c)} style={{cursor: 'pointer'}}><strong>{c?.name || 'Anonymous Seeker'}</strong></td>
+                        <td onClick={() => setSelectedClient(c)} style={{cursor: 'pointer'}}>{c?.phone || ''}<br/><span style={{opacity: 0.6}}>{c?.email || ''}</span></td>
                         <td onClick={() => setSelectedClient(c)} style={{cursor: 'pointer'}}>
                             <span style={{
-                                color: c.subscription === 'healing' ? 'var(--accent-gold)' : 'var(--text-muted)',
-                                border: `1px solid ${c.subscription === 'healing' ? 'var(--accent-gold)' : 'rgba(255,255,255,0.2)'}`,
+                                color: c?.subscription === 'healing' ? 'var(--accent-gold)' : 'var(--text-muted)',
+                                border: `1px solid ${c?.subscription === 'healing' ? 'var(--accent-gold)' : 'rgba(255,255,255,0.2)'}`,
                                 padding: '2px 8px', borderRadius: '4px', fontSize: '0.75rem'
                             }}>
-                                {c.subscription === 'healing' ? 'Healing' : 'Seeker'}
+                                {c?.subscription === 'healing' ? 'Healing' : 'Seeker'}
                             </span>
                         </td>
-                        <td onClick={() => setSelectedClient(c)} style={{cursor: 'pointer'}}>{c.lastBooking}</td>
+                        <td onClick={() => setSelectedClient(c)} style={{cursor: 'pointer'}}>{c?.lastBooking || 'No sessions yet'}</td>
                         <td>
                           <button onClick={(e) => {
                              e.stopPropagation();
-                             const newPass = prompt("Enter new password for " + c.name);
+                             const newPass = prompt("Enter new password for " + (c?.name || ''));
                              if (newPass) {
-                               const updated = clients.map(cl => cl.email === c.email ? {...cl, password: newPass} : cl);
+                               const updated = clients.map(cl => cl && cl.email === c?.email ? {...cl, password: newPass} : cl);
                                setClients(updated);
                                localStorage.setItem('aura_clients', JSON.stringify(updated));
                                toast.success("Security code reset.");
@@ -1510,9 +1520,9 @@ const HealerDashboard = ({ onClose, onJoinPortal, healerAppsEnabled, onToggleHea
                   </p>
                   
                   <div style={{display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '15px'}}>
-                    {protocols && protocols.map(protocol => (
+                    {protocols && protocols.filter(Boolean).map(protocol => (
                       <div 
-                        key={protocol.id} 
+                        key={protocol?.id} 
                         style={{
                           display: 'flex', 
                           alignItems: 'center', 
@@ -1523,17 +1533,17 @@ const HealerDashboard = ({ onClose, onJoinPortal, healerAppsEnabled, onToggleHea
                           border: '1px solid rgba(255,255,255,0.05)'
                         }}
                       >
-                        <span style={{ fontWeight: '500', color: protocol.color }}>{protocol.name}</span>
+                        <span style={{ fontWeight: '500', color: protocol?.color }}>{protocol?.name}</span>
                         <div 
                           onClick={() => {
                             if (onToggleProtocol) {
-                              onToggleProtocol(protocol.id);
+                              onToggleProtocol(protocol?.id);
                             }
                           }}
                           style={{
                             width: '50px',
                             height: '26px',
-                            background: protocol.active ? 'var(--accent-gold)' : 'rgba(255,255,255,0.1)',
+                            background: protocol?.active ? 'var(--accent-gold)' : 'rgba(255,255,255,0.1)',
                             borderRadius: '13px',
                             position: 'relative',
                             cursor: 'pointer',
@@ -1544,10 +1554,10 @@ const HealerDashboard = ({ onClose, onJoinPortal, healerAppsEnabled, onToggleHea
                           <div style={{
                             position: 'absolute',
                             top: '2px',
-                            left: protocol.active ? '26px' : '2px',
+                            left: protocol?.active ? '26px' : '2px',
                             width: '20px',
                             height: '20px',
-                            background: protocol.active ? '#000' : '#fff',
+                            background: protocol?.active ? '#000' : '#fff',
                             borderRadius: '50%',
                             transition: 'all 0.3s ease'
                           }} />
@@ -1619,10 +1629,10 @@ const HealerDashboard = ({ onClose, onJoinPortal, healerAppsEnabled, onToggleHea
                       <span>Carissa (Admin)</span>
                       <span style={{color: '#2ecc71'}}>Active</span>
                     </div>
-                    {teamMembers.map((member, idx) => (
+                    {teamMembers && teamMembers.filter(Boolean).map((member, idx) => (
                         <div key={idx} style={{display: 'flex', justifyContent: 'space-between', padding: '0.8rem', borderBottom: '1px solid rgba(255,255,255,0.05)'}}>
-                            <span>{member.name} (Healer)</span>
-                            <span style={{color: member.status === 'Active' ? '#2ecc71' : '#f1c40f'}}>{member.status}</span>
+                            <span>{member?.name || 'Anonymous Healer'} (Healer)</span>
+                            <span style={{color: member?.status === 'Active' ? '#2ecc71' : '#f1c40f'}}>{member?.status || 'Pending'}</span>
                         </div>
                     ))}
                   </div>
@@ -1782,8 +1792,8 @@ const HealerDashboard = ({ onClose, onJoinPortal, healerAppsEnabled, onToggleHea
                 }} onClick={() => setSelectedClient(null)}>
                     <div className="glass" style={{width: '90%', maxWidth: '500px', padding: '2rem', position: 'relative'}} onClick={e => e.stopPropagation()}>
                             <button onClick={() => setSelectedClient(null)} style={{position: 'absolute', top: '1rem', right: '1rem', background: 'none', border: 'none', color: '#fff', fontSize: '1.5rem'}}>×</button>
-                            <h3 style={{color: 'var(--accent-gold)', marginBottom: '0.5rem'}}>{selectedClient.name}</h3>
-                            <p style={{fontSize: '0.9rem', color: 'var(--text-muted)', marginBottom: '2rem'}}>Client ID: {btoa(selectedClient.email).substring(0,8)} | FDA Record</p>
+                            <h3 style={{color: 'var(--accent-gold)', marginBottom: '0.5rem'}}>{selectedClient?.name || ''}</h3>
+                            <p style={{fontSize: '0.9rem', color: 'var(--text-muted)', marginBottom: '2rem'}}>Client ID: {btoa(selectedClient?.email || '').substring(0,8)} | Sanctuary Record</p>
                             
                             <div style={{marginBottom: '2rem'}}>
                             <label style={{display: 'block', marginBottom: '0.5rem', fontSize: '0.9rem'}}>Subscription Status</label>
@@ -1869,13 +1879,13 @@ const HealerDashboard = ({ onClose, onJoinPortal, healerAppsEnabled, onToggleHea
                                     ))}
                                 </div>
                                 <p style={{fontSize: '0.7rem', color: 'var(--text-muted)', marginTop: '0.5rem'}}>
-                                    *Action will be logged in Healing Logs for FDA auditing.
+                                    *Action will be logged in Healing Logs for sanctuary audit history.
                                 </p>
                              </div>
 
                              <div style={{marginTop: '2rem', paddingTop: '1rem', borderTop: '1px solid rgba(255,255,255,0.1)'}}>
                                  <label style={{display: 'block', marginBottom: '0.5rem', fontSize: '0.9rem'}}>Role Assignment</label>
-                                 {teamMembers.find(t => t.email === selectedClient.email && t.status === 'Active') ? (
+                                 {teamMembers?.find(t => t.email === selectedClient.email && t.status === 'Active') ? (
                                      <button 
                                          className="btn"
                                          style={{width: '100%', borderColor: '#e74c3c', color: '#e74c3c', background: 'rgba(231, 76, 60, 0.1)'}}

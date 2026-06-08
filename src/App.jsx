@@ -203,7 +203,7 @@ const protocols = [
     audio: 'RLXddqULKX0', // Ethereal Heart Chakra Music 432Hz
     voice: '/assets/rose_meditation_voice.mp3',
     desc: 'Advanced 10-minute heart-centered journey. Facilitates deep emotional release and compassion through soft radiance and harmonic heart-sync.',
-    tier: 'advanced'
+    tier: 'basic'
   },
   {
     id: 'lapis',
@@ -1503,7 +1503,7 @@ const [showCheckoutModal, setShowCheckoutModal] = useState(false);
               {/* HIPAA Rules Text */}
               <div className="glass" style={{ padding: '1rem 1.25rem', borderLeft: '4px solid #00b894', background: 'rgba(0, 184, 148, 0.04)', borderRadius: '0 12px 12px 0', marginBottom: '2.5rem', textAlign: 'left' }}>
                 <p style={{ fontSize: '0.75rem', color: '#a8d8a8', margin: 0, lineHeight: '1.5' }}>
-                  <strong>🛡️ HIPAA Privacy Rule:</strong> We do not ask for or collect health/medical information. Reiki is a spiritual wellness practice; healers do not diagnose, prescribe, or provide medical advice.
+                  <strong>🛡️ Privacy Protection:</strong> We do not ask for or collect health/medical information. Reiki is a spiritual wellness practice; healers do not diagnose, prescribe, or provide medical advice.
                 </p>
               </div>
 
@@ -1596,6 +1596,20 @@ const [showCheckoutModal, setShowCheckoutModal] = useState(false);
             
             {/* Mobile Footer */}
             <footer style={{ padding: '2rem 1.5rem', textAlign: 'center', borderTop: '1px solid rgba(255,255,255,0.05)', marginTop: 'auto', background: 'rgba(0,0,0,0.1)' }}>
+              {/* Mobile Wellness Disclaimer */}
+              <div style={{
+                fontSize: '0.7rem', 
+                color: 'var(--text-muted)', 
+                lineHeight: '1.5', 
+                marginBottom: '1.5rem', 
+                padding: '1rem', 
+                border: '1px solid rgba(255,255,255,0.05)', 
+                borderRadius: '10px', 
+                background: 'rgba(0,0,0,0.2)',
+                textAlign: 'left'
+              }}>
+                <strong>Compliance Disclaimer:</strong> Reiki & Sage provides spiritual wellness and mindfulness services. The "Gemstone Energy Core", "portable resonance technology", and "aura calibrations" described on this platform are digital wellness experiences and spiritual metaphors designed for meditation, relaxation, and mindfulness. They are not physical scientific instruments, clinical diagnostics, or medical devices. Reiki is a complementary therapy and does not diagnose, treat, cure, or prevent any disease. This platform is not regulated or audited by the FDA, and we do not store protected health information (PHI) in compliance with best privacy practices.
+              </div>
               <p style={{ fontSize: '0.8rem', opacity: 0.6, marginBottom: '1rem' }}>© 2026 Reiki & Sage Healing Arts.</p>
               <div style={{ display: 'flex', justifyContent: 'center', gap: '15px', fontSize: '0.75rem', opacity: 0.8, flexWrap: 'wrap' }}>
                 <span onClick={() => setShowLegalModal('terms')} style={{ cursor: 'pointer', textDecoration: 'underline' }}>Terms</span>
@@ -2043,7 +2057,7 @@ const [showCheckoutModal, setShowCheckoutModal] = useState(false);
           )}
           {showHealerApp && <HealerApplicationModal onClose={() => setShowHealerApp(false)} user={user} />}
           {showLivePortal && <LiveResonancePortal session={activeSession} onClose={() => setShowLivePortal(false)} user={user} />}
-          {showJoinPortalModal && <JoinPortalModal onClose={() => setShowJoinPortalModal(false)} onJoin={({ session }) => {
+          {showJoinPortalModal && <JoinPortalModal onClose={() => setShowJoinPortalModal(false)} onJoin={(session) => {
             setActiveSession(session);
             setShowLivePortal(true);
             setShowJoinPortalModal(false);
@@ -2376,7 +2390,14 @@ const [showCheckoutModal, setShowCheckoutModal] = useState(false);
             <a href="#about" style={{ marginLeft: '1.5rem' }}>Philosophy</a>
             <a href="#mobile-service" style={{ marginLeft: '0.8rem', marginRight: '1rem' }}>Scheduling</a>
             <a href="#protocols-section" style={{ marginLeft: '0.8rem', marginRight: '1rem' }}>Protocols</a>
-            <a href="#learning-section" style={{ marginLeft: '0.8rem', marginRight: '2rem' }}>Learning</a>
+            <a href="#learning-section" style={{ marginLeft: '0.8rem', marginRight: '1rem' }}>Learning</a>
+            <a 
+              href="#" 
+              onClick={(e) => { e.preventDefault(); setShowMyStories(true); }} 
+              style={{ marginLeft: '0.8rem', marginRight: '2rem', cursor: 'pointer' }}
+            >
+              Reverie
+            </a>
             
             <button 
               onClick={toggleTheme}
@@ -3016,6 +3037,19 @@ const [showCheckoutModal, setShowCheckoutModal] = useState(false);
           <p style={{opacity: '0.8', marginBottom: '1rem', color: 'var(--text-main)', fontSize: '1rem'}}>
             The future of healing is compassionate, advanced, and uniquely yours.
           </p>
+          {/* Desktop Wellness Disclaimer */}
+          <div style={{
+            fontSize: '0.75rem', 
+            color: 'var(--text-muted)', 
+            lineHeight: '1.6', 
+            marginBottom: '2rem', 
+            padding: '1.25rem', 
+            border: '1px solid rgba(255,255,255,0.05)', 
+            borderRadius: '12px', 
+            background: 'rgba(0,0,0,0.1)'
+          }}>
+            <strong>Compliance Disclaimer:</strong> Reiki & Sage provides spiritual wellness and mindfulness services. The "Gemstone Energy Core", "portable resonance technology", and "aura calibrations" described on this platform are digital wellness experiences and spiritual metaphors designed for meditation, relaxation, and mindfulness. They are not physical scientific instruments, clinical diagnostics, or medical devices. Reiki is a complementary therapy and does not diagnose, treat, cure, or prevent any disease. This platform is not regulated or audited by the FDA, and we do not store protected health information (PHI) in compliance with best privacy practices.
+          </div>
           <div style={{fontSize: '0.8rem', opacity: '0.6', color: 'var(--text-muted)', display: 'flex', justifyContent: 'flex-start', alignItems: 'center', gap: '15px', flexWrap: 'wrap'}}>
             <span>© 2026 Reiki & Sage Healing Arts. All rights reserved.</span>
             <span>|</span>

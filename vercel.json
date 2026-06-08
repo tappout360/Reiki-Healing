@@ -16,6 +16,6 @@
     }
   ],
   "rewrites": [
-    { "source": "/((?!api/).*)", "destination": "/index.html" }
+    { "source": "/((?!api/|assets/|sw.js|manifest.json|vite.svg|.*\\..*).*)", "destination": "/index.html" }
   ]
 }

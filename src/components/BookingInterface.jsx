@@ -31,7 +31,14 @@ const BookingInterface = ({ type, onClose }) => {
     
     setBlockedDates(localBlockedDates);
     setBlockedSlots(localBlockedSlots);
-    setExistingBookings(localBookings);
+    
+    const normalizedLocalBookings = localBookings.map(b => ({
+      id: b.id,
+      date: b.date || b.bookingDate,
+      time: b.time || b.bookingTime || b.timeSlot,
+      status: b.status
+    }));
+    setExistingBookings(normalizedLocalBookings);
 
     // If Firebase is configured, fetch real-time availability, bookings, and pricing settings
     if (isFirebaseConfigured()) {
@@ -50,8 +57,8 @@ const BookingInterface = ({ type, onClose }) => {
             // Map Firestore bookingDate and bookingTime keys to date and time fields expected in getAvailableSlots
             setExistingBookings(list.map(b => ({
               id: b.id,
-              date: b.bookingDate,
-              time: b.bookingTime,
+              date: b.bookingDate || b.date,
+              time: b.bookingTime || b.time || b.timeSlot,
               status: b.status
             })));
           }
@@ -92,12 +99,13 @@ const BookingInterface = ({ type, onClose }) => {
   const getAvailableSlots = () => {
     const dateStr = date.toDateString();
     const dayBookings = existingBookings.filter(b => b.date === dateStr);
-    const dayBlockedSlots = blockedSlots[dateStr] || [];
+    const dayBlockedSlots = (blockedSlots[dateStr] || []).map(s => s.replace(/^0/, ''));
     
-    return timeSlots.filter(slot => 
-      !dayBookings.some(b => b.time === slot) && 
-      !dayBlockedSlots.includes(slot)
-    );
+    return timeSlots.filter(slot => {
+      const normalizedSlot = slot.replace(/^0/, '');
+      return !dayBookings.some(b => (b.time || '').replace(/^0/, '') === normalizedSlot) && 
+             !dayBlockedSlots.includes(normalizedSlot);
+    });
   };
 
   const isDayBlocked = (d) => {
@@ -282,7 +290,7 @@ const BookingInterface = ({ type, onClose }) => {
             {/* HIPAA Intake Disclaimer */}
             <div style={{ marginTop: '1.25rem', padding: '10px 12px', background: 'rgba(0,184,148,0.05)', border: '1px solid rgba(0,184,148,0.2)', borderRadius: '8px', textAlign: 'left' }}>
               <p style={{ fontSize: '0.7rem', color: '#a8d8a8', margin: 0, lineHeight: '1.4' }}>
-                <strong>🔒 HIPAA Intake Rule:</strong> No medical or health records are collected or stored in our systems. Reiki is a spiritual wellness practice; healers do not diagnose or treat medical conditions.
+                <strong>🔒 Privacy & Intake Rule:</strong> No medical or health records are collected or stored in our systems. Reiki is a spiritual wellness practice; healers do not diagnose or treat medical conditions.
               </p>
             </div>
 

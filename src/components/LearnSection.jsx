@@ -731,7 +731,7 @@ const LearnSection = ({ isMobileLayout = false }) => {
         </p>
         <div className="learn-hipaa-badge">
           <Shield size={12} />
-          HIPAA COMPLIANT — This platform does not collect, store, or transmit protected health information (PHI). Healers on this platform do not diagnose medical conditions or provide medical advice.
+          PRIVACY ALIGNED / NO PHI — This platform does not collect, store, or transmit protected health information (PHI). We are not a HIPAA-covered entity, and healers on this platform do not diagnose medical conditions or provide medical advice.
         </div>
       </motion.div>
     </div>
