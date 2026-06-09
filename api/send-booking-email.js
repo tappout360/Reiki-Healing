@@ -1,6 +1,6 @@
 // Vercel Serverless Function — Send Booking Confirmation Emails
 // Uses the Resend REST API (https://resend.com) — no npm package needed
-// Sends confirmation to customer + notification to the healer (Charissa)
+// Sends confirmation to customer + notification to the healer (Carissa)
 
 const RESEND_API_URL = 'https://api.resend.com/emails';
 
@@ -111,7 +111,7 @@ function buildCustomerEmailHtml({
 }
 
 /**
- * Build the notification email HTML for the healer (Charissa)
+ * Build the notification email HTML for the healer (Carissa)
  */
 function buildHealerEmailHtml({
   customerName,
@@ -236,7 +236,7 @@ export default async function handler(req, res) {
 
     console.log('Customer email sent:', customerResult);
 
-    // 2. Send notification email to the healer (Charissa)
+    // 2. Send notification email to the healer (Carissa)
     let healerResult = null;
     if (healerEmail) {
       const healerHtml = buildHealerEmailHtml({
