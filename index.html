@@ -30,6 +30,15 @@
             .then(reg => console.log('ServiceWorker registered:', reg))
             .catch(err => console.log('ServiceWorker registration failed:', err));
         });
+
+        // Force page reload on service worker controller change to ensure users get the new version instantly
+        let refreshing = false;
+        navigator.serviceWorker.addEventListener('controllerchange', () => {
+          if (!refreshing) {
+            refreshing = true;
+            window.location.reload();
+          }
+        });
       }
     </script>
   </body>
