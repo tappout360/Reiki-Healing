@@ -1,5 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useLanguage } from '../contexts/LanguageContext';
 import {
   BookOpen, Search, ChevronDown, Play, X,
   Shield, Sparkles, Heart, Brain, Gem, Activity,
@@ -458,7 +459,20 @@ const TABS = [
    COMPONENT
    ═══════════════════════════════════════════ */
 const LearnSection = ({ isMobileLayout = false }) => {
+  const { t } = useLanguage();
   const [activeTab, setActiveTab] = useState('all');
+
+  const getTabLabel = (id) => {
+    switch (id) {
+      case 'all': return t('topicAll');
+      case 'reiki': return t('topicReiki');
+      case 'crystals': return t('topicCrystals');
+      case 'chakras': return t('topicChakras');
+      case 'healthcare': return t('topicHealthcare');
+      case 'practitioners': return t('topicPeople');
+      default: return id;
+    }
+  };
   const [expandedCards, setExpandedCards] = useState({});
   const [searchQuery, setSearchQuery] = useState('');
   const [activeVideo, setActiveVideo] = useState(null);
@@ -515,10 +529,9 @@ const LearnSection = ({ isMobileLayout = false }) => {
         <div className="learn-header-icon">
           <BookOpen size={28} />
         </div>
-        <h2>Learning Library</h2>
+        <h2>{t('libraryTitle')}</h2>
         <p>
-          Explore the science, history, and practice of energy healing.
-          Everything here is grounded in verified facts and clearly sourced.
+          {t('librarySub')}
         </p>
       </motion.div>
 
@@ -533,7 +546,7 @@ const LearnSection = ({ isMobileLayout = false }) => {
         <input
           type="text"
           className="learn-search-input"
-          placeholder="Search topics…"
+          placeholder={t('librarySearch')}
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
         />
@@ -553,7 +566,7 @@ const LearnSection = ({ isMobileLayout = false }) => {
             onClick={() => setActiveTab(tab.id)}
           >
             <span className="learn-tab-emoji">{tab.emoji}</span>
-            {tab.label}
+            {getTabLabel(tab.id)}
           </button>
         ))}
       </motion.div>
@@ -569,7 +582,7 @@ const LearnSection = ({ isMobileLayout = false }) => {
         {filteredSections.length === 0 ? (
           <motion.div className="learn-no-results" variants={cardVariants}>
             <div className="learn-no-results-icon">🔍</div>
-            <p>No topics match your search. Try a different keyword.</p>
+            <p>{t('learnNoResults')}</p>
           </motion.div>
         ) : (
           filteredSections.map((section) => {
@@ -700,17 +713,17 @@ const LearnSection = ({ isMobileLayout = false }) => {
         transition={{ delay: 0.5, duration: 0.6 }}
       >
         <div className="learn-disclaimer-title">
-          <AlertTriangle size={14} /> Important Disclaimer
+          <AlertTriangle size={14} /> {t('learnDisclaimerTitle')}
         </div>
         <p>
-          <strong>Reiki is a complementary therapy and is not a substitute for medical treatment.</strong> The information on this page is provided for educational purposes only. Reiki does not diagnose, treat, cure, or prevent any disease. Always consult a qualified healthcare provider for medical advice, diagnosis, or treatment.
+          {t('learnDisclaimerText1')}
         </p>
         <p>
-          Content marked as "Reported" or "According to" reflects publicly available information that may be anecdotal or not independently verified by this platform. All other facts have been verified through publicly available sources.
+          {t('learnDisclaimerText2')}
         </p>
         <div className="learn-hipaa-badge">
           <Shield size={12} />
-          PRIVACY ALIGNED / NO PHI — This platform does not collect, store, or transmit protected health information (PHI). We are not a HIPAA-covered entity, and healers on this platform do not diagnose medical conditions or provide medical advice.
+          {t('learnDisclaimerHIPAA')}
         </div>
       </motion.div>
     </div>

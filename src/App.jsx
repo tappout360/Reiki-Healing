@@ -33,6 +33,7 @@ const LegalModal = lazy(() => import('./components/LegalModal'));
 const LearnSection = lazy(() => import('./components/LearnSection'));
 import DuckingAudioPlayer from './components/DuckingAudioPlayer';
 import BillingForm from './components/BillingForm';
+import { LanguageProvider, useLanguage } from './contexts/LanguageContext';
 
 // Loading Fallback
 const LoadingSpinner = () => (
@@ -464,7 +465,14 @@ const SacredReflections = () => {
 
 
 
-function App() {
+function AppContent() {
+  const { language, setLanguage, t } = useLanguage();
+  const [showLanguageDropdownState, setShowLanguageDropdownState] = useState(false);
+  const [disclaimerAccepted, setDisclaimerAccepted] = useState(() => {
+    return localStorage.getItem('aura_disclaimer_accepted') === 'true';
+  });
+  const [checkboxChecked, setCheckboxChecked] = useState(false);
+
   const [theme, setTheme] = useState(localStorage.getItem('aura_theme') || 'dark');
   const [scrolled, setScrolled] = useState(false);
   const [selectedProtocol, setSelectedProtocol] = useState(null);
@@ -1041,17 +1049,17 @@ const [showCheckoutModal, setShowCheckoutModal] = useState(false);
         }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px', justifyContent: 'center' }}>
             <span style={{ fontSize: '2rem' }}>📥</span>
-            <h3 style={{ fontSize: '1.4rem', fontFamily: 'Playfair Display', color: 'var(--accent-ethereal)' }}>Bring the Sanctuary to Your Device</h3>
+            <h3 style={{ fontSize: '1.4rem', fontFamily: 'Playfair Display', color: 'var(--accent-ethereal)' }}>{t('installTitle')}</h3>
           </div>
           <p style={{ fontSize: '0.85rem', opacity: 0.85, maxWidth: '600px', lineHeight: '1.6' }}>
-            Install the <strong>Reiki &amp; Sage App</strong> on your phone, tablet, or desktop. Enjoy standalone full-screen access, faster load times, and offline support for your daily biofield calibration.
+            {t('installDesc')}
           </p>
           <button 
             onClick={handleInstallClick} 
             className="btn btn-primary"
             style={{ padding: '0.8rem 2.5rem', fontSize: '0.9rem', display: 'inline-flex', alignItems: 'center', gap: '8px', borderRadius: '30px' }}
           >
-            <Sparkles size={16} /> Install Standalone App
+            <Sparkles size={16} /> {t('installButton')}
           </button>
         </div>
       </div>
@@ -1208,7 +1216,7 @@ const [showCheckoutModal, setShowCheckoutModal] = useState(false);
       <section id="about" style={{ backgroundColor: 'var(--bg-section)', padding: isMobileLayout ? '3rem 1rem' : '8rem 0' }}>
         <div className="container">
           <div style={{ textAlign: 'center', marginBottom: isMobileLayout ? '2rem' : '4rem' }}>
-            <h2 style={{ fontSize: isMobileLayout ? '2rem' : '3rem', color: 'var(--text-main)' }}>Complete Compassion & Caring</h2>
+            <h2 style={{ fontSize: isMobileLayout ? '2rem' : '3rem', color: 'var(--text-main)' }}>{t('compassionTitle')}</h2>
             <div style={{ width: '60px', height: '3px', background: 'var(--accent-compassion)', margin: '1rem auto' }}></div>
           </div>
           
@@ -1221,19 +1229,19 @@ const [showCheckoutModal, setShowCheckoutModal] = useState(false);
               />
             </div>
             <div>
-              <h3 style={{ fontSize: '1.6rem', marginBottom: '1.5rem', color: 'var(--accent-compassion)', textAlign: isMobileLayout ? 'center' : 'left' }}>Deeply Empathetic Care</h3>
+              <h3 style={{ fontSize: '1.6rem', marginBottom: '1.5rem', color: 'var(--accent-compassion)', textAlign: isMobileLayout ? 'center' : 'left' }}>{t('compassionHeading')}</h3>
               <ul style={{ listStyle: 'none', padding: 0 }}>
                 <li style={{ marginBottom: '1.5rem' }}>
-                  <strong style={{ display: 'block', fontSize: '1.1rem' }}>Aura Calibration</strong>
-                  <span style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>Using high-frequency resonance to gently realign your spiritual frequency with precision-engineered compassion.</span>
+                  <strong style={{ display: 'block', fontSize: '1.1rem' }}>{t('compassionCalibTitle')}</strong>
+                  <span style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>{t('compassionCalibDesc')}</span>
                 </li>
                 <li style={{ marginBottom: '1.5rem', padding: '1rem', background: 'rgba(229, 179, 187, 0.08)', borderRadius: '15px', borderLeft: '4px solid var(--accent-compassion)' }}>
-                  <strong style={{ display: 'block', fontSize: '1.1rem' }}>Compassionate Flow Monitoring</strong>
-                  <span style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>Real-time ethical energy scanning that respects your personal boundaries while providing deep intuitive insights.</span>
+                  <strong style={{ display: 'block', fontSize: '1.1rem' }}>{t('compassionFlowTitle')}</strong>
+                  <span style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>{t('compassionFlowDesc')}</span>
                 </li>
                 <li>
-                  <strong style={{ display: 'block', fontSize: '1.1rem' }}>Quantum Heart Connection</strong>
-                  <span style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>Bridging the gap between the physical and the metaphysical through unconditional loving intent.</span>
+                  <strong style={{ display: 'block', fontSize: '1.1rem' }}>{t('compassionConnectionTitle')}</strong>
+                  <span style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>{t('compassionConnectionDesc')}</span>
                 </li>
               </ul>
             </div>
@@ -1247,8 +1255,8 @@ const [showCheckoutModal, setShowCheckoutModal] = useState(false);
     return (
       <section id="protocols-section" style={{ backgroundColor: 'var(--bg-section)', padding: isMobileLayout ? '2.5rem 1rem' : '8rem 0' }}>
         <div className="container" style={{ textAlign: 'center' }}>
-          <h2 style={{ fontSize: isMobileLayout ? '2rem' : '2.5rem', marginBottom: '1rem', color: 'var(--text-main)' }}>Healing Protocols</h2>
-          <p style={{ marginBottom: isMobileLayout ? '1rem' : '2rem', opacity: '0.7', color: 'var(--text-muted)', fontSize: '0.9rem' }}>Select a protocol below to synchronize with the Gemstone Core.</p>
+          <h2 style={{ fontSize: isMobileLayout ? '2rem' : '2.5rem', marginBottom: '1rem', color: 'var(--text-main)' }}>{t('protocolsHeading')}</h2>
+          <p style={{ marginBottom: isMobileLayout ? '1rem' : '2rem', opacity: '0.7', color: 'var(--text-muted)', fontSize: '0.9rem' }}>{t('protocolsSub')}</p>
           
           {/* Random Protocol Button */}
           <div style={{ marginBottom: isMobileLayout ? '1.5rem' : '2rem' }}>
@@ -1269,7 +1277,7 @@ const [showCheckoutModal, setShowCheckoutModal] = useState(false);
                 transition: 'all 0.3s ease'
               }}
             >
-              <Shuffle size={16} /> Random Protocol
+              <Shuffle size={16} /> {t('protocolsRandom')}
             </button>
           </div>
 
@@ -1295,7 +1303,7 @@ const [showCheckoutModal, setShowCheckoutModal] = useState(false);
                   onClick={() => selectedProtocol && setShowPortal(true)}
                   disabled={!selectedProtocol}
                 >
-                  {selectedProtocol ? 'Synchronize with Core' : 'Select a Protocol First'}
+                  {selectedProtocol ? t('coreButtonSync') : t('coreButtonSelect')}
                 </button>
               </div>
             </div>
@@ -1351,14 +1359,14 @@ const [showCheckoutModal, setShowCheckoutModal] = useState(false);
                       gap: '4px',
                       boxShadow: '0 4px 12px rgba(0,0,0,0.5)'
                     }}>
-                      <Clock size={10} /> 10 MIN IMMERSION
+                      <Clock size={10} /> {protocol.duration / 60} {t('protocolMin')}
                     </div>
                   )}
                 </div>
-                <h4 style={{ fontSize: '1.25rem', marginBottom: '0.5rem', color: protocol.color }}>{protocol.name}</h4>
-                <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', lineHeight: '1.4' }}>{protocol.desc}</p>
+                <h4 style={{ fontSize: '1.25rem', marginBottom: '0.5rem', color: protocol.color }}>{t('name_' + protocol.id)}</h4>
+                <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', lineHeight: '1.4' }}>{t('desc_' + protocol.id)}</p>
                 {selectedProtocol === protocol.id && (
-                  <div style={{ marginTop: '1rem', color: protocol.color, fontWeight: '700', fontSize: '0.8rem' }}>PROTOCOL SELECTED</div>
+                  <div style={{ marginTop: '1rem', color: protocol.color, fontWeight: '700', fontSize: '0.8rem' }}>{t('protocolSelected')}</div>
                 )}
               </div>
             ))}
@@ -1419,6 +1427,201 @@ const [showCheckoutModal, setShowCheckoutModal] = useState(false);
           </div>
         </div>
       </section>
+    );
+  };
+
+  useEffect(() => {
+    if (!disclaimerAccepted) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, [disclaimerAccepted]);
+
+  const renderLanguageDropdown = () => {
+    const langNames = {
+      en: "English",
+      es: "Español",
+      zh: "中文",
+      pt: "Português",
+      ja: "日本語",
+      fr: "Français"
+    };
+
+    return (
+      <div style={{ position: 'relative' }}>
+        <button
+          onClick={() => setShowLanguageDropdownState(!showLanguageDropdownState)}
+          className="glass"
+          style={{
+            background: 'rgba(20, 20, 30, 0.5)',
+            border: '1px solid rgba(212, 175, 55, 0.3)',
+            color: 'var(--text-main)',
+            padding: '0.4rem 0.8rem',
+            borderRadius: '20px',
+            fontSize: '0.85rem',
+            fontWeight: '600',
+            cursor: 'pointer',
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: '6px',
+            transition: 'all 0.3s ease'
+          }}
+        >
+          <span>🌐</span>
+          <span>{langNames[language]}</span>
+          <span style={{ fontSize: '0.65rem', transform: showLanguageDropdownState ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform 0.2s' }}>▼</span>
+        </button>
+        
+        {showLanguageDropdownState && (
+          <div className="glass" style={{
+            position: 'absolute',
+            top: 'calc(100% + 5px)',
+            right: 0,
+            background: theme === 'dark' ? 'rgba(25, 25, 35, 0.95)' : 'rgba(255, 255, 255, 0.95)',
+            border: '1px solid rgba(212, 175, 55, 0.3)',
+            borderRadius: '12px',
+            boxShadow: '0 8px 24px rgba(0, 0, 0, 0.2)',
+            zIndex: 100000,
+            overflow: 'hidden',
+            minWidth: '130px',
+            display: 'flex',
+            flexDirection: 'column'
+          }}>
+            {Object.entries(langNames).map(([code, name]) => (
+              <button
+                key={code}
+                onClick={() => {
+                  setLanguage(code);
+                  setShowLanguageDropdownState(false);
+                }}
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  color: language === code ? 'var(--accent-gold)' : 'var(--text-main)',
+                  padding: '0.6rem 1rem',
+                  fontSize: '0.85rem',
+                  textAlign: 'left',
+                  cursor: 'pointer',
+                  width: '100%',
+                  fontWeight: language === code ? '700' : 'normal',
+                  transition: 'background 0.2s'
+                }}
+                onMouseEnter={(e) => e.target.style.background = 'rgba(212, 175, 55, 0.1)'}
+                onMouseLeave={(e) => e.target.style.background = 'none'}
+              >
+                {name}
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
+    );
+  };
+
+  const renderGatingDisclaimerModal = () => {
+    return (
+      <div className="gating-overlay" style={{
+        position: 'fixed',
+        top: 0,
+        left: 0,
+        width: '100vw',
+        height: '100vh',
+        zIndex: 99999,
+        background: theme === 'dark' ? 'rgba(10, 10, 15, 0.75)' : 'rgba(255, 255, 255, 0.75)',
+        backdropFilter: 'blur(20px)',
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
+        padding: '1.5rem',
+        overflowY: 'auto'
+      }}>
+        <div className="glass" style={{
+          maxWidth: '650px',
+          width: '100%',
+          padding: '2.5rem',
+          borderRadius: '24px',
+          border: '1px solid rgba(212, 175, 55, 0.3)',
+          boxShadow: '0 20px 50px rgba(0, 0, 0, 0.3)',
+          background: theme === 'dark' ? 'rgba(20, 20, 30, 0.85)' : 'rgba(255, 255, 255, 0.9)',
+          position: 'relative',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: '1.5rem',
+          color: 'var(--text-main)'
+        }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid rgba(212, 175, 55, 0.2)', paddingBottom: '1rem' }}>
+            <h2 style={{ fontSize: '1.8rem', fontFamily: 'Playfair Display', color: 'var(--accent-gold)', margin: 0 }}>
+              {t('disclaimerTitle')}
+            </h2>
+            {renderLanguageDropdown()}
+          </div>
+          
+          <div style={{ fontSize: '0.9rem', lineHeight: '1.6', display: 'flex', flexDirection: 'column', gap: '1rem', maxHeight: '40vh', overflowY: 'auto', paddingRight: '0.5rem', borderBottom: '1px solid rgba(212, 175, 55, 0.1)', paddingBottom: '1rem' }}>
+            <p style={{ fontWeight: '600', color: 'var(--accent-gold)', margin: 0 }}>
+              {t('footerDisclaimerTitle')}
+            </p>
+            <p style={{ margin: 0 }}>
+              {t('disclaimerFDA')}
+            </p>
+            <p style={{ margin: 0, fontSize: '0.85rem', color: theme === 'dark' ? 'rgba(255, 255, 255, 0.6)' : 'rgba(0, 0, 0, 0.6)', borderLeft: '3px solid var(--accent-gold)', paddingLeft: '0.75rem', fontStyle: 'italic' }}>
+              {t('disclaimerHIPAA')}
+            </p>
+          </div>
+
+          <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0.75rem', marginTop: '0.5rem' }}>
+            <input 
+              type="checkbox" 
+              id="gating-disclaimer-checkbox" 
+              checked={checkboxChecked}
+              onChange={(e) => setCheckboxChecked(e.target.checked)}
+              style={{ 
+                marginTop: '0.25rem', 
+                width: '18px', 
+                height: '18px', 
+                cursor: 'pointer',
+                accentColor: 'var(--accent-gold)'
+              }}
+            />
+            <label htmlFor="gating-disclaimer-checkbox" style={{ fontSize: '0.85rem', cursor: 'pointer', lineHeight: '1.4' }}>
+              {t('disclaimerCheck')}
+            </label>
+          </div>
+
+          <button
+            onClick={() => {
+              if (checkboxChecked) {
+                setDisclaimerAccepted(true);
+                localStorage.setItem('aura_disclaimer_accepted', 'true');
+                toast.success("Welcome to the Reiki & Sage Sanctuary.");
+              } else {
+                toast.error("Please acknowledge the disclaimer to enter.");
+              }
+            }}
+            disabled={!checkboxChecked}
+            className="btn btn-primary"
+            style={{ 
+              width: '100%', 
+              padding: '1rem', 
+              fontSize: '1rem', 
+              fontWeight: '700',
+              cursor: checkboxChecked ? 'pointer' : 'not-allowed',
+              opacity: checkboxChecked ? 1 : 0.5,
+              background: checkboxChecked ? 'var(--accent-gold)' : 'rgba(212, 175, 55, 0.2)',
+              color: checkboxChecked ? 'black' : 'var(--text-main)',
+              border: 'none',
+              borderRadius: '30px',
+              boxShadow: checkboxChecked ? '0 4px 15px rgba(212, 175, 55, 0.3)' : 'none',
+              transition: 'all 0.3s ease'
+            }}
+          >
+            {t('disclaimerButton')}
+          </button>
+        </div>
+      </div>
     );
   };
 
@@ -1605,7 +1808,7 @@ const [showCheckoutModal, setShowCheckoutModal] = useState(false);
                 background: 'rgba(0,0,0,0.2)',
                 textAlign: 'left'
               }}>
-                <strong>Compliance Disclaimer:</strong> Reiki & Sage provides spiritual wellness and mindfulness services. The "Gemstone Energy Core", "portable resonance technology", and "aura calibrations" described on this platform are digital wellness experiences and spiritual metaphors designed for meditation, relaxation, and mindfulness. They are not physical scientific instruments, clinical diagnostics, or medical devices. Reiki is a complementary therapy and does not diagnose, treat, cure, or prevent any disease. This platform is not regulated or audited by the FDA, and we do not store protected health information (PHI) in compliance with best privacy practices.
+                <strong>{t('complianceDisclaimerTitle')}</strong> {t('complianceDisclaimerText')}
               </div>
               <p style={{ fontSize: '0.8rem', opacity: 0.6, marginBottom: '1rem' }}>© 2026 Reiki & Sage Healing Arts.</p>
               <div style={{ display: 'flex', justifyContent: 'center', gap: '15px', fontSize: '0.75rem', opacity: 0.8, flexWrap: 'wrap' }}>
@@ -1701,6 +1904,9 @@ const [showCheckoutModal, setShowCheckoutModal] = useState(false);
         <header className="mobile-header">
           <a href="#" className="logo" onClick={(e) => { e.preventDefault(); setActiveTab('home'); }}>Reiki & Sage</a>
           <div className="mobile-header-actions">
+            <div style={{ display: 'inline-flex', alignItems: 'center', marginRight: '0.25rem' }}>
+              {renderLanguageDropdown()}
+            </div>
             <button 
               onClick={toggleTheme}
               style={{
@@ -1739,7 +1945,7 @@ const [showCheckoutModal, setShowCheckoutModal] = useState(false);
                   fontSize: '0.65rem'
                 }}
               >
-                LOG IN
+                {t('navLogIn')}
               </button>
             )}
           </div>
@@ -1764,7 +1970,7 @@ const [showCheckoutModal, setShowCheckoutModal] = useState(false);
               <Grid size={20} />
               {activeTab === 'protocols' && <div className="bottom-nav-dot"></div>}
             </div>
-            <span>Protocols</span>
+            <span>{t('navProtocols')}</span>
           </button>
           <button className={`bottom-nav-item ${activeTab === 'ai-guide' ? 'active' : ''}`} onClick={() => setActiveTab('ai-guide')}>
             <div className="bottom-nav-icon-wrapper">
@@ -1778,7 +1984,7 @@ const [showCheckoutModal, setShowCheckoutModal] = useState(false);
               <BookOpen size={20} />
               {activeTab === 'learning' && <div className="bottom-nav-dot"></div>}
             </div>
-            <span>Learning</span>
+            <span>{t('navLearning')}</span>
           </button>
           <button className={`bottom-nav-item ${activeTab === 'dashboard' ? 'active' : ''}`} onClick={() => setActiveTab('dashboard')}>
             <div className="bottom-nav-icon-wrapper">
@@ -2393,17 +2599,21 @@ const [showCheckoutModal, setShowCheckoutModal] = useState(false);
           </div>
 
           <div className="nav-links">
-            <a href="#about" style={{ marginLeft: '1.5rem' }}>Philosophy</a>
-            <a href="#mobile-service" style={{ marginLeft: '0.8rem', marginRight: '1rem' }}>Scheduling</a>
-            <a href="#protocols-section" style={{ marginLeft: '0.8rem', marginRight: '1rem' }}>Protocols</a>
-            <a href="#learning-section" style={{ marginLeft: '0.8rem', marginRight: '1rem' }}>Learning</a>
+            <a href="#about" style={{ marginLeft: '1.5rem' }}>{t('navPhilosophy')}</a>
+            <a href="#mobile-service" style={{ marginLeft: '0.8rem', marginRight: '1rem' }}>{t('navScheduling')}</a>
+            <a href="#protocols-section" style={{ marginLeft: '0.8rem', marginRight: '1rem' }}>{t('navProtocols')}</a>
+            <a href="#learning-section" style={{ marginLeft: '0.8rem', marginRight: '1rem' }}>{t('navLearning')}</a>
             <a 
               href="#" 
               onClick={(e) => { e.preventDefault(); setShowMyStories(true); }} 
               style={{ marginLeft: '0.8rem', marginRight: '2rem', cursor: 'pointer' }}
             >
-              Reflections
+              {t('navReflections')}
             </a>
+            
+            <div style={{ display: 'inline-flex', alignItems: 'center', gap: '1rem', marginLeft: '0.8rem', marginRight: '1rem' }}>
+              {renderLanguageDropdown()}
+            </div>
             
             <button 
               onClick={toggleTheme}
@@ -2434,7 +2644,7 @@ const [showCheckoutModal, setShowCheckoutModal] = useState(false);
                     letterSpacing: '1px'
                   }}
                 >
-                  LOG IN
+                  {t('navLogIn')}
                 </button>
               ) : (
                   <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px' }}>
@@ -2481,7 +2691,7 @@ const [showCheckoutModal, setShowCheckoutModal] = useState(false);
                   fontSize: '0.8rem', letterSpacing: '1px', display: 'flex', alignItems: 'center', gap: '5px'
                 }}
               >
-                CONSULT AURA
+                {t('navConsultAura')}
               </button>
               
               <button 
@@ -2489,7 +2699,7 @@ const [showCheckoutModal, setShowCheckoutModal] = useState(false);
                 className="btn btn-primary" 
                 style={{ padding: '0.6rem 1.5rem' }}
               >
-                Set Appointment
+                {t('navSetAppointment')}
               </button>
             </div>
 
@@ -2517,7 +2727,7 @@ const [showCheckoutModal, setShowCheckoutModal] = useState(false);
               transition={{ duration: 0.8 }}
             >
               <p style={{fontSize: '1.25rem', color: 'var(--text-muted)', marginBottom: '2.5rem', maxWidth: '500px'}}>
-                Experience the convergence of ancient wisdom and futuristic energy medicine. Our advanced Reiki system harmonizes your biofield with surgical precision.
+                {t('heroSub')}
               </p>
               
               {user && (
@@ -2551,12 +2761,18 @@ const [showCheckoutModal, setShowCheckoutModal] = useState(false);
                     }
                   }}
                 >
-                  <Zap size={18} /> {user && (user.subscription === 'healing' || user.role === 'owner') ? 'Access Sanctuary' : user ? 'Upgrade Resonance' : (showSignupFlow ? 'Close Application' : 'Start Your Journey')}
+                  <Zap size={18} /> {user && (user.subscription === 'healing' || user.role === 'owner') 
+                    ? (language === 'es' ? 'Acceder al Santuario' : language === 'zh' ? '进入避难所' : language === 'pt' ? 'Acessar Santuário' : language === 'ja' ? 'サンクチュアリに入る' : language === 'fr' ? 'Accéder au Sanctuaire' : 'Access Sanctuary') 
+                    : user 
+                      ? (language === 'es' ? 'Actualizar Resonancia' : language === 'zh' ? '升级共鸣' : language === 'pt' ? 'Atualizar Ressonância' : language === 'ja' ? '共振のアップグレード' : language === 'fr' ? 'Améliorer la Résonance' : 'Upgrade Resonance') 
+                      : (showSignupFlow 
+                        ? (language === 'es' ? 'Cerrar Solicitud' : language === 'zh' ? '关闭申请' : language === 'pt' ? 'Fechar Inscrição' : language === 'ja' ? '閉じる' : language === 'fr' ? 'Fermer l\'inscription' : 'Close Application') 
+                        : t('heroCTAStart'))}
                 </button>
                 
                 {!user && (
                   <p style={{ marginTop: '1rem', opacity: 0.7, fontSize: '0.9rem' }}>
-                    Already have an account?{' '}
+                    {t('heroAlreadyAccount')}{' '}
                     <span 
                       onClick={() => setShowLoginModal(true)}
                       style={{ 
@@ -2565,7 +2781,7 @@ const [showCheckoutModal, setShowCheckoutModal] = useState(false);
                         textDecoration: 'underline' 
                       }}
                     >
-                      Log In
+                      {t('heroLogin')}
                     </span>
                   </p>
                 )}
@@ -2574,7 +2790,7 @@ const [showCheckoutModal, setShowCheckoutModal] = useState(false);
                   style={{background: 'transparent', border: '1px solid var(--accent-gold)', color: 'var(--accent-gold)'}}
                   onClick={() => setShowScience(true)}
                 >
-                  See the Science
+                  {t('heroCTAScience')}
                 </button>
               </div>
             </motion.div>
@@ -2677,49 +2893,15 @@ const [showCheckoutModal, setShowCheckoutModal] = useState(false);
 
       {showInstallBanner && renderInstallBanner()}
 
-      <section id="about" style={{backgroundColor: 'var(--bg-section)'}}>
-        <div className="container">
-          <div style={{textAlign: 'center', marginBottom: '4rem'}}>
-            <h2 style={{fontSize: '3rem', color: 'var(--text-main)'}}>Complete Compassion & Caring</h2>
-            <div style={{width: '60px', height: '3px', background: 'var(--accent-compassion)', margin: '1rem auto'}}></div>
-          </div>
-          
-          <div style={{display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '4rem', alignItems: 'center'}}>
-            <div className="glass" style={{position: 'relative', height: '500px', overflow: 'hidden'}}>
-              <img 
-                src="/assets/compassion-glow.png" 
-                alt="Compassion Glow" 
-                style={{width: '100%', height: '100%', objectFit: 'cover'}}
-              />
-            </div>
-            <div>
-              <h3 style={{fontSize: '2rem', marginBottom: '1.5rem', color: 'var(--accent-compassion)'}}>Deeply Empathetic Care</h3>
-              <ul style={{listStyle: 'none', spaceY: '1.5rem'}}>
-                <li style={{marginBottom: '2rem'}}>
-                  <strong style={{display: 'block', fontSize: '1.2rem'}}>Aura Calibration</strong>
-                  <span style={{color: 'var(--text-muted)'}}>Using high-frequency resonance to gently realign your spiritual frequency with precision-engineered compassion.</span>
-                </li>
-                <li style={{marginBottom: '2rem', padding: '1.5rem', background: 'rgba(229, 179, 187, 0.1)', borderRadius: '15px', borderLeft: '4px solid var(--accent-compassion)'}}>
-                  <strong style={{display: 'block', fontSize: '1.2rem'}}>Compassionate Flow Monitoring</strong>
-                  <span style={{color: 'var(--text-muted)'}}>Real-time ethical energy scanning that respects your personal boundaries while providing deep intuitive insights.</span>
-                </li>
-                <li>
-                  <strong style={{display: 'block', fontSize: '1.2rem'}}>Quantum Heart Connection</strong>
-                  <span style={{color: 'var(--text-muted)'}}>Bridging the gap between the physical and the metaphysical through unconditional loving intent.</span>
-                </li>
-              </ul>
-            </div>
-          </div>
-        </div>
-      </section>
+      {renderPhilosophySection(false)}
 
       <section id="mobile-service" style={{background: 'var(--bg-section-alt)'}}>
         <div className="container">
           <div style={{display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '4rem', alignItems: 'center'}}>
             <div>
-              <h3 style={{fontSize: '1.5rem', marginBottom: '1rem', color: 'var(--text-main)'}}>The Advanced Resonance Model</h3>
+              <h3 style={{fontSize: '1.5rem', marginBottom: '1rem', color: 'var(--text-main)'}}>{t('resonanceTitle')}</h3>
               <p style={{fontSize: '1.1rem', marginBottom: '2rem', color: 'var(--text-main)'}}>
-                The sanctuary now comes to you. Our advanced mobile systems allow us to calibrate your energy field in the comfort of your own space, using our proprietary portable resonance technology.
+                {t('resonanceDesc')}
               </p>
               <div style={{display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem'}}>
                   <div 
@@ -2728,7 +2910,7 @@ const [showCheckoutModal, setShowCheckoutModal] = useState(false);
                     onClick={() => setBookingType('onsite')}
                   >
                     <div style={{fontSize: '1.5rem', color: 'var(--accent-gold)', marginBottom: '0.5rem'}}>🚚</div>
-                    <div style={{fontWeight: '600', color: 'var(--text-main)'}}>On-Site Alignment</div>
+                    <div style={{fontWeight: '600', color: 'var(--text-main)'}}>{t('resonanceOnSite')}</div>
                   </div>
                   <div 
                     className="glass card-hover" 
@@ -2736,7 +2918,7 @@ const [showCheckoutModal, setShowCheckoutModal] = useState(false);
                     onClick={() => setBookingType('portal')}
                   >
                     <div style={{fontSize: '1.5rem', color: 'var(--accent-gold)', marginBottom: '0.5rem'}}>⚡</div>
-                    <div style={{fontWeight: '600', color: 'var(--text-main)'}}>Portable Resonance</div>
+                    <div style={{fontWeight: '600', color: 'var(--text-main)'}}>{t('resonancePortable')}</div>
                   </div>
               </div>
             </div>
@@ -2751,125 +2933,7 @@ const [showCheckoutModal, setShowCheckoutModal] = useState(false);
         </div>
       </section>
 
-      <section id="energy-core" style={{padding: '8rem 0', background: 'var(--bg-gradient-core)', color: 'var(--text-main)'}}>
-        <div className="container" style={{textAlign: 'center'}}>
-          <h2 style={{fontSize: '3.5rem', marginBottom: '2rem', letterSpacing: '3px', color: 'var(--text-main)'}}>The Gemstone Energy Core</h2>
-          <p style={{maxWidth: '800px', margin: '0 auto 4rem', fontSize: '1.2rem', color: 'var(--text-muted)'}}>
-            Access the unfiltered resonance of our centralized Gemstone Core. This high-density energy portal synchronizes all mobile units to the pure vibrational frequency of the earth's most powerful crystalline structures.
-          </p>
-          
-          <div style={{position: 'relative', maxWidth: '900px', margin: '0 auto'}}>
-            <div className="glass portal-frame" style={{padding: '1rem', background: 'rgba(212, 175, 55, 0.1)', border: '2px solid var(--accent-gold)'}}>
-              <img 
-                src="/assets/energy-portal.png" 
-                alt="Gemstone Energy Portal" 
-                style={{width: '100%', height: 'auto', display: 'block', borderRadius: '15px'}}
-              />
-              <div className="core-overlay">
-                <button 
-                  className="btn btn-primary" 
-                  style={{
-                    backgroundColor: selectedProtocol ? 'var(--accent-gold)' : '#ccc', 
-                    borderColor: selectedProtocol ? 'var(--accent-gold)' : '#ccc', 
-                    cursor: selectedProtocol ? 'pointer' : 'not-allowed',
-                    padding: '0.8rem 2rem', // Reduced padding
-                    fontSize: '1rem', // Standard font size
-                    maxWidth: '300px', // Prevent massive width
-                    margin: '0 auto',
-                    display: 'block'
-                  }}
-                  onClick={() => selectedProtocol && setShowPortal(true)}
-                  disabled={!selectedProtocol}
-                >
-                  {selectedProtocol ? 'Synchronize with Core' : 'Select a Protocol First'}
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <section id="protocols-section" style={{backgroundColor: 'var(--bg-section)'}}>
-        <div className="container" style={{textAlign: 'center'}}>
-          <h2 style={{fontSize: '2.5rem', marginBottom: '1rem', color: 'var(--text-main)'}}>Advanced Harmonization Protocols</h2>
-          <p style={{marginBottom: '2rem', opacity: '0.7', color: 'var(--text-muted)'}}>Select a protocol below to synchronize with the Gemstone Core.</p>
-          
-          <div style={{ display: 'flex', justifyContent: 'center', gap: '1rem', marginBottom: '3rem' }}>
-            <button
-              onClick={selectRandomProtocol}
-              className="btn btn-primary"
-              style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '0.8rem 2rem', background: 'rgba(212, 175, 55, 0.1)', border: '1px solid var(--accent-gold)', color: 'var(--accent-gold)' }}
-            >
-              <Shuffle size={16} /> Random Alignment Selection
-            </button>
-          </div>
-
-          <div style={{display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '2rem', maxWidth: '1000px', margin: '0 auto'}}>
-            {protocolList.filter(p => p.active).map((protocol) => (
-              <div 
-                key={protocol.id}
-                className={`glass card-hover ${selectedProtocol === protocol.id ? 'protocol-selected' : ''}`} 
-                style={{
-                  padding: '2.5rem', 
-                  borderBottom: `6px solid ${protocol.borderColor}`,
-                  cursor: 'pointer',
-                  transition: 'all 0.3s ease',
-                  border: selectedProtocol === protocol.id ? `2px solid ${protocol.color}` : '1px solid var(--glass-border)'
-                }}
-                onClick={() => {
-                  setSelectedProtocol(protocol.id);
-                }}
-              >
-                <div style={{
-                  height: '200px', 
-                  overflow: 'hidden', 
-                  borderRadius: '12px', 
-                  marginBottom: '1.5rem',
-                  border: '1px solid rgba(255,255,255,0.1)',
-                  position: 'relative'
-                }}>
-                  <img 
-                    src={`/assets/${protocol.video[0]}`} 
-                    alt={protocol.name} 
-                    style={{
-                      width: '100%', 
-                      height: '100%', 
-                      objectFit: 'cover',
-                      transition: 'transform 0.5s ease'
-                    }} 
-                    onMouseOver={e => e.currentTarget.style.transform = 'scale(1.1)'}
-                    onMouseOut={e => e.currentTarget.style.transform = 'scale(1)'}
-                  />
-                  {protocol.isImmersive && (
-                    <div style={{
-                      position: 'absolute',
-                      top: '10px',
-                      left: '10px',
-                      background: 'var(--accent-gold)',
-                      color: '#000',
-                      fontSize: '0.65rem',
-                      fontWeight: 'bold',
-                      padding: '4px 10px',
-                      borderRadius: '20px',
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '4px',
-                      boxShadow: '0 4px 12px rgba(0,0,0,0.5)'
-                    }}>
-                      <Clock size={10} /> 10 MIN IMMERSION
-                    </div>
-                  )}
-                </div>
-                <h4 style={{fontSize: '1.5rem', marginBottom: '1rem', color: protocol.color}}>{protocol.name}</h4>
-                <p style={{fontSize: '0.9rem', color: 'var(--text-muted)'}}>{protocol.desc}</p>
-                {selectedProtocol === protocol.id && (
-                  <div style={{marginTop: '1.5rem', color: protocol.color, fontWeight: '700'}}>PROTOCOL SELECTED</div>
-                )}
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
+      {renderProtocolsSection(false)}
 
       <section id="learning-section" style={{ backgroundColor: 'var(--bg-primary)', padding: '4rem 0', borderTop: '1px solid rgba(255,255,255,0.05)' }}>
         <div className="container" style={{ maxWidth: '1200px', margin: '0 auto' }}>
@@ -3054,7 +3118,7 @@ const [showCheckoutModal, setShowCheckoutModal] = useState(false);
             borderRadius: '12px', 
             background: 'rgba(0,0,0,0.1)'
           }}>
-            <strong>Compliance Disclaimer:</strong> Reiki & Sage provides spiritual wellness and mindfulness services. The "Gemstone Energy Core", "portable resonance technology", and "aura calibrations" described on this platform are digital wellness experiences and spiritual metaphors designed for meditation, relaxation, and mindfulness. They are not physical scientific instruments, clinical diagnostics, or medical devices. Reiki is a complementary therapy and does not diagnose, treat, cure, or prevent any disease. This platform is not regulated or audited by the FDA, and we do not store protected health information (PHI) in compliance with best privacy practices.
+            <strong>{t('complianceDisclaimerTitle')}</strong> {t('complianceDisclaimerText')}
           </div>
           <div style={{fontSize: '0.8rem', opacity: '0.6', color: 'var(--text-muted)', display: 'flex', justifyContent: 'flex-start', alignItems: 'center', gap: '15px', flexWrap: 'wrap'}}>
             <span>© 2026 Reiki & Sage Healing Arts. All rights reserved.</span>
@@ -3320,10 +3384,19 @@ const [showCheckoutModal, setShowCheckoutModal] = useState(false);
         </div>
       )}
 
-
+      {/* Gating Disclaimer Modal */}
+      {!disclaimerAccepted && renderGatingDisclaimerModal()}
 
     </div>
   )
+}
+
+function App() {
+  return (
+    <LanguageProvider>
+      <AppContent />
+    </LanguageProvider>
+  );
 }
 
 export default App

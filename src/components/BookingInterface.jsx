@@ -5,8 +5,10 @@ import 'react-calendar/dist/Calendar.css';
 import './BookingInterface.css';
 import { logTransaction } from '../utils/logger';
 import { isFirebaseConfigured, db } from '../lib/firebase';
+import { useLanguage } from '../contexts/LanguageContext';
 
 const BookingInterface = ({ type, onClose }) => {
+  const { t } = useLanguage();
   const [date, setDate] = useState(new Date());
   const [time, setTime] = useState(null);
   const [step, setStep] = useState(type === 'onsite' ? 1 : 0);
@@ -87,7 +89,7 @@ const BookingInterface = ({ type, onClose }) => {
       if (match) {
         setPhone(match.phone);
         setEmail(match.email);
-        toast.success(`Welcome back, ${match.name}. Resonance matched.`);
+        toast.success(t('bookingToastWelcomeBack').replace('{name}', match.name));
       }
     }
   }, [name]);
@@ -114,7 +116,7 @@ const BookingInterface = ({ type, onClose }) => {
 
   const handleCheckoutRedirect = async () => {
     setLoading(true);
-    toast.loading("Initiating secure payment flow...");
+    toast.loading(t('bookingToastInitiating'));
     try {
       const priceVal = subType === 'visit' 
         ? parseInt(onsitePrice) 
@@ -162,7 +164,7 @@ const BookingInterface = ({ type, onClose }) => {
       window.location.href = data.url;
     } catch (err) {
       toast.dismiss();
-      toast.error(err.message || "Failed to start payment checkout.");
+      toast.error(err.message || t('bookingToastFailed'));
       console.error(err);
     } finally {
       setLoading(false);
@@ -176,17 +178,17 @@ const BookingInterface = ({ type, onClose }) => {
 
         {step === 0 && (
           <div className="fade-in" style={{ textAlign: 'center' }}>
-            <h2 className="booking-header">Resonance Selection</h2>
+            <h2 className="booking-header">{t('bookingHeaderResonance')}</h2>
             <div className="type-selector" style={{display: 'flex', gap: '10px', marginBottom: '2rem'}}>
                 {type === 'onsite' ? (
                     <div className={`selection-card ${subType === 'visit' ? 'active' : ''}`} onClick={() => setSubType('visit')} style={{flex: 1, padding: '1.5rem', border: '1px solid var(--glass-border)', borderRadius: '12px', cursor: 'pointer', background: 'rgba(255,255,255,0.03)'}}>
-                        <h4>On-Site Visit</h4>
-                        <p style={{fontSize: '0.75rem', opacity: 0.7, marginTop: '5px'}}>Physical calibration at the Sanctuary.</p>
+                        <h4>{t('bookingTypeOnsite')}</h4>
+                        <p style={{fontSize: '0.75rem', opacity: 0.7, marginTop: '5px'}}>{t('bookingTypeOnsiteDesc')}</p>
                     </div>
                 ) : (
                     <div className={`selection-card ${subType === 'live' ? 'active' : ''}`} onClick={() => setSubType('live')} style={{flex: 1, padding: '1.5rem', border: '1px solid var(--glass-border)', borderRadius: '12px', cursor: 'pointer', background: 'rgba(255,255,255,0.03)'}}>
-                        <h4>Live Video Session</h4>
-                        <p style={{fontSize: '0.75rem', opacity: 0.7, marginTop: '5px'}}>Video resonance alignment with healer.</p>
+                        <h4>{t('bookingTypeVideo')}</h4>
+                        <p style={{fontSize: '0.75rem', opacity: 0.7, marginTop: '5px'}}>{t('bookingTypeVideoDesc')}</p>
                     </div>
                 )}
             </div>
@@ -199,15 +201,15 @@ const BookingInterface = ({ type, onClose }) => {
               className="btn-primary"
               style={{ width: '100%' }}
             >
-              {vibrationMatched ? 'VIBRATION MATCHED ✓' : 'Confirm Resonance Mode'}
+              {vibrationMatched ? t('bookingVibrationMatched') : t('bookingConfirmResonance')}
             </button>
           </div>
         )}
 
         {step === 1 && (
           <div className="fade-in">
-            <h2 className="booking-header">{subType === 'visit' ? 'Sanctuary Availability' : 'Live Portal Timing'}</h2>
-            <p style={{color: '#888', fontSize: '0.85rem', marginBottom: '1.5rem'}}>Select an open window in the ether.</p>
+            <h2 className="booking-header">{subType === 'visit' ? t('bookingHeaderAvailability') : t('bookingHeaderTiming')}</h2>
+            <p style={{color: '#888', fontSize: '0.85rem', marginBottom: '1.5rem'}}>{t('bookingSelectWindow')}</p>
             <Calendar 
               onChange={setDate} 
               value={date} 
@@ -215,7 +217,7 @@ const BookingInterface = ({ type, onClose }) => {
             />
             <div className="time-grid" style={{marginTop: '1.5rem'}}>
               {getAvailableSlots().length === 0 ? (
-                <p style={{textAlign: 'center', color: '#e74c3c', width: '100%'}}>No available slots for this date.</p>
+                <p style={{textAlign: 'center', color: '#e74c3c', width: '100%'}}>{t('bookingNoSlots')}</p>
               ) : (
                 getAvailableSlots().map(slot => (
                   <button 
@@ -234,63 +236,63 @@ const BookingInterface = ({ type, onClose }) => {
               className="btn-primary"
               style={{ width: '100%', marginTop: '1.5rem' }}
             >
-              Continue
+              {t('bookingContinue')}
             </button>
           </div>
         )}
 
         {step === 2 && (
           <div className="fade-in">
-            <h2 className="booking-header">Your Details</h2>
-            <p style={{marginBottom: '1.5rem', opacity: 0.7, fontSize: '0.85rem'}}>Provide your coordination data.</p>
+            <h2 className="booking-header">{t('bookingHeaderDetails')}</h2>
+            <p style={{marginBottom: '1.5rem', opacity: 0.7, fontSize: '0.85rem'}}>{t('bookingDetailsDesc')}</p>
             
             <input 
-              type="text" placeholder="Your Name" value={name} onChange={e => setName(e.target.value)}
+              type="text" placeholder={t('bookingPlaceholderName')} value={name} onChange={e => setName(e.target.value)}
               className="booking-input"
             />
             <input 
-              type="tel" placeholder="Phone Number" value={phone} onChange={e => setPhone(e.target.value)}
+              type="tel" placeholder={t('bookingPlaceholderPhone')} value={phone} onChange={e => setPhone(e.target.value)}
               className="booking-input"
             />
             {subType === 'visit' && (
                 <input 
-                    type="number" placeholder="Distance from Sanctuary (miles)" value={distance} onChange={e => setDistance(e.target.value)}
+                    type="number" placeholder={t('bookingPlaceholderDistance')} value={distance} onChange={e => setDistance(e.target.value)}
                     className="booking-input"
                 />
             )}
             <input 
-              type="email" placeholder="Email Address" value={email} onChange={e => setEmail(e.target.value)}
+              type="email" placeholder={t('bookingPlaceholderEmail')} value={email} onChange={e => setEmail(e.target.value)}
               className="booking-input"
             />
 
             <div className="summary-card" style={{marginTop: '1.5rem', padding: '1.5rem', background: 'rgba(255,255,255,0.05)', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.08)'}}>
-              <p style={{fontSize: '0.9rem'}}><strong>Service:</strong> {subType === 'visit' ? 'In-Person Healing Session' : 'Live Video Portal Session'}</p>
-              <p style={{fontSize: '0.9rem'}}><strong>Date:</strong> {date.toDateString()}</p>
-              <p style={{fontSize: '0.9rem'}}><strong>Time:</strong> {time}</p>
+              <p style={{fontSize: '0.9rem'}}><strong>{t('bookingSummaryService')}</strong> {subType === 'visit' ? t('bookingSummaryInPerson') : t('bookingSummaryVideo')}</p>
+              <p style={{fontSize: '0.9rem'}}><strong>{t('bookingSummaryDate')}</strong> {date.toDateString()}</p>
+              <p style={{fontSize: '0.9rem'}}><strong>{t('bookingSummaryTime')}</strong> {time}</p>
               
               <div style={{marginTop: '1rem', paddingTop: '1rem', borderTop: '1px solid rgba(255,255,255,0.1)'}}>
                 {subType === 'visit' ? (
                    <>
-                     <p style={{fontSize: '1.1rem', margin: 0}}><strong>Total Session Price:</strong> ${onsitePrice}</p>
-                     <p style={{fontSize: '0.95rem', color: 'var(--accent-gold)', margin: '5px 0 0 0'}}><strong>15% Booking Deposit:</strong> ${((parseInt(onsitePrice)) * 0.15).toFixed(2)}</p>
-                     <p style={{fontSize: '0.78rem', opacity: 0.7, fontStyle: 'italic', marginTop: '5px'}}>Remaining balance is due at time of service.</p>
+                     <p style={{fontSize: '1.1rem', margin: 0}}><strong>{t('bookingSummaryTotalPrice')}</strong> ${onsitePrice}</p>
+                     <p style={{fontSize: '0.95rem', color: 'var(--accent-gold)', margin: '5px 0 0 0'}}><strong>{t('bookingSummaryDeposit')}</strong> ${((parseInt(onsitePrice)) * 0.15).toFixed(2)}</p>
+                     <p style={{fontSize: '0.78rem', opacity: 0.7, fontStyle: 'italic', marginTop: '5px'}}>{t('bookingSummaryBalanceNotice')}</p>
                    </>
                 ) : (
-                   <p style={{fontSize: '1.1rem', margin: 0}}><strong>Total Session Fee:</strong> ${videoPrice}</p>
+                   <p style={{fontSize: '1.1rem', margin: 0}}><strong>{t('bookingSummaryTotalFee')}</strong> ${videoPrice}</p>
                 )}
               </div>
             </div>
 
             {subType === 'visit' && parseInt(distance) > 50 && (
                 <p style={{color: '#e74c3c', fontSize: '0.8rem', marginBottom: '1rem', marginTop: '1rem'}}>
-                    *On-site visits are only available within a 50-mile radius. Please select "Portal Resonance" for remote video healing.
+                    {t('bookingDistanceError')}
                 </p>
             )}
 
             {/* HIPAA Intake Disclaimer */}
             <div style={{ marginTop: '1.25rem', padding: '10px 12px', background: 'rgba(0,184,148,0.05)', border: '1px solid rgba(0,184,148,0.2)', borderRadius: '8px', textAlign: 'left' }}>
               <p style={{ fontSize: '0.7rem', color: '#a8d8a8', margin: 0, lineHeight: '1.4' }}>
-                <strong>🔒 Privacy & Intake Rule:</strong> No medical or health records are collected or stored in our systems. Reiki is a spiritual wellness practice; healers do not diagnose or treat medical conditions.
+                <strong>{t('bookingHipaaLabel')}</strong> {t('bookingHipaaDesc')}
               </p>
             </div>
 
@@ -300,7 +302,7 @@ const BookingInterface = ({ type, onClose }) => {
               className="btn-primary"
               style={{width: '100%', marginTop: '1.5rem'}}
             >
-              {loading ? 'Routing to Secure Stripe...' : 'Proceed to Stripe Payment'}
+              {loading ? t('bookingRoutingStripe') : t('bookingProceedStripe')}
             </button>
           </div>
         )}

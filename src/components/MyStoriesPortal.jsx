@@ -2,8 +2,10 @@ import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Quote, Star, Sparkles } from 'lucide-react';
 import { auth, db, isFirebaseConfigured } from '../lib/firebase';
+import { useLanguage } from '../contexts/LanguageContext';
 
 const MyStoriesPortal = ({ onClose }) => {
+  const { t } = useLanguage();
   const [stories, setStories] = React.useState([]);
 
   React.useEffect(() => {
@@ -62,9 +64,9 @@ const MyStoriesPortal = ({ onClose }) => {
         >
             <Sparkles size={48} color="var(--accent-gold)" />
         </motion.div>
-        <h2 style={{ fontSize: '3.5rem', color: 'var(--text-main)', marginBottom: '1rem' }}>Collective Reflections</h2>
+        <h2 style={{ fontSize: '3.5rem', color: 'var(--text-main)', marginBottom: '1rem' }}>{t('reflectionsTitle')}</h2>
         <p style={{ color: 'var(--text-muted)', fontSize: '1.2rem', fontStyle: 'italic' }}>
-          "Every story is a ripple in the ocean of awakening."
+          {t('reflectionsSub')}
         </p>
       </div>
 
@@ -110,7 +112,7 @@ const MyStoriesPortal = ({ onClose }) => {
 
       {stories.length === 0 && (
         <div style={{ textAlign: 'center', opacity: 0.5, marginTop: '4rem' }}>
-          <p>The collective field is quiet... for now.</p>
+          <p>{t('reflectionsEmpty')}</p>
         </div>
       )}
 
@@ -125,11 +127,11 @@ const MyStoriesPortal = ({ onClose }) => {
         border: '1px solid rgba(255,255,255,0.05)',
         textAlign: 'center'
       }}>
-        <h3 style={{ color: 'var(--accent-gold)', marginBottom: '1rem' }}>Share Your Resonance</h3>
+        <h3 style={{ color: 'var(--accent-gold)', marginBottom: '1rem' }}>{t('reflectionsShareTitle')}</h3>
         <p style={{ color: 'var(--text-muted)', marginBottom: '2.5rem', fontSize: '0.9rem', lineHeight: '1.5' }}>
-          Have you experienced a moment of profound alignment in the Sanctuary? Share your journey to inspire others.<br />
+          {t('reflectionsShareDesc')}<br />
           <span style={{ fontSize: '0.8rem', opacity: 0.7, color: 'var(--accent-gold)' }}>
-            ★ Submitted reflections are securely reviewed by Carissa or certified healers before releasing into the collective resonance.
+            {t('reflectionsReviewNotice')}
           </span>
         </p>
 
@@ -159,12 +161,12 @@ const MyStoriesPortal = ({ onClose }) => {
               }
               
               import('react-hot-toast').then(({ toast }) => {
-                toast.success('Your story has been sent into the collective mist for review.');
+                toast.success(t('reflectionsSuccessToast'));
               });
             } catch (err) {
               console.error('Error submitting story:', err);
               import('react-hot-toast').then(({ toast }) => {
-                toast.error('Could not submit story. Please try again.');
+                toast.error(t('reflectionsErrorToast'));
               });
             }
 
@@ -174,23 +176,23 @@ const MyStoriesPortal = ({ onClose }) => {
         >
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem' }}>
             <div className="form-group">
-              <label style={{ fontSize: '0.8rem', opacity: 0.6, marginBottom: '0.5rem', display: 'block' }}>Vibrational Identity (Name)</label>
-              <input name="name" type="text" placeholder="Your Name" required style={{ width: '100%', padding: '1rem', borderRadius: '12px', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: 'white' }} />
+              <label style={{ fontSize: '0.8rem', opacity: 0.6, marginBottom: '0.5rem', display: 'block' }}>{t('reflectionsLabelName')}</label>
+              <input name="name" type="text" placeholder={t('reflectionsPlaceholderName')} required style={{ width: '100%', padding: '1rem', borderRadius: '12px', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: 'white' }} />
             </div>
             <div className="form-group">
-              <label style={{ fontSize: '0.8rem', opacity: 0.6, marginBottom: '0.5rem', display: 'block' }}>Alignment Scale (1-5)</label>
+              <label style={{ fontSize: '0.8rem', opacity: 0.6, marginBottom: '0.5rem', display: 'block' }}>{t('reflectionsLabelScale')}</label>
               <select name="rating" style={{ width: '100%', padding: '1rem', borderRadius: '12px', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: 'white' }}>
-                <option value="5" style={{ background: '#0a0a14', color: 'white' }}>5 - Deep Transformation</option>
-                <option value="4" style={{ background: '#0a0a14', color: 'white' }}>4 - Strong Resonance</option>
-                <option value="3" style={{ background: '#0a0a14', color: 'white' }}>3 - Peaceful Connection</option>
-                <option value="2" style={{ background: '#0a0a14', color: 'white' }}>2 - Subtle Shift</option>
-                <option value="1" style={{ background: '#0a0a14', color: 'white' }}>1 - Beginning Journey</option>
+                <option value="5" style={{ background: '#0a0a14', color: 'white' }}>{t('reflectionsScale5')}</option>
+                <option value="4" style={{ background: '#0a0a14', color: 'white' }}>{t('reflectionsScale4')}</option>
+                <option value="3" style={{ background: '#0a0a14', color: 'white' }}>{t('reflectionsScale3')}</option>
+                <option value="2" style={{ background: '#0a0a14', color: 'white' }}>{t('reflectionsScale2')}</option>
+                <option value="1" style={{ background: '#0a0a14', color: 'white' }}>{t('reflectionsScale1')}</option>
               </select>
             </div>
           </div>
           <div className="form-group">
-            <label style={{ fontSize: '0.8rem', opacity: 0.6, marginBottom: '0.5rem', display: 'block' }}>The Journey (Your Story)</label>
-            <textarea name="story" rows="4" placeholder="Describe your experience..." required style={{ width: '100%', padding: '1rem', borderRadius: '12px', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: 'white', resize: 'vertical' }} />
+            <label style={{ fontSize: '0.8rem', opacity: 0.6, marginBottom: '0.5rem', display: 'block' }}>{t('reflectionsLabelJourney')}</label>
+            <textarea name="story" rows="4" placeholder={t('reflectionsPlaceholderJourney')} required style={{ width: '100%', padding: '1rem', borderRadius: '12px', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: 'white', resize: 'vertical' }} />
           </div>
           <button 
             type="submit" 
@@ -206,7 +208,7 @@ const MyStoriesPortal = ({ onClose }) => {
               cursor: 'pointer' 
             }}
           >
-            Release into the Sanctuary
+            {t('reflectionsSubmitBtn')}
           </button>
         </form>
       </div>
