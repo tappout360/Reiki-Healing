@@ -142,6 +142,7 @@ const protocols = [
     borderColor: '#9b59b6',
     isImmersive: true,
     active: true,
+    duration: 600,
     video: [
       'amethyst_aura_realistic_1769877822836.png',
       'sage_protocol_cosmic_alignment_1770424972911.png',
@@ -168,6 +169,7 @@ const protocols = [
     borderColor: '#3498db',
     isImmersive: true,
     active: false,
+    duration: 600,
     video: [
       'quartz_macro_realistic_1769877835658.png',
       'quartz_aura_realistic_1769877849374.png',
@@ -189,6 +191,7 @@ const protocols = [
     borderColor: '#e91e63',
     isImmersive: true,
     active: true,
+    duration: 600,
     video: [
       'rose_macro_realistic_1769877861535.png',
       'rose_aura_realistic_1769877874595.png',
@@ -211,6 +214,7 @@ const protocols = [
     borderColor: '#2980b9',
     isImmersive: true,
     active: true,
+    duration: 600,
     video: [
       'lapis_macro.png',
       'lapis_aura.png',
@@ -232,13 +236,14 @@ const protocols = [
     borderColor: '#d4af37',
     isImmersive: true,
     active: false,
+    duration: 600,
     video: [
       'citrine_macro.png',
       'citrine_aura.png',
       'sage_protocol_macro_gold_1770425190644.png',
       'sage_ocean_sunrise_1770425017610.png',
       'hero-energy.png',
-      'energy-portal.png', // Switched to energy portal for sacred geometry feel
+      'energy-portal.png',
       'sage_protocol_reiki_light_1770423936670.png',
       'sage_protocol_sunrise_ocean_1770425084382.png',
       'reiki_crown_chakra_light_1770423834100.png'
@@ -255,6 +260,7 @@ const protocols = [
     borderColor: '#2ecc71',
     isImmersive: true,
     active: true,
+    duration: 600,
     video: [
       'sage_protocol_shoreline_1770441338466.png',
       'sage_smoke_ethereal_cleansing_1770423820855.png',
@@ -281,6 +287,7 @@ const protocols = [
     borderColor: '#e67e22',
     isImmersive: true,
     active: false,
+    duration: 900,
     video: [
       'reiki_crown_chakra_light_1770423834100.png',
       'energy-portal.png',
@@ -293,8 +300,8 @@ const protocols = [
       'sage_protocol_starlight_ocean_v2_1770441141710.png',
       'sage_sacred_purify_1770423875666.png'
     ],
-    audio: '', // Ambient 528Hz background music (ducks when Carissa's voice plays)
-    voice: '/assets/reiki_meditation_voice.mp3', // Carissa's recorded voiceover — place MP3 here
+    audio: '', // Ambient 528Hz background music
+    voice: '/assets/reiki_meditation_voice.mp3',
     desc: 'Immersive 15-minute guided Reiki healing journey. Carissa\'s gentle voice leads you through universal life force energy alignment and deep restoration.',
     tier: 'advanced'
   },
@@ -305,6 +312,7 @@ const protocols = [
     borderColor: '#4a2f8a',
     isImmersive: true,
     active: false,
+    duration: 900,
     video: [
       'sage_protocol_cosmic_alignment_1770424972911.png',
       'energy-portal.png',
@@ -317,8 +325,8 @@ const protocols = [
       'sage_protocol_heart_glow_1770425071893.png',
       'hero-energy.png'
     ],
-    audio: '', // Ambient orchestral/ethereal background music (ducks when Carissa's voice plays)
-    voice: '/assets/celestial_meditation_voice.mp3', // Carissa's recorded voiceover — place MP3 here
+    audio: '', // Ambient orchestral/ethereal background music
+    voice: '/assets/celestial_meditation_voice.mp3',
     desc: '15-minute cinematic "Zodiac Awakening" — Carissa guides you through a Fantasia-inspired orchestra of gemstones, constellations, and healing aura.',
     tier: 'advanced'
   }
@@ -472,6 +480,7 @@ function App() {
   const [showLayoutDropdown, setShowLayoutDropdown] = useState(false); // Dropdown for viewport mode
   const [bookingType, setBookingType] = useState(null); 
   const [videoIndex, setVideoIndex] = useState(0);
+  const [timeLeft, setTimeLeft] = useState(600);
   const [volume, setVolume] = useState(50);
   const [binauralEnabled, setBinauralEnabled] = useState(false);
   const [binauralCarrier, setBinauralCarrier] = useState(432);
@@ -858,6 +867,30 @@ const [showCheckoutModal, setShowCheckoutModal] = useState(false);
       setIsFullscreen(false);
     }
   }, [showPortal]);
+
+  // Sync session duration timer (countdown clock)
+  useEffect(() => {
+    if (showPortal && currentProtocol) {
+      setTimeLeft(currentProtocol.duration || 600);
+    }
+  }, [showPortal, currentProtocol]);
+
+  useEffect(() => {
+    if (showPortal && !isPaused && timeLeft > 0) {
+      const timer = setTimeout(() => {
+        setTimeLeft(prev => prev - 1);
+      }, 1000);
+      return () => clearTimeout(timer);
+    } else if (showPortal && timeLeft === 0) {
+      handleProtocolEnd();
+    }
+  }, [showPortal, isPaused, timeLeft]);
+
+  const formatTime = (secs) => {
+    const mins = Math.floor(secs / 60);
+    const remainder = secs % 60;
+    return `${mins.toString().padStart(2, '0')}:${remainder.toString().padStart(2, '0')}`;
+  };
 
   const toggleFullscreen = () => {
     const element = document.getElementById('protocol-portal-root');
@@ -1808,15 +1841,20 @@ const [showCheckoutModal, setShowCheckoutModal] = useState(false);
                         key={src}
                         src={`/assets/${src}`}
                         alt="Healing Visual"
-                        className={`${idx === videoIndex ? 'ken-burns-active' : ''} ${isPaused ? 'paused' : ''}`}
+                        className={idx === videoIndex ? 'active' : ''}
                         style={{
                           position: 'absolute',
                           top: 0, left: 0,
                           width: '100%', height: '100%', 
                           objectFit: 'cover',
                           opacity: idx === videoIndex ? 1 : 0,
-                          transition: 'opacity 2s ease-in-out',
-                          transform: idx === videoIndex ? 'scale(1.1)' : 'scale(1)'
+                          transform: idx === videoIndex 
+                            ? (isPaused ? 'scale(1.05) translate(-0.2%, -0.2%)' : 'scale(1.15) translate(-0.5%, -0.5%)') 
+                            : 'scale(1.02)',
+                          transition: isPaused 
+                            ? 'opacity 2.5s ease-in-out, transform 20s ease-out' 
+                            : 'opacity 2.5s ease-in-out, transform 8.5s ease-out',
+                          pointerEvents: 'none'
                         }}
                       />
                     ))}
@@ -1825,7 +1863,7 @@ const [showCheckoutModal, setShowCheckoutModal] = useState(false);
                   <iframe 
                     width="100%" 
                     height="100%" 
-                    src={`https://www.youtube.com/embed/${currentProtocol.audio}?enablejsapi=1&autoplay=1&mute=1&controls=0&loop=1&playlist=${currentProtocol.audio}`} 
+                    src={currentProtocol.audio ? `https://www.youtube.com/embed/${currentProtocol.audio}?enablejsapi=1&autoplay=1&mute=1&controls=0&loop=1&playlist=${currentProtocol.audio}` : ""} 
                     title="Healing Audio" 
                     frameBorder="0" 
                     id="healing-audio-iframe"
@@ -1835,8 +1873,12 @@ const [showCheckoutModal, setShowCheckoutModal] = useState(false);
               </div>
               <div className="healing-ui">
                 <div className="glass healing-status">
-                  <div style={{ color: currentProtocol.color, fontSize: '1rem', fontWeight: '700', marginBottom: '0.25rem', letterSpacing: '1px' }}>
+                  <div style={{ color: currentProtocol.color, fontSize: '1.1rem', fontWeight: '700', marginBottom: '0.25rem', letterSpacing: '1px' }}>
                     {currentProtocol.name} ACTIVE
+                  </div>
+                  {/* Countdown Timer */}
+                  <div style={{ fontSize: '1.8rem', fontWeight: '300', color: 'white', margin: '0.5rem 0', fontFamily: 'monospace', letterSpacing: '2px', textShadow: '0 0 10px rgba(255,255,255,0.3)' }}>
+                    {formatTime(timeLeft)}
                   </div>
                   <div style={{ marginTop: '0.5rem', width: '100%', maxWidth: '160px', margin: '0.5rem auto' }}>
                     <label style={{ fontSize: '0.7rem', opacity: 0.7, marginBottom: '3px', display: 'block' }}>
@@ -2082,16 +2124,20 @@ const [showCheckoutModal, setShowCheckoutModal] = useState(false);
                       key={src}
                        src={`/assets/${src}`}
                        alt="Healing Visual"
-                       className={`${idx === videoIndex ? 'ken-burns-active' : ''} ${isPaused ? 'paused' : ''}`}
+                       className={idx === videoIndex ? 'active' : ''}
                        style={{
                         position: 'absolute',
                         top: 0, left: 0,
                         width: '100%', height: '100%', 
                         objectFit: 'cover',
                         opacity: idx === videoIndex ? 1 : 0,
-                        transition: 'opacity 2s ease-in-out',
-                        transform: idx === videoIndex ? 'scale(1.1)' : 'scale(1)',
-                         // logic for subtle movement if active
+                        transform: idx === videoIndex 
+                          ? (isPaused ? 'scale(1.05) translate(-0.2%, -0.2%)' : 'scale(1.15) translate(-0.5%, -0.5%)') 
+                          : 'scale(1.02)',
+                        transition: isPaused 
+                          ? 'opacity 2.5s ease-in-out, transform 20s ease-out' 
+                          : 'opacity 2.5s ease-in-out, transform 8.5s ease-out',
+                        pointerEvents: 'none'
                       }}
                     />
                    ))}
@@ -2111,7 +2157,7 @@ const [showCheckoutModal, setShowCheckoutModal] = useState(false);
                 <iframe 
                   width="100%" 
                   height="100%" 
-                  src={`https://www.youtube.com/embed/${videoSrc}?autoplay=${isPaused ? 0 : 1}&mute=1&controls=0&loop=1&playlist=${videoSrc}`} // Control autoplay
+                  src={videoSrc ? `https://www.youtube.com/embed/${videoSrc}?autoplay=${isPaused ? 0 : 1}&mute=1&controls=0&loop=1&playlist=${videoSrc}` : ""} // Control autoplay
                   title="Healing Frequency" 
                   frameBorder="0" 
                   allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
@@ -2126,7 +2172,7 @@ const [showCheckoutModal, setShowCheckoutModal] = useState(false);
                     id="healing-audio-iframe"
                     width="100%" 
                     height="100%" 
-                    src={`https://www.youtube.com/embed/${currentProtocol.audio}?autoplay=${isPaused ? 0 : 1}&mute=1&loop=1&playlist=${currentProtocol.audio}&enablejsapi=1&origin=${window.location.origin}`} // Control autoplay
+                    src={currentProtocol.audio ? `https://www.youtube.com/embed/${currentProtocol.audio}?autoplay=${isPaused ? 0 : 1}&mute=1&loop=1&playlist=${currentProtocol.audio}&enablejsapi=1&origin=${window.location.origin}` : ""} // Control autoplay
                     frameBorder="0" 
                     allow="autoplay; encrypted-media; fullscreen"
                     style={{opacity: 0.01}}
@@ -2151,8 +2197,12 @@ const [showCheckoutModal, setShowCheckoutModal] = useState(false);
             </div>
             <div className="healing-ui">
               <div className="glass healing-status">
-                <div style={{color: currentProtocol.color, fontSize: '1rem', fontWeight: '700', marginBottom: '0.25rem', letterSpacing: '1px'}}>
+                <div style={{color: currentProtocol.color, fontSize: '1.1rem', fontWeight: '700', marginBottom: '0.25rem', letterSpacing: '1px'}}>
                   {currentProtocol.name} ACTIVE
+                </div>
+                {/* Countdown Timer */}
+                <div style={{ fontSize: '1.8rem', fontWeight: '300', color: 'white', margin: '0.5rem 0', fontFamily: 'monospace', letterSpacing: '2px', textShadow: '0 0 10px rgba(255,255,255,0.3)' }}>
+                  {formatTime(timeLeft)}
                 </div>
                 
                 {/* Volume Control */}
@@ -2351,7 +2401,7 @@ const [showCheckoutModal, setShowCheckoutModal] = useState(false);
               onClick={(e) => { e.preventDefault(); setShowMyStories(true); }} 
               style={{ marginLeft: '0.8rem', marginRight: '2rem', cursor: 'pointer' }}
             >
-              Reverie
+              Reflections
             </a>
             
             <button 

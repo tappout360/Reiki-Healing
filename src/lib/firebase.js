@@ -179,11 +179,15 @@ export const db = {
     if (!firestore) return [];
     const q = query(
       collection(firestore, 'stories'),
-      where('status', '==', 'approved'),
-      orderBy('createdAt', 'desc')
+      where('status', '==', 'approved')
     );
     const snap = await getDocs(q);
-    return snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    const data = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    return data.sort((a, b) => {
+      const timeA = a.createdAt?.seconds || (a.timestamp ? new Date(a.timestamp).getTime() / 1000 : 0);
+      const timeB = b.createdAt?.seconds || (b.timestamp ? new Date(b.timestamp).getTime() / 1000 : 0);
+      return timeB - timeA;
+    });
   },
 
   getAllStories: async () => {

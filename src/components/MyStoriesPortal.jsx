@@ -62,7 +62,7 @@ const MyStoriesPortal = ({ onClose }) => {
         >
             <Sparkles size={48} color="var(--accent-gold)" />
         </motion.div>
-        <h2 style={{ fontSize: '3.5rem', color: 'var(--text-main)', marginBottom: '1rem' }}>Collective Reverie</h2>
+        <h2 style={{ fontSize: '3.5rem', color: 'var(--text-main)', marginBottom: '1rem' }}>Collective Reflections</h2>
         <p style={{ color: 'var(--text-muted)', fontSize: '1.2rem', fontStyle: 'italic' }}>
           "Every story is a ripple in the ocean of awakening."
         </p>
