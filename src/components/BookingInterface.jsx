@@ -92,7 +92,7 @@ const BookingInterface = ({ type, onClose }) => {
         toast.success(t('bookingToastWelcomeBack').replace('{name}', match.name));
       }
     }
-  }, [name]);
+  }, [name, t]);
 
   const timeSlots = [
     '10:00 AM', '11:00 AM', '1:00 PM', '2:00 PM', '3:00 PM', '4:00 PM'

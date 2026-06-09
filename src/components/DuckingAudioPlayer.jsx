@@ -213,19 +213,19 @@ const DuckingAudioPlayer = ({
   useEffect(() => {
     const cleanupSynth = () => {
       if (droneOsc1Ref.current) {
-        try { droneOsc1Ref.current.stop(); } catch (e) {}
+        try { droneOsc1Ref.current.stop(); } catch (e) { /* already stopped */ }
         droneOsc1Ref.current = null;
       }
       if (droneOsc2Ref.current) {
-        try { droneOsc2Ref.current.stop(); } catch (e) {}
+        try { droneOsc2Ref.current.stop(); } catch (e) { /* already stopped */ }
         droneOsc2Ref.current = null;
       }
       if (droneOsc3Ref.current) {
-        try { droneOsc3Ref.current.stop(); } catch (e) {}
+        try { droneOsc3Ref.current.stop(); } catch (e) { /* already stopped */ }
         droneOsc3Ref.current = null;
       }
       if (lfoRef.current) {
-        try { lfoRef.current.stop(); } catch (e) {}
+        try { lfoRef.current.stop(); } catch (e) { /* already stopped */ }
         lfoRef.current = null;
       }
       if (synthGainRef.current) {

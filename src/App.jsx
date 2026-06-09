@@ -169,7 +169,7 @@ const protocols = [
     color: '#2980b9',
     borderColor: '#3498db',
     isImmersive: true,
-    active: false,
+    active: true,
     duration: 600,
     video: [
       'quartz_macro_realistic_1769877835658.png',
@@ -236,7 +236,7 @@ const protocols = [
     color: '#f1c40f',
     borderColor: '#d4af37',
     isImmersive: true,
-    active: false,
+    active: true,
     duration: 600,
     video: [
       'citrine_macro.png',
@@ -287,7 +287,7 @@ const protocols = [
     color: '#f39c12',
     borderColor: '#e67e22',
     isImmersive: true,
-    active: false,
+    active: true,
     duration: 900,
     video: [
       'reiki_crown_chakra_light_1770423834100.png',
@@ -312,7 +312,7 @@ const protocols = [
     color: '#1a1a4e',
     borderColor: '#4a2f8a',
     isImmersive: true,
-    active: false,
+    active: true,
     duration: 900,
     video: [
       'sage_protocol_cosmic_alignment_1770424972911.png',
@@ -892,44 +892,7 @@ const [showCheckoutModal, setShowCheckoutModal] = useState(false);
     }
   }, [showPortal]);
 
-  // Sync session duration timer (countdown clock)
-  useEffect(() => {
-    if (showPortal && currentProtocol) {
-      setTimeLeft(currentProtocol.duration || 600);
-    }
-  }, [showPortal, currentProtocol]);
-
-  useEffect(() => {
-    if (showPortal && !isPaused && timeLeft > 0) {
-      const timer = setTimeout(() => {
-        setTimeLeft(prev => prev - 1);
-      }, 1000);
-      return () => clearTimeout(timer);
-    } else if (showPortal && timeLeft === 0) {
-      handleProtocolEnd();
-    }
-  }, [showPortal, isPaused, timeLeft]);
-
-  const formatTime = (secs) => {
-    const mins = Math.floor(secs / 60);
-    const remainder = secs % 60;
-    return `${mins.toString().padStart(2, '0')}:${remainder.toString().padStart(2, '0')}`;
-  };
-
-  const toggleFullscreen = () => {
-    const element = document.getElementById('protocol-portal-root');
-    if (!document.fullscreenElement) {
-      element.requestFullscreen().catch(() => {
-        toast.error("Fullscreen resonance blocked by browser.");
-      });
-      setIsFullscreen(true);
-    } else {
-      document.exitFullscreen();
-      setIsFullscreen(false);
-    }
-  };
-
-  const handleProtocolEnd = () => {
+  const handleProtocolEnd = useCallback(() => {
     setShowPortal(false);
     if (!user) return;
 
@@ -1014,7 +977,46 @@ const [showCheckoutModal, setShowCheckoutModal] = useState(false);
         }, result.newBadges.length > 0 ? 2000 : 500);
       }
     }
+  }, [user, selectedProtocol, gamificationState, setUser, setGamificationState, setShowLevelUp]);
+
+  // Sync session duration timer (countdown clock)
+  useEffect(() => {
+    if (showPortal && currentProtocol) {
+      setTimeLeft(currentProtocol.duration || 600);
+    }
+  }, [showPortal, currentProtocol]);
+
+  useEffect(() => {
+    if (showPortal && !isPaused && timeLeft > 0) {
+      const timer = setTimeout(() => {
+        setTimeLeft(prev => prev - 1);
+      }, 1000);
+      return () => clearTimeout(timer);
+    } else if (showPortal && timeLeft === 0) {
+      handleProtocolEnd();
+    }
+  }, [showPortal, isPaused, timeLeft, handleProtocolEnd]);
+
+  const formatTime = (secs) => {
+    const mins = Math.floor(secs / 60);
+    const remainder = secs % 60;
+    return `${mins.toString().padStart(2, '0')}:${remainder.toString().padStart(2, '0')}`;
   };
+
+  const toggleFullscreen = () => {
+    const element = document.getElementById('protocol-portal-root');
+    if (!document.fullscreenElement) {
+      element.requestFullscreen().catch(() => {
+        toast.error("Fullscreen resonance blocked by browser.");
+      });
+      setIsFullscreen(true);
+    } else {
+      document.exitFullscreen();
+      setIsFullscreen(false);
+    }
+  };
+
+
 
 
 
