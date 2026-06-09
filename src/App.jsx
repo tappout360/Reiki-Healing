@@ -556,6 +556,22 @@ const [showCheckoutModal, setShowCheckoutModal] = useState(false);
   const [gamificationState, setGamificationState] = useState(null);
   const [showLevelUp, setShowLevelUp] = useState(null);
 
+  const currentProtocol = protocols.find(p => p.id === selectedProtocol);
+  const activeProtocols = protocols.filter(p => p.active);
+
+  const selectRandomProtocol = () => {
+    const available = activeProtocols.filter(p => p.id !== selectedProtocol);
+    if (available.length > 0) {
+      const random = getRandomItem(available);
+      setSelectedProtocol(random.id);
+      toast.success(`🎲 Random selection: ${random.name}`);
+    }
+  };
+
+  const videoSrc = Array.isArray(currentProtocol?.video) 
+    ? currentProtocol.video[videoIndex] 
+    : currentProtocol?.video;
+
   // Auto-detect device on resize (orientation changes etc.)
   useEffect(() => {
     const handleResize = () => {
@@ -993,22 +1009,7 @@ const [showCheckoutModal, setShowCheckoutModal] = useState(false);
   };
 
 
-  const currentProtocol = protocols.find(p => p.id === selectedProtocol);
-  const activeProtocols = protocols.filter(p => p.active);
 
-  const selectRandomProtocol = () => {
-    const available = activeProtocols.filter(p => p.id !== selectedProtocol);
-    if (available.length > 0) {
-      const random = getRandomItem(available);
-      setSelectedProtocol(random.id);
-      toast.success(`🎲 Random selection: ${random.name}`);
-    }
-  };
-
-
-  const videoSrc = Array.isArray(currentProtocol?.video) 
-    ? currentProtocol.video[videoIndex] 
-    : currentProtocol?.video;
 
   const handleInstallClick = async () => {
     if (isIOS) {
