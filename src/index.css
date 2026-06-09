@@ -491,6 +491,14 @@ img {
   }
 }
 
+/* ─── Layout Switcher Dropdown (Desktop Preview only) ─── */
+.layout-switcher-dropdown {
+  position: fixed;
+  bottom: 2rem;
+  left: 2rem;
+  z-index: 10002;
+}
+
 /* ─── Device Switcher (Desktop Preview only) ─── */
 .device-switcher {
   position: fixed;
@@ -730,7 +738,8 @@ img {
 
 /* ─── Responsive Adjustments for Mobile Emulation ─── */
 @media (max-width: 1023px) {
-  .device-switcher {
+  .device-switcher,
+  .layout-switcher-dropdown {
     display: none !important;
   }
   .device-container {

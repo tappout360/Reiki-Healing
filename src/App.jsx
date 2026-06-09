@@ -469,6 +469,7 @@ function App() {
   const [showHealerDashboard, setShowHealerDashboard] = useState(false); // Admin access
   const [showAdminLogin, setShowAdminLogin] = useState(false); // NEW: Staff/Admin login
   const [showLegalModal, setShowLegalModal] = useState(null); // 'terms' | 'privacy' | 'disclaimer' | null
+  const [showLayoutDropdown, setShowLayoutDropdown] = useState(false); // Dropdown for viewport mode
   const [bookingType, setBookingType] = useState(null); 
   const [videoIndex, setVideoIndex] = useState(0);
   const [volume, setVolume] = useState(50);
@@ -1376,6 +1377,115 @@ const [showCheckoutModal, setShowCheckoutModal] = useState(false);
     );
   };
 
+  const renderLayoutSwitcher = () => {
+    const activeLabel = {
+      desktop: '💻 Desktop',
+      tablet: '📟 Tablet',
+      mobile: '📱 Mobile'
+    }[viewMode];
+
+    return (
+      <div 
+        className="layout-switcher-dropdown"
+        style={{
+          fontFamily: "'Inter', sans-serif"
+        }}
+      >
+        <button
+          onClick={() => setShowLayoutDropdown(!showLayoutDropdown)}
+          className="glass"
+          style={{
+            padding: '8px 16px',
+            borderRadius: '20px',
+            background: 'rgba(10, 10, 15, 0.85)',
+            border: '1px solid rgba(255, 255, 255, 0.12)',
+            color: 'var(--text-main)',
+            fontWeight: '600',
+            fontSize: '0.85rem',
+            cursor: 'pointer',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px',
+            boxShadow: '0 8px 32px 0 rgba(0, 0, 0, 0.3)',
+            transition: 'all 0.3s ease'
+          }}
+        >
+          <span>{activeLabel}</span>
+          <span style={{ fontSize: '0.7rem', opacity: 0.6 }}>{showLayoutDropdown ? '▼' : '▲'}</span>
+        </button>
+
+        <AnimatePresence>
+          {showLayoutDropdown && (
+            <motion.div
+              initial={{ opacity: 0, y: 10, scale: 0.95 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: 10, scale: 0.95 }}
+              transition={{ duration: 0.15 }}
+              className="glass"
+              style={{
+                position: 'absolute',
+                bottom: 'calc(100% + 8px)',
+                left: 0,
+                width: '160px',
+                background: 'rgba(10, 10, 15, 0.95)',
+                backdropFilter: 'blur(20px)',
+                border: '1px solid rgba(255, 255, 255, 0.08)',
+                borderRadius: '16px',
+                padding: '6px',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '4px',
+                boxShadow: '0 20px 40px rgba(0,0,0,0.5)',
+                zIndex: 10003
+              }}
+            >
+              {[
+                { mode: 'desktop', label: '💻 Desktop' },
+                { mode: 'tablet', label: '📟 Tablet' },
+                { mode: 'mobile', label: '📱 Mobile' }
+              ].map((item) => (
+                <button
+                  key={item.mode}
+                  onClick={() => {
+                    setViewMode(item.mode);
+                    setShowLayoutDropdown(false);
+                  }}
+                  style={{
+                    background: viewMode === item.mode ? 'linear-gradient(135deg, var(--accent-ethereal), var(--accent-neon))' : 'none',
+                    border: 'none',
+                    color: viewMode === item.mode ? 'white' : 'var(--text-main)',
+                    padding: '8px 12px',
+                    fontSize: '0.8rem',
+                    fontWeight: '500',
+                    borderRadius: '10px',
+                    cursor: 'pointer',
+                    textAlign: 'left',
+                    width: '100%',
+                    display: 'flex',
+                    alignItems: 'center',
+                    transition: 'all 0.2s ease'
+                  }}
+                  onMouseOver={(e) => {
+                    if (viewMode !== item.mode) {
+                      e.currentTarget.style.background = 'rgba(255,255,255,0.05)';
+                    }
+                  }}
+                  onMouseOut={(e) => {
+                    if (viewMode !== item.mode) {
+                      e.currentTarget.style.background = 'none';
+                    }
+                  }}
+                >
+                  {item.label}
+                </button>
+              ))}
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
+    );
+  };
+
   const renderComingSoonSection = (isMobileLayout = false) => {
     return (
       <section id="coming-soon" style={{ backgroundColor: 'var(--bg-section-alt)', padding: isMobileLayout ? '3rem 1rem' : '6rem 0', borderTop: '1px solid rgba(255,255,255,0.05)' }}>
@@ -1657,11 +1767,7 @@ const [showCheckoutModal, setShowCheckoutModal] = useState(false);
         </Suspense>
         
         {/* Floating Layout Switcher for Desktop Preview */}
-        <div className="device-switcher">
-          <button className={viewMode === 'desktop' ? 'active' : ''} onClick={() => setViewMode('desktop')}>💻 Desktop</button>
-          <button className={viewMode === 'tablet' ? 'active' : ''} onClick={() => setViewMode('tablet')}>📟 Tablet</button>
-          <button className={viewMode === 'mobile' ? 'active' : ''} onClick={() => setViewMode('mobile')}>📱 Mobile</button>
-        </div>
+        {renderLayoutSwitcher()}
 
         {/* Immersive Playback Portal */}
         {showPortal && currentProtocol && (
@@ -1934,11 +2040,7 @@ const [showCheckoutModal, setShowCheckoutModal] = useState(false);
       <Toaster position="top-center" />
       
       {/* Floating Layout Switcher for Desktop Preview */}
-      <div className="device-switcher">
-        <button className={viewMode === 'desktop' ? 'active' : ''} onClick={() => setViewMode('desktop')}>💻 Desktop</button>
-        <button className={viewMode === 'tablet' ? 'active' : ''} onClick={() => setViewMode('tablet')}>📟 Tablet</button>
-        <button className={viewMode === 'mobile' ? 'active' : ''} onClick={() => setViewMode('mobile')}>📱 Mobile</button>
-      </div>
+      {renderLayoutSwitcher()}
 
       <Stardust />
       {showPortal && currentProtocol && (
