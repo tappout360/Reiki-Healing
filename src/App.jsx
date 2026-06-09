@@ -2280,6 +2280,7 @@ const [showCheckoutModal, setShowCheckoutModal] = useState(false);
             {mainAppContent}
           </div>
         </div>
+        {!disclaimerAccepted && renderGatingDisclaimerModal()}
       </div>
     );
   };
