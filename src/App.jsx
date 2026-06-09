@@ -1944,7 +1944,7 @@ const [showCheckoutModal, setShowCheckoutModal] = useState(false);
             </div>
             {/* Audio Player */}
             <DuckingAudioPlayer 
-              musicSrc={`https://www.youtube.com/embed/${currentProtocol.audio}?autoplay=1&mute=0&enablejsapi=1&origin=${window.location.origin}`}
+              musicSrc={currentProtocol.audio ? `https://www.youtube.com/embed/${currentProtocol.audio}?autoplay=1&mute=0&enablejsapi=1&origin=${window.location.origin}` : ""}
               ambientSrc={currentProtocol.ambient}
               voiceSrc={currentProtocol.voice}
               isPlaying={showPortal && !isPaused}
@@ -2136,7 +2136,7 @@ const [showCheckoutModal, setShowCheckoutModal] = useState(false);
 
               {currentProtocol.isImmersive && (
                 <DuckingAudioPlayer 
-                  musicSrc={`https://www.youtube.com/embed/${currentProtocol.audio}?autoplay=1&mute=0&enablejsapi=1&origin=${window.location.origin}`} // Simplified for mock
+                  musicSrc={currentProtocol.audio ? `https://www.youtube.com/embed/${currentProtocol.audio}?autoplay=1&mute=0&enablejsapi=1&origin=${window.location.origin}` : ""} // Simplified for mock
                   ambientSrc={currentProtocol.ambient}
                   voiceSrc={currentProtocol.voice}
                   isPlaying={showPortal && !isPaused}

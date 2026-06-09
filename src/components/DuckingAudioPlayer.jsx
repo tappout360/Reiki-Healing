@@ -26,6 +26,14 @@ const DuckingAudioPlayer = ({
   const leftOscRef = useRef(null);
   const rightOscRef = useRef(null);
 
+  // Synthesized meditation drone refs
+  const synthGainRef = useRef(null);
+  const droneOsc1Ref = useRef(null);
+  const droneOsc2Ref = useRef(null);
+  const droneOsc3Ref = useRef(null);
+  const droneFilterRef = useRef(null);
+  const lfoRef = useRef(null);
+
   const musicElementRef = useRef(new Audio());
   const ambientElementRef = useRef(new Audio());
   const voiceElementRef = useRef(new Audio());
@@ -177,6 +185,10 @@ const DuckingAudioPlayer = ({
         musicGainRef.current?.gain.linearRampToValueAtTime(targetMusicVol, now + 0.5);
       }
 
+      if (synthGainRef.current) {
+        synthGainRef.current.gain.linearRampToValueAtTime(targetMusicVol * 0.45, now + 0.5);
+      }
+
       ambientGainRef.current?.gain.linearRampToValueAtTime(targetAmbientVol, now + 0.5);
       
       voiceGainRef.current?.gain.setValueAtTime(masterVolume, now);
@@ -196,6 +208,138 @@ const DuckingAudioPlayer = ({
       voiceEl.removeEventListener('timeupdate', handleVolumeShift);
     };
   }, [volume, duckingAmount, musicSrc]);
+
+  // Ambient Synth Drone Management
+  useEffect(() => {
+    const cleanupSynth = () => {
+      if (droneOsc1Ref.current) {
+        try { droneOsc1Ref.current.stop(); } catch (e) {}
+        droneOsc1Ref.current = null;
+      }
+      if (droneOsc2Ref.current) {
+        try { droneOsc2Ref.current.stop(); } catch (e) {}
+        droneOsc2Ref.current = null;
+      }
+      if (droneOsc3Ref.current) {
+        try { droneOsc3Ref.current.stop(); } catch (e) {}
+        droneOsc3Ref.current = null;
+      }
+      if (lfoRef.current) {
+        try { lfoRef.current.stop(); } catch (e) {}
+        lfoRef.current = null;
+      }
+      if (synthGainRef.current) {
+        synthGainRef.current = null;
+      }
+      if (droneFilterRef.current) {
+        droneFilterRef.current = null;
+      }
+    };
+
+    const isYouTube = musicSrc && (musicSrc.includes('youtube.com') || musicSrc.includes('youtu.be'));
+    // Only play synthesized drone if:
+    // 1. We are playing
+    // 2. There is no custom music file (musicSrc is empty/falsy)
+    const shouldPlaySynth = isPlaying && (!musicSrc || musicSrc === "");
+
+    if (!shouldPlaySynth) {
+      cleanupSynth();
+      return;
+    }
+
+    if (!audioContextRef.current) {
+      const AudioContext = window.AudioContext || window.webkitAudioContext;
+      audioContextRef.current = new AudioContext();
+    }
+
+    const ctx = audioContextRef.current;
+    if (ctx.state === 'suspended') {
+      ctx.resume().catch(console.error);
+    }
+
+    cleanupSynth();
+
+    // Create synth gain
+    synthGainRef.current = ctx.createGain();
+    const masterVolume = volume / 100;
+    // Set initial volume soft (e.g. 45% of master volume)
+    synthGainRef.current.gain.setValueAtTime(masterVolume * 0.45, ctx.currentTime);
+    synthGainRef.current.connect(ctx.destination);
+
+    // Create Biquad Filter to keep the drone soft and pillowy
+    const filter = ctx.createBiquadFilter();
+    filter.type = 'lowpass';
+    filter.frequency.setValueAtTime(280, ctx.currentTime); // lowpass filter cutoff
+    filter.Q.setValueAtTime(1.5, ctx.currentTime);
+    filter.connect(synthGainRef.current);
+    droneFilterRef.current = filter;
+
+    // Determine fundamental frequency (shift down to C2-C3 register)
+    let baseFreq = parseFloat(binauralCarrier) || 432;
+    while (baseFreq > 220) {
+      baseFreq /= 2;
+    }
+
+    // Oscillator 1: Fundamental (Sine)
+    const osc1 = ctx.createOscillator();
+    osc1.type = 'sine';
+    osc1.frequency.setValueAtTime(baseFreq, ctx.currentTime);
+
+    // Oscillator 2: Sub-octave (Triangle)
+    const osc2 = ctx.createOscillator();
+    osc2.type = 'triangle';
+    osc2.frequency.setValueAtTime(baseFreq * 0.5, ctx.currentTime);
+
+    // Oscillator 3: Perfect Fifth (Sine)
+    const osc3 = ctx.createOscillator();
+    osc3.type = 'sine';
+    osc3.frequency.setValueAtTime(baseFreq * 1.5, ctx.currentTime);
+
+    // Individual gains
+    const gain1 = ctx.createGain();
+    const gain2 = ctx.createGain();
+    const gain3 = ctx.createGain();
+
+    gain1.gain.setValueAtTime(0.3, ctx.currentTime);
+    gain2.gain.setValueAtTime(0.15, ctx.currentTime);
+    gain3.gain.setValueAtTime(0.2, ctx.currentTime);
+
+    osc1.connect(gain1);
+    osc2.connect(gain2);
+    osc3.connect(gain3);
+
+    gain1.connect(filter);
+    gain2.connect(filter);
+    gain3.connect(filter);
+
+    // LFO for breathing swells
+    const lfo = ctx.createOscillator();
+    lfo.type = 'sine';
+    lfo.frequency.setValueAtTime(0.06, ctx.currentTime); // 0.06 Hz = ~16s swell cycles
+
+    const lfoGain = ctx.createGain();
+    lfoGain.gain.setValueAtTime(0.05, ctx.currentTime); // subtle swell depth
+
+    lfo.connect(lfoGain);
+    lfoGain.connect(gain1.gain); // modulate fundamental swell
+    lfoGain.connect(gain3.gain); // modulate fifth swell
+
+    // Start oscillators
+    const now = ctx.currentTime;
+    osc1.start(now);
+    osc2.start(now);
+    osc3.start(now);
+    lfo.start(now);
+
+    droneOsc1Ref.current = osc1;
+    droneOsc2Ref.current = osc2;
+    droneOsc3Ref.current = osc3;
+    lfoRef.current = lfo;
+
+    return () => {
+      cleanupSynth();
+    };
+  }, [isPlaying, binauralCarrier, musicSrc]);
 
   // Binaural Beat Oscillator Management
   useEffect(() => {
