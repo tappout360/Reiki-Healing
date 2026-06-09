@@ -442,28 +442,7 @@ const SECTIONS = [
 ];
 
 /* ──────────── VIDEO DATA ──────────── */
-const VIDEOS = [
-  {
-    id: 'aEL-yOmMIaI',
-    title: 'What Is Reiki? — Introduction to Energy Healing',
-    category: 'reiki',
-  },
-  {
-    id: 'cWr3bJJl2Xw',
-    title: 'Guided Chakra Meditation for Beginners',
-    category: 'chakras',
-  },
-  {
-    id: '1vx8iUvfyCY',
-    title: 'Crystal Healing 101 — How Crystals Work',
-    category: 'crystals',
-  },
-  {
-    id: '4E1JiDFxFg8',
-    title: 'Reiki in Hospitals — Real Stories',
-    category: 'healthcare',
-  },
-];
+const VIDEOS = [];
 
 /* Category / tab config */
 const TABS = [

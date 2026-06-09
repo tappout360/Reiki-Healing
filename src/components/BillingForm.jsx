@@ -325,24 +325,6 @@ const BillingForm = ({ onSubmit, buttonText = "Subscribe", planId = '1_month', i
           </div>
         )}
 
-        {isFirebaseConfigured() && (
-          <div style={{ textAlign: 'center', marginTop: '1.5rem', borderTop: '1px solid rgba(255,255,255,0.08)', paddingTop: '1rem' }}>
-            <button
-              type="button"
-              onClick={() => setShowMockForm(!showMockForm)}
-              style={{
-                background: 'none',
-                border: 'none',
-                color: 'var(--accent-ethereal)',
-                fontSize: '0.8rem',
-                cursor: 'pointer',
-                textDecoration: 'underline'
-              }}
-            >
-              {showMockForm ? '🔒 Use Stripe Secure Checkout (Production)' : '🛠️ Toggle Demo Checkout (Sandbox)'}
-            </button>
-          </div>
-        )}
       </div>
 
       <p style={{ textAlign: 'center', color: 'var(--text-muted)', fontSize: '0.8rem', marginTop: '1.25rem' }}>

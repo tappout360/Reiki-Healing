@@ -10,7 +10,6 @@ import { Toaster, toast } from 'react-hot-toast'
 import { UserDashboardInline } from './components/UserDashboardInline'
 import { auth, db, isFirebaseConfigured } from './lib/firebase'
 import { loadGamificationState, saveGamificationState, processSessionComplete, syncToFirestore } from './utils/gamification'
-import { seedSandboxData, OWNER_PROFILE, SEEKER_PROFILE } from './utils/sandboxSeeder'
 import './App.css'
 import './components/AuraGuide.css'
 
@@ -157,7 +156,7 @@ const protocols = [
       'energy-portal.png',
       'reiki_crown_chakra_light_1770423834100.png'
     ],
-    audio: 'AW5bH04AoC0', // Violet Flame 528Hz Meditation
+    audio: '', // Violet Flame 528Hz Meditation
     voice: '/assets/amethyst_meditation_voice.mp3', // Mock path for voiceover
     desc: 'Advanced 10-minute deep-field purification. Disintegrates psychic debris and restores neural tranquility via the sacred Violet Flame.',
     tier: 'advanced'
@@ -178,7 +177,7 @@ const protocols = [
       'sage_protocol_crystal_cave_1770441218348.png',
       'sage_sacred_purify_1770423875666.png'
     ],
-    audio: 'h4IzkCm0v_8', // Quartz Lattice 432Hz Meditation
+    audio: '', // Quartz Lattice 432Hz Meditation
     voice: '/assets/quartz_meditation_voice.mp3',
     desc: 'Advanced 10-minute structural alignment. Amplifies mental focus and crystalline clarity through a multi-dimensional bio-field uplift.',
     tier: 'advanced'
@@ -200,7 +199,7 @@ const protocols = [
       'sage_protocol_heart_resonance_1770424959673.png',
       'sage_protocol_heart_glow_1770425071893.png'
     ],
-    audio: 'RLXddqULKX0', // Ethereal Heart Chakra Music 432Hz
+    audio: '', // Ethereal Heart Chakra Music 432Hz
     voice: '/assets/rose_meditation_voice.mp3',
     desc: 'Advanced 10-minute heart-centered journey. Facilitates deep emotional release and compassion through soft radiance and harmonic heart-sync.',
     tier: 'basic'
@@ -221,7 +220,7 @@ const protocols = [
       'sage_protocol_purge_1770423911044.png',
       'forest_natural_path_intelligence_1770423845946.png'
     ],
-    audio: 'thRVM2ZcuaY', // 852Hz Awakening Intuition (Fixed)
+    audio: '', // 852Hz Awakening Intuition (Fixed)
     voice: '/assets/lapis_meditation_voice.mp3',
     desc: 'Advanced 10-minute intuition awakening. Deep-field synchronization for intellectual clarity, inner truth, and higher dimensional awareness.',
     tier: 'basic'
@@ -244,7 +243,7 @@ const protocols = [
       'sage_protocol_sunrise_ocean_1770425084382.png',
       'reiki_crown_chakra_light_1770423834100.png'
     ],
-    audio: 'AW5bH04AoC0', // Solar Plexus 528Hz
+    audio: '', // Solar Plexus 528Hz
     voice: '/assets/citrine_meditation_voice.mp3',
     desc: 'Advanced 10-minute solar-plexus alchemy. Uses the "Merchant\'s Stone" frequency and Sacred Geometry (Flower of Life) to align willpower with divine abundance.',
     tier: 'advanced'
@@ -270,7 +269,7 @@ const protocols = [
       'sage_protocol_dewy_sage_1770425226526.png',
       'sage_protocol_sunrise_ocean_1770425084382.png'
     ],
-    audio: 'f4pvIRG1L6I', // Native American Flute (Background)
+    audio: '', // Native American Flute (Background)
     voice: '/assets/sage_meditation_voice.mp3', // Mock path for voiceover
     desc: 'Advanced 10-minute immersive meditation. Clears deep-seated stress and resets vibrational baseline through sacred smoke and ocean resonance.',
     tier: 'advanced'
@@ -294,7 +293,7 @@ const protocols = [
       'sage_protocol_starlight_ocean_v2_1770441141710.png',
       'sage_sacred_purify_1770423875666.png'
     ],
-    audio: 'AW5bH04AoC0', // Ambient 528Hz background music (ducks when Carissa's voice plays)
+    audio: '', // Ambient 528Hz background music (ducks when Carissa's voice plays)
     voice: '/assets/reiki_meditation_voice.mp3', // Carissa's recorded voiceover — place MP3 here
     desc: 'Immersive 15-minute guided Reiki healing journey. Carissa\'s gentle voice leads you through universal life force energy alignment and deep restoration.',
     tier: 'advanced'
@@ -318,7 +317,7 @@ const protocols = [
       'sage_protocol_heart_glow_1770425071893.png',
       'hero-energy.png'
     ],
-    audio: 'thRVM2ZcuaY', // Ambient orchestral/ethereal background music (ducks when Carissa's voice plays)
+    audio: '', // Ambient orchestral/ethereal background music (ducks when Carissa's voice plays)
     voice: '/assets/celestial_meditation_voice.mp3', // Carissa's recorded voiceover — place MP3 here
     desc: '15-minute cinematic "Zodiac Awakening" — Carissa guides you through a Fantasia-inspired orchestra of gemstones, constellations, and healing aura.',
     tier: 'advanced'
@@ -454,172 +453,7 @@ const SacredReflections = () => {
 };
 
 
-// Floating Sandbox panel visible in local development or Vercel preview environments when Firebase is not configured
-const SandboxPanel = ({ user, setUser, onLogout }) => {
-  const [isOpen, setIsOpen] = useState(false);
-  const isConfigured = isFirebaseConfigured();
 
-  // If Firebase is configured, do not show sandbox tool
-  if (isConfigured) return null;
-
-  const handleSeedAndLogin = (persona) => {
-    // 1. Seed simulated localStorage DB
-    seedSandboxData();
-    
-    // 2. Select persona profile
-    const profile = persona === 'owner' ? OWNER_PROFILE : SEEKER_PROFILE;
-    
-    // 3. Set profile in localStorage & React state
-    localStorage.setItem('user_profile', JSON.stringify(profile));
-    setUser(profile);
-    
-    toast.success(`Sandbox seeded! Logged in as ${profile.name}.`, {
-      icon: '✨',
-      duration: 4000
-    });
-    
-    setIsOpen(false);
-    setTimeout(() => {
-      window.location.reload();
-    }, 1000);
-  };
-
-  const handleResetSandbox = () => {
-    localStorage.clear();
-    onLogout();
-    toast.success("Sandbox reset. All simulated data cleared.");
-    setIsOpen(false);
-    setTimeout(() => {
-      window.location.reload();
-    }, 1000);
-  };
-
-  return (
-    <div style={{
-      position: 'fixed',
-      bottom: '2rem',
-      left: '2rem',
-      zIndex: 99999, // Super high z-index
-      fontFamily: "'Inter', sans-serif"
-    }}>
-      <AnimatePresence>
-        {isOpen && (
-          <motion.div
-            initial={{ opacity: 0, y: 20, scale: 0.95 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: 20, scale: 0.95 }}
-            className="glass"
-            style={{
-              padding: '1.5rem',
-              borderRadius: '20px',
-              border: '1px solid rgba(212, 175, 55, 0.3)',
-              background: 'rgba(15, 15, 25, 0.95)',
-              backdropFilter: 'blur(20px)',
-              width: '300px',
-              marginBottom: '1rem',
-              boxShadow: '0 20px 50px rgba(0,0,0,0.6)'
-            }}
-          >
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
-              <h4 style={{ margin: 0, color: 'var(--accent-gold)', display: 'flex', alignItems: 'center', gap: '8px', fontSize: '1rem' }}>
-                <Sparkles size={16} /> Sandbox Simulator
-              </h4>
-              <span style={{ fontSize: '0.65rem', background: 'rgba(255,255,255,0.05)', padding: '2px 8px', borderRadius: '10px', color: 'rgba(255,255,255,0.4)', fontWeight: 'bold' }}>DEMO</span>
-            </div>
-            
-            <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', margin: '0 0 1rem 0', lineHeight: '1.4' }}>
-              Firebase is offline or not configured. Use this simulator to populate mock bookings, reviews, healer apps, and profiles.
-            </p>
-
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.8rem' }}>
-              <button 
-                onClick={() => handleSeedAndLogin('owner')}
-                className="btn"
-                style={{ 
-                  background: 'rgba(212, 175, 55, 0.1)', 
-                  border: '1px solid var(--accent-gold)', 
-                  color: 'var(--accent-gold)',
-                  fontSize: '0.8rem',
-                  padding: '0.7rem',
-                  fontWeight: 'bold',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  gap: '8px',
-                  width: '100%',
-                  cursor: 'pointer'
-                }}
-              >
-                <span>✨ Owner View (Carissa)</span>
-              </button>
-
-              <button 
-                onClick={() => handleSeedAndLogin('seeker')}
-                className="btn"
-                style={{ 
-                  background: 'rgba(160, 210, 235, 0.1)', 
-                  border: '1px solid var(--accent-ethereal)', 
-                  color: 'var(--accent-ethereal)',
-                  fontSize: '0.8rem',
-                  padding: '0.7rem',
-                  fontWeight: 'bold',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  gap: '8px',
-                  width: '100%',
-                  cursor: 'pointer'
-                }}
-              >
-                <span>🌙 Seeker View (Aria)</span>
-              </button>
-
-              <button 
-                onClick={handleResetSandbox}
-                className="btn"
-                style={{ 
-                  background: 'rgba(255, 118, 117, 0.1)', 
-                  border: '1px solid #ff7675', 
-                  color: '#ff7675',
-                  fontSize: '0.8rem',
-                  padding: '0.6rem',
-                  width: '100%',
-                  cursor: 'pointer',
-                  borderRadius: '8px'
-                }}
-              >
-                Reset Sandbox DB
-              </button>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      <motion.button
-        whileHover={{ scale: 1.05 }}
-        whileTap={{ scale: 0.95 }}
-        onClick={() => setIsOpen(!isOpen)}
-        className="glass"
-        style={{
-          padding: '10px 20px',
-          borderRadius: '30px',
-          background: 'rgba(212, 175, 55, 0.15)',
-          border: '1px solid var(--accent-gold)',
-          color: 'var(--accent-gold)',
-          fontWeight: 'bold',
-          fontSize: '0.8rem',
-          cursor: 'pointer',
-          boxShadow: '0 10px 30px rgba(0,0,0,0.3)',
-          display: 'flex',
-          alignItems: 'center',
-          gap: '8px'
-        }}
-      >
-        <Sparkles size={14} /> {isOpen ? "Close Simulator" : "✨ Enter Demo Sandbox"}
-      </motion.button>
-    </div>
-  );
-};
 
 
 function App() {
@@ -1545,35 +1379,43 @@ const [showCheckoutModal, setShowCheckoutModal] = useState(false);
   const renderComingSoonSection = (isMobileLayout = false) => {
     return (
       <section id="coming-soon" style={{ backgroundColor: 'var(--bg-section-alt)', padding: isMobileLayout ? '3rem 1rem' : '6rem 0', borderTop: '1px solid rgba(255,255,255,0.05)' }}>
-        <div className="container" style={{ textAlign: 'center', maxWidth: '800px', margin: '0 auto' }}>
+        <div className="container" style={{ textAlign: 'center', maxWidth: '1000px', margin: '0 auto' }}>
           <span style={{ fontSize: '0.75rem', color: 'var(--accent-gold)', fontWeight: 'bold', letterSpacing: '2px', textTransform: 'uppercase', display: 'block', marginBottom: '1rem' }}>✦ Cosmic Expansion Teaser ✦</span>
           <h2 style={{ fontSize: isMobileLayout ? '1.8rem' : '2.5rem', fontFamily: 'Playfair Display', color: 'var(--text-main)', marginBottom: '1.25rem' }}>Coming Soon to the Sanctuary</h2>
           <p style={{ color: 'var(--text-muted)', marginBottom: '2.5rem', fontSize: '0.9rem', lineHeight: '1.6' }}>
             We are hard at work engineering new dimensions of energetic connection. Soon, you will be able to unlock the full potential of your spiritual journey through:
           </p>
 
-          <div style={{ display: 'grid', gridTemplateColumns: isMobileLayout ? '1fr' : 'repeat(3, 1fr)', gap: '1.5rem', textAlign: 'left' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: isMobileLayout ? '1fr' : 'repeat(4, 1fr)', gap: '1.5rem', textAlign: 'left' }}>
             <div className="glass" style={{ padding: '1.5rem', borderRadius: '20px', border: '1px solid rgba(255,255,255,0.05)' }}>
-              <div style={{ fontSize: '1.8rem', marginBottom: '0.75rem' }}>📱</div>
-              <h4 style={{ color: 'var(--accent-gold)', marginBottom: '0.5rem', fontSize: '1rem' }}>Mobile App</h4>
+              <div style={{ fontSize: '1.8rem', marginBottom: '0.75rem' }}>📈</div>
+              <h4 style={{ color: 'var(--accent-gold)', marginBottom: '0.5rem', fontSize: '1rem' }}>Personal Profiles</h4>
               <p style={{ fontSize: '0.78rem', color: 'var(--text-muted)', lineHeight: '1.5', margin: 0 }}>
-                Bring the sanctuary with you on the go. Native iOS & Android experience with real-time push notifications and offline meditation sync.
-              </p>
-            </div>
-            
-            <div className="glass" style={{ padding: '1.5rem', borderRadius: '20px', border: '1px solid rgba(255,255,255,0.05)' }}>
-              <div style={{ fontSize: '1.8rem', marginBottom: '0.75rem' }}>🎙️</div>
-              <h4 style={{ color: 'var(--accent-gold)', marginBottom: '0.5rem', fontSize: '1rem' }}>Voice Reflections</h4>
-              <p style={{ fontSize: '0.78rem', color: 'var(--text-muted)', lineHeight: '1.5', margin: 0 }}>
-                Record and revisit your spiritual journey. Keep an audio journal of your meditations, transcending them automatically into your dashboard.
+                Track your daily alignment scores, meditation streaks, and review your historical biofield calibration logs with deep statistics.
               </p>
             </div>
 
             <div className="glass" style={{ padding: '1.5rem', borderRadius: '20px', border: '1px solid rgba(255,255,255,0.05)' }}>
-              <div style={{ fontSize: '1.8rem', marginBottom: '0.75rem' }}>🌍</div>
-              <h4 style={{ color: 'var(--accent-gold)', marginBottom: '0.5rem', fontSize: '1rem' }}>Multi-Language</h4>
+              <div style={{ fontSize: '1.8rem', marginBottom: '0.75rem' }}>✨</div>
+              <h4 style={{ color: 'var(--accent-gold)', marginBottom: '0.5rem', fontSize: '1rem' }}>Avatar & Gamification</h4>
               <p style={{ fontSize: '0.78rem', color: 'var(--text-muted)', lineHeight: '1.5', margin: 0 }}>
-                Expand collective healing globally with translations for all interactive guides, resonance meditations, and healer communications.
+                Evolve your personal energetic avatar, unlock ancient celestial badges, and complete daily mindfulness challenges to increase attributes.
+              </p>
+            </div>
+            
+            <div className="glass" style={{ padding: '1.5rem', borderRadius: '20px', border: '1px solid rgba(255,255,255,0.05)' }}>
+              <div style={{ fontSize: '1.8rem', marginBottom: '0.75rem' }}>🤝</div>
+              <h4 style={{ color: 'var(--accent-gold)', marginBottom: '0.5rem', fontSize: '1rem' }}>Energetic Community</h4>
+              <p style={{ fontSize: '0.78rem', color: 'var(--text-muted)', lineHeight: '1.5', margin: 0 }}>
+                Join group resonance portals, share reflections in the collective feed, and coordinate spiritual intentions with seekers worldwide.
+              </p>
+            </div>
+
+            <div className="glass" style={{ padding: '1.5rem', borderRadius: '20px', border: '1px solid rgba(255,255,255,0.05)' }}>
+              <div style={{ fontSize: '1.8rem', marginBottom: '0.75rem' }}>👑</div>
+              <h4 style={{ color: 'var(--accent-gold)', marginBottom: '0.5rem', fontSize: '1rem' }}>Premium Memberships</h4>
+              <p style={{ fontSize: '0.78rem', color: 'var(--text-muted)', lineHeight: '1.5', margin: 0 }}>
+                Access recorded guided meditations, cosmic frequency sound baths, and masterclasses from certified Reiki masters on demand.
               </p>
             </div>
           </div>
@@ -2024,11 +1866,6 @@ const [showCheckoutModal, setShowCheckoutModal] = useState(false);
               }}
               protocols={protocolList}
               onToggleProtocol={handleToggleProtocol}
-              healerAppsEnabled={healerAppsEnabled}
-              onToggleHealerApps={(val) => {
-                setHealerAppsEnabled(val);
-                localStorage.setItem('aura_applications_enabled', val);
-              }}
             />
           )}
           {showSubscriptionPage && <SubscriptionPage onClose={() => setShowSubscriptionPage(false)} user={user} onUpdateUser={handleUpdateUser} />}
@@ -2880,9 +2717,38 @@ const [showCheckoutModal, setShowCheckoutModal] = useState(false);
 
       {renderComingSoonSection(false)}
 
+      {/* Admin Login Modal */}
+      <Suspense fallback={null}>
+        {showAdminLogin && (
+          <AdminLogin 
+            onLogin={() => {
+              setShowAdminLogin(false);
+              setShowHealerDashboard(true);
+              toast.success("Welcome back, Healer.");
+            }} 
+            onClose={() => setShowAdminLogin(false)} 
+          />
+        )}
+      </Suspense>
+
       {/* Science Modal */}
       <Suspense fallback={<LoadingSpinner />}>
         {showScience && <ScienceModal onClose={() => setShowScience(false)} />}
+      </Suspense>
+
+      {/* Admin Dashboard */}
+      <Suspense fallback={<LoadingSpinner />}>
+        {showHealerDashboard && (
+          <HealerDashboard 
+            onClose={() => setShowHealerDashboard(false)} 
+            onJoinPortal={(session) => {
+              setActiveSession(session);
+              setShowLivePortal(true);
+            }}
+            protocols={protocolList}
+            onToggleProtocol={handleToggleProtocol}
+          />
+        )}
       </Suspense>
 
       {/* Dedicated Subscription Page */}
@@ -3226,8 +3092,6 @@ const [showCheckoutModal, setShowCheckoutModal] = useState(false);
                 setActiveSession(session);
                 setShowLivePortal(true);
               }}
-              protocols={protocolList}
-              onToggleProtocol={handleToggleProtocol}
             />
           )}
         </AnimatePresence>
@@ -3292,8 +3156,7 @@ const [showCheckoutModal, setShowCheckoutModal] = useState(false);
         </div>
       )}
 
-      {/* Floating Sandbox Simulator Panel */}
-      <SandboxPanel user={user} setUser={setUser} onLogout={handleLogout} />
+
 
     </div>
   )

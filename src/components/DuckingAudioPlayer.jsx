@@ -31,7 +31,7 @@ const DuckingAudioPlayer = ({
   const voiceElementRef = useRef(new Audio());
 
   useEffect(() => {
-    const isYouTube = musicSrc.includes('youtube.com') || musicSrc.includes('youtu.be');
+    const isYouTube = musicSrc && (musicSrc.includes('youtube.com') || musicSrc.includes('youtu.be'));
     
     // Initialize Web Audio API only if it doesn't exist
     if (!audioContextRef.current) {
@@ -76,12 +76,12 @@ const DuckingAudioPlayer = ({
       ambientElementRef.current.src = "";
     }
 
-    if (!isYouTube) {
+    if (!isYouTube && musicSrc) {
       musicElementRef.current.loop = true;
       musicElementRef.current.crossOrigin = "anonymous";
       musicElementRef.current.src = musicSrc;
     } else {
-      // Clear music element if switching to YouTube to avoid background play from previous protocol
+      // Clear music element if switching to YouTube or if empty to avoid background play
       musicElementRef.current.pause();
       musicElementRef.current.src = "";
     }
@@ -92,7 +92,7 @@ const DuckingAudioPlayer = ({
   }, [musicSrc, ambientSrc, voiceSrc]);
 
   useEffect(() => {
-    const isYouTube = musicSrc.includes('youtube.com') || musicSrc.includes('youtu.be');
+    const isYouTube = musicSrc && (musicSrc.includes('youtube.com') || musicSrc.includes('youtu.be'));
     
     if (isPlaying) {
       const startPlayback = async () => {
@@ -101,7 +101,7 @@ const DuckingAudioPlayer = ({
             await audioContextRef.current.resume();
           }
           
-          if (!isYouTube && musicElementRef.current.src) {
+          if (!isYouTube && musicSrc && musicElementRef.current.src) {
             await musicElementRef.current.play();
           }
 
@@ -140,7 +140,7 @@ const DuckingAudioPlayer = ({
 
   useEffect(() => {
     const masterVolume = volume / 100;
-    const isYouTube = musicSrc.includes('youtube.com') || musicSrc.includes('youtu.be');
+    const isYouTube = musicSrc && (musicSrc.includes('youtube.com') || musicSrc.includes('youtu.be'));
     
     // Set volumes with smooth transitions
     const now = audioContextRef.current?.currentTime || 0;

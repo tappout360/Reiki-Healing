@@ -767,59 +767,47 @@ const UserDashboard = ({ user, onClose, onUpdateUser, onNavigateToBooking, onNav
                     </div>
                     
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                       {(() => {
-                           const allBookings = JSON.parse(localStorage.getItem('aura_bookings') || '[]');
-                           const myBookings = allBookings.filter(b => {
-                               const email = b.client?.email || b.customerEmail || '';
-                               return email.toLowerCase() === user.email.toLowerCase();
-                           });
-                           
-                           if (myBookings.length === 0) {
-                               return (
-                                   <div style={{ padding: '1.5rem', textAlign: 'center', opacity: 0.5, fontSize: '0.85rem' }}>
-                                       No upcoming sessions found in the ether.
-                                   </div>
-                               );
-                           }
-
-                           // Show up to 2 upcoming bookings
-                           return myBookings.slice(0, 2).map(b => {
-                               const dateObj = new Date(b.date || b.bookingDate);
-                               const month = isNaN(dateObj.getTime()) ? 'CAL' : dateObj.toLocaleString('default', { month: 'short' }).toUpperCase();
-                               const day = isNaN(dateObj.getTime()) ? '•' : dateObj.getDate();
-                               const title = b.type || (b.serviceType === 'onsite' || b.sessionType === 'visit' ? 'On-Site Session' : 'Live Portal Session');
-                               const timeStr = b.time || b.bookingTime || b.timeSlot;
-
-                               return (
-                                   <div key={b.id} style={{ display: 'flex', gap: '1rem', alignItems: 'center', paddingBottom: '1rem', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
-                                      <div style={{ textAlign: 'center', width: '40px' }}>
-                                         <div style={{ fontSize: '0.7rem', color: 'rgba(255,255,255,0.4)' }}>{month}</div>
-                                         <div style={{ fontSize: '1.2rem', fontWeight: 'bold' }}>{day}</div>
-                                      </div>
-                                       <div style={{ flex: 1 }}>
-                                          <div style={{ fontSize: '0.9rem', fontWeight: 'bold' }}>{title}</div>
-                                          <div style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.4)' }}>{timeStr} • {b.status.toUpperCase()}</div>
-                                       </div>
-                                       {b.sessionCode && b.status === 'accepted' && (
-                                           <button 
-                                             onClick={() => onJoinLivePortal(b)}
-                                             className="btn"
-                                             style={{ 
-                                               fontSize: '0.7rem', 
-                                               padding: '5px 12px', 
-                                               background: 'var(--accent-gold)', 
-                                               color: '#000',
-                                               fontWeight: 'bold',
-                                               borderRadius: '20px'
-                                             }}
-                                           >
-                                             JOIN
-                                           </button>
-                                       )}
-                                    </div>
-                               );
-                           });
-                       })()}
+                       <div style={{ display: 'flex', gap: '1rem', alignItems: 'center', paddingBottom: '1rem', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
+                          <div style={{ textAlign: 'center', width: '40px' }}>
+                             <div style={{ fontSize: '0.7rem', color: 'rgba(255,255,255,0.4)' }}>FEB</div>
+                             <div style={{ fontSize: '1.2rem', fontWeight: 'bold' }}>12</div>
+                          </div>
+                           <div style={{ flex: 1 }}>
+                              <div style={{ fontSize: '0.9rem', fontWeight: 'bold' }}>Rose Quartz Rehearsal</div>
+                              <div style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.4)' }}>Digital Portal Transmission</div>
+                           </div>
+                           <button 
+                             onClick={() => onJoinLivePortal({ id: 1, title: 'Rose Quartz Rehearsal' })}
+                             className="btn"
+                             style={{ 
+                               fontSize: '0.7rem', 
+                               padding: '5px 12px', 
+                               background: 'var(--accent-gold)', 
+                               color: '#000',
+                               fontWeight: 'bold',
+                               borderRadius: '20px'
+                             }}
+                           >
+                             JOIN
+                           </button>
+                        </div>
+                        <motion.div 
+                         whileHover={{ x: 5, background: 'rgba(255,255,255,0.02)' }}
+                         style={{ display: 'flex', gap: '1rem', alignItems: 'center', padding: '0.5rem', borderRadius: '8px', cursor: 'pointer' }}
+                         onClick={() => onJoinLivePortal({ id: 2, title: 'Amethyst Attunement' })}
+                        >
+                           <div style={{ textAlign: 'center', width: '40px' }}>
+                              <div style={{ fontSize: '0.7rem', color: 'rgba(255,255,255,0.4)' }}>FEB</div>
+                              <div style={{ fontSize: '1.2rem', fontWeight: 'bold' }}>24</div>
+                           </div>
+                           <div style={{ flex: 1 }}>
+                              <div style={{ fontSize: '0.9rem', fontWeight: 'bold' }}>Amethyst Attunement</div>
+                              <div style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.4)' }}>High-Frequency Stream</div>
+                           </div>
+                           <div style={{ fontSize: '0.65rem', color: 'var(--accent-gold)', border: '1px solid var(--accent-gold)', padding: '2px 8px', borderRadius: '10px' }}>
+                             ENTER
+                           </div>
+                        </motion.div>
                     </div>
 
                     <button 
@@ -959,8 +947,8 @@ const UserDashboard = ({ user, onClose, onUpdateUser, onNavigateToBooking, onNav
                         const allBookings = JSON.parse(localStorage.getItem('aura_bookings') || '[]');
                         const myBookings = allBookings.filter(b => {
                             const email = b.client?.email || b.customerEmail || '';
-                            return email.toLowerCase() === user.email.toLowerCase();
-                        });
+                             return user?.email && email.toLowerCase() === user.email.toLowerCase();
+                         });
                         
                         if (myBookings.length === 0) {
                             return <div style={{padding: '3rem', textAlign: 'center', opacity: 0.5}}>No upcoming sessions found in the ether.</div>;
