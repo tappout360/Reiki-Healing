@@ -1745,40 +1745,42 @@ const HealerDashboard = ({ onClose, onJoinPortal, healerAppsEnabled = false, onT
                 </div>
               </div>
 
-              <div style={{marginTop: '4rem', padding: '2rem', border: '1px solid rgba(255,0,0,0.1)', borderRadius: '15px', background: 'rgba(255,0,0,0.05)'}}>
-                <h4 style={{color: '#ff7675', marginBottom: '1rem'}}>Developer Tools</h4>
-                <p style={{fontSize: '0.8rem', opacity: 0.7, marginBottom: '1.5rem'}}>Populate the sanctuary with test spirits to verify system flow.</p>
-                <button 
-                  onClick={seedMockData}
-                  className="btn" 
-                  style={{background: 'rgba(212, 175, 55, 0.1)', border: '1px solid var(--accent-gold)', color: 'var(--accent-gold)', marginRight: '1rem'}}
-                >
-                  Seed Mock Data
-                </button>
-                <button 
-                  onClick={() => {
-                    const confirmClear = window.confirm("CAUTION: This will clear ALL sanctuary memory. Would you like to export a backup first?");
-                    if (confirmClear) {
-                        handleExportLogs(); // Trigger log export
-                        handleExportApplications(); // Trigger app export
-                        setTimeout(() => {
-                           localStorage.clear();
-                           window.location.reload();
-                        }, 1000);
-                    } else {
-                        const finalConfirm = window.confirm("Are you SURE you want to clear all data without a backup?");
-                        if (finalConfirm) {
-                            localStorage.clear();
-                            window.location.reload();
-                        }
-                    }
-                  }}
-                  className="btn" 
-                  style={{background: 'rgba(255,118,117,0.1)', border: '1px solid #ff7675', color: '#ff7675'}}
-                >
-                  Clear Sanctuary Memory
-                </button>
-              </div>
+              {import.meta.env.DEV && (
+                <div style={{marginTop: '4rem', padding: '2rem', border: '1px solid rgba(255,0,0,0.1)', borderRadius: '15px', background: 'rgba(255,0,0,0.05)'}}>
+                  <h4 style={{color: '#ff7675', marginBottom: '1rem'}}>Developer Tools</h4>
+                  <p style={{fontSize: '0.8rem', opacity: 0.7, marginBottom: '1.5rem'}}>Populate the sanctuary with test spirits to verify system flow.</p>
+                  <button 
+                    onClick={seedMockData}
+                    className="btn" 
+                    style={{background: 'rgba(212, 175, 55, 0.1)', border: '1px solid var(--accent-gold)', color: 'var(--accent-gold)', marginRight: '1rem'}}
+                  >
+                    Seed Mock Data
+                  </button>
+                  <button 
+                    onClick={() => {
+                      const confirmClear = window.confirm("CAUTION: This will clear ALL sanctuary memory. Would you like to export a backup first?");
+                      if (confirmClear) {
+                          handleExportLogs(); // Trigger log export
+                          handleExportApplications(); // Trigger app export
+                          setTimeout(() => {
+                             localStorage.clear();
+                             window.location.reload();
+                          }, 1000);
+                      } else {
+                          const finalConfirm = window.confirm("Are you SURE you want to clear all data without a backup?");
+                          if (finalConfirm) {
+                              localStorage.clear();
+                              window.location.reload();
+                          }
+                      }
+                    }}
+                    className="btn" 
+                    style={{background: 'rgba(255,118,117,0.1)', border: '1px solid #ff7675', color: '#ff7675'}}
+                  >
+                    Clear Sanctuary Memory
+                  </button>
+                </div>
+              )}
             </div>
           )}
         </div>

@@ -1554,26 +1554,26 @@ const [showCheckoutModal, setShowCheckoutModal] = useState(false);
 
           <div style={{ display: 'grid', gridTemplateColumns: isMobileLayout ? '1fr' : 'repeat(3, 1fr)', gap: '1.5rem', textAlign: 'left' }}>
             <div className="glass" style={{ padding: '1.5rem', borderRadius: '20px', border: '1px solid rgba(255,255,255,0.05)' }}>
-              <div style={{ fontSize: '1.8rem', marginBottom: '0.75rem' }}>📈</div>
-              <h4 style={{ color: 'var(--accent-gold)', marginBottom: '0.5rem', fontSize: '1rem' }}>Personal Profiles</h4>
+              <div style={{ fontSize: '1.8rem', marginBottom: '0.75rem' }}>📱</div>
+              <h4 style={{ color: 'var(--accent-gold)', marginBottom: '0.5rem', fontSize: '1rem' }}>Mobile App</h4>
               <p style={{ fontSize: '0.78rem', color: 'var(--text-muted)', lineHeight: '1.5', margin: 0 }}>
-                Track your daily alignment scores, meditation streaks, and review your historical biofield calibration logs with deep statistics.
+                Bring the sanctuary with you on the go. Native iOS & Android experience with real-time push notifications and offline meditation sync.
               </p>
             </div>
             
             <div className="glass" style={{ padding: '1.5rem', borderRadius: '20px', border: '1px solid rgba(255,255,255,0.05)' }}>
-              <div style={{ fontSize: '1.8rem', marginBottom: '0.75rem' }}>🤝</div>
-              <h4 style={{ color: 'var(--accent-gold)', marginBottom: '0.5rem', fontSize: '1rem' }}>Energetic Community</h4>
+              <div style={{ fontSize: '1.8rem', marginBottom: '0.75rem' }}>🎙️</div>
+              <h4 style={{ color: 'var(--accent-gold)', marginBottom: '0.5rem', fontSize: '1rem' }}>Voice Reflections</h4>
               <p style={{ fontSize: '0.78rem', color: 'var(--text-muted)', lineHeight: '1.5', margin: 0 }}>
-                Join group resonance portals, share reflections in the collective feed, and coordinate spiritual intentions with seekers worldwide.
+                Record and revisit your spiritual journey. Keep an audio journal of your meditations, transcending them automatically into your dashboard.
               </p>
             </div>
 
             <div className="glass" style={{ padding: '1.5rem', borderRadius: '20px', border: '1px solid rgba(255,255,255,0.05)' }}>
-              <div style={{ fontSize: '1.8rem', marginBottom: '0.75rem' }}>👑</div>
-              <h4 style={{ color: 'var(--accent-gold)', marginBottom: '0.5rem', fontSize: '1rem' }}>Premium Memberships</h4>
+              <div style={{ fontSize: '1.8rem', marginBottom: '0.75rem' }}>🌍</div>
+              <h4 style={{ color: 'var(--accent-gold)', marginBottom: '0.5rem', fontSize: '1rem' }}>Multi-Language</h4>
               <p style={{ fontSize: '0.78rem', color: 'var(--text-muted)', lineHeight: '1.5', margin: 0 }}>
-                Access recorded guided meditations, cosmic frequency sound baths, and masterclasses from certified Reiki masters on demand.
+                Expand collective healing globally with translations for all interactive guides, resonance meditations, and healer communications.
               </p>
             </div>
           </div>
@@ -2024,6 +2024,11 @@ const [showCheckoutModal, setShowCheckoutModal] = useState(false);
               }}
               protocols={protocolList}
               onToggleProtocol={handleToggleProtocol}
+              healerAppsEnabled={healerAppsEnabled}
+              onToggleHealerApps={(val) => {
+                setHealerAppsEnabled(val);
+                localStorage.setItem('aura_applications_enabled', val);
+              }}
             />
           )}
           {showSubscriptionPage && <SubscriptionPage onClose={() => setShowSubscriptionPage(false)} user={user} onUpdateUser={handleUpdateUser} />}
@@ -2041,7 +2046,7 @@ const [showCheckoutModal, setShowCheckoutModal] = useState(false);
           )}
           {showLoginModal && (
             <Login 
-              onLogin={(loggedInUser) => {
+              onLoginSuccess={(loggedInUser) => {
                 setUser(loggedInUser);
                 localStorage.setItem('user_profile', JSON.stringify(loggedInUser));
                 setShowLoginModal(false);
@@ -2875,38 +2880,9 @@ const [showCheckoutModal, setShowCheckoutModal] = useState(false);
 
       {renderComingSoonSection(false)}
 
-      {/* Admin Login Modal */}
-      <Suspense fallback={null}>
-        {showAdminLogin && (
-          <AdminLogin 
-            onLogin={() => {
-              setShowAdminLogin(false);
-              setShowHealerDashboard(true);
-              toast.success("Welcome back, Healer.");
-            }} 
-            onClose={() => setShowAdminLogin(false)} 
-          />
-        )}
-      </Suspense>
-
       {/* Science Modal */}
       <Suspense fallback={<LoadingSpinner />}>
         {showScience && <ScienceModal onClose={() => setShowScience(false)} />}
-      </Suspense>
-
-      {/* Admin Dashboard */}
-      <Suspense fallback={<LoadingSpinner />}>
-        {showHealerDashboard && (
-          <HealerDashboard 
-            onClose={() => setShowHealerDashboard(false)} 
-            onJoinPortal={(session) => {
-              setActiveSession(session);
-              setShowLivePortal(true);
-            }}
-            protocols={protocolList}
-            onToggleProtocol={handleToggleProtocol}
-          />
-        )}
       </Suspense>
 
       {/* Dedicated Subscription Page */}
@@ -3250,6 +3226,8 @@ const [showCheckoutModal, setShowCheckoutModal] = useState(false);
                 setActiveSession(session);
                 setShowLivePortal(true);
               }}
+              protocols={protocolList}
+              onToggleProtocol={handleToggleProtocol}
             />
           )}
         </AnimatePresence>
