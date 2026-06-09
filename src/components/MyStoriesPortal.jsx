@@ -126,8 +126,11 @@ const MyStoriesPortal = ({ onClose }) => {
         textAlign: 'center'
       }}>
         <h3 style={{ color: 'var(--accent-gold)', marginBottom: '1rem' }}>Share Your Resonance</h3>
-        <p style={{ color: 'var(--text-muted)', marginBottom: '2.5rem' }}>
-          Have you experienced a moment of profound alignment in the Sanctuary? Share your journey to inspire others.
+        <p style={{ color: 'var(--text-muted)', marginBottom: '2.5rem', fontSize: '0.9rem', lineHeight: '1.5' }}>
+          Have you experienced a moment of profound alignment in the Sanctuary? Share your journey to inspire others.<br />
+          <span style={{ fontSize: '0.8rem', opacity: 0.7, color: 'var(--accent-gold)' }}>
+            ★ Submitted reflections are securely reviewed by Carissa or certified healers before releasing into the collective resonance.
+          </span>
         </p>
 
         <form 
