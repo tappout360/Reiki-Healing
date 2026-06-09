@@ -185,7 +185,7 @@ const AIHealerInterface = ({ user, onClose, onOpenBooking, onOpenLogin, onApply 
         if (blocked.length > 0) {
             availabilityNote = " Please note that the sanctuary is currently closed on: " + blocked.slice(0, 3).join(', ') + ".";
         }
-        return "The universe aligns through timing. You can set an appointment for In-Person Healing or a Remote Portal Session using the 'Set Appointment' button at the top. Shall I help you navigate there?" + availabilityNote;
+        return "The universe aligns through timing. You can set an appointment for In-Person Healing or a Remote Portal Session using the 'Book a Session' button at the top. Shall I help you navigate there?" + availabilityNote;
     }
 
     if (q.includes('horoscope') || q.includes('alignment') || q.includes('reading') || q.includes('zodiac')) {

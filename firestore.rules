@@ -7,23 +7,29 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // Helper: check if the user is an admin/owner
+    // Helper: check if the user is an admin/owner (exclusively Jason & Carissa)
     function isAdmin() {
       return request.auth != null &&
-        get(/databases/$(database)/documents/profiles/$(request.auth.uid)).data.role in ['admin', 'owner'];
+        request.auth.token.email.lower() in ['jasonmounts77@yahoo.com', 'carissabright@gmail.com'];
     }
 
-    // Helper: check if user is staff+
+    // Helper: check if user is staff+ (exclusively Jason & Carissa)
     function isStaff() {
       return request.auth != null &&
-        get(/databases/$(database)/documents/profiles/$(request.auth.uid)).data.role in ['admin', 'owner', 'staff', 'healer'];
+        request.auth.token.email.lower() in ['jasonmounts77@yahoo.com', 'carissabright@gmail.com'];
     }
 
-    // Profiles: users can read/update own; admins can read all
+    // Profiles: users can read/update own; admins can read all.
+    // Prevent self-promotion to admin/owner roles.
     match /profiles/{userId} {
       allow read: if request.auth != null && (request.auth.uid == userId || isAdmin());
-      allow create: if request.auth != null && request.auth.uid == userId;
-      allow update: if request.auth != null && (request.auth.uid == userId || isAdmin());
+      allow create: if request.auth != null && request.auth.uid == userId && 
+                    (request.resource.data.role == 'seeker' || 
+                     (request.resource.data.role in ['admin', 'owner'] && request.auth.token.email.lower() in ['jasonmounts77@yahoo.com', 'carissabright@gmail.com']));
+      allow update: if request.auth != null && (
+        (request.auth.uid == userId && (request.resource.data.role == resource.data.role || (request.resource.data.role in ['admin', 'owner'] && request.auth.token.email.lower() in ['jasonmounts77@yahoo.com', 'carissabright@gmail.com']))) || 
+        isAdmin()
+      );
       allow delete: if false; // Never delete profiles from client
     }
 

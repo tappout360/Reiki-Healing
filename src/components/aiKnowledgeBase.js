@@ -79,7 +79,13 @@ export const aiKnowledgeBase = {
     "quantum entanglement": "Quantum entanglement is a physics concept where linked particles instantly affect each other. In distant healing, it serves as an evocative metaphor for non-local healing intention transcending space-time.",
     "distant healing": "Distant healing utilizes the Reiki symbol Hon Sha Ze Sho Nen to establish a remote connection, bypassing space and time constraints to stabilize a recipient's biofield.",
     "eucalyptol": "Eucalyptol (1,8-cineole) is the major constituent of White Sage essential oil (26% to 71%), valued for its refreshing, sinus-clearing, and antimicrobial activity.",
-    "camphor": "Camphor constitutes 2% to 22% of White Sage essential oil. It provides a sharp, clearing scent that acts as a cognitive stimulant, reducing mental fatigue."
+    "camphor": "Camphor constitutes 2% to 22% of White Sage essential oil. It provides a sharp, clearing scent that acts as a cognitive stimulant, reducing mental fatigue.",
+    "library": "The Sanctuary Library contains premium healing protocols configured for your biofield: Amethyst Core Purge, Quartz Lattice Uplift, Rose Quartz Heart-Sync, Lapis Wisdom Resonance, Citrine Manifestation, Sage Purification Protocol, Reiki Sacred Alignment, and Celestial Fantasia.",
+    "protocols": "Our active healing protocols include: Amethyst Core Purge (deep purification), Quartz Lattice Uplift (clarity), Rose Quartz Heart-Sync (emotional release), Lapis Wisdom Resonance (intuition), Citrine Manifestation (abundance), Sage Purification (stress reset), Reiki Sacred Alignment (restoration), and Celestial Fantasia (cosmic alignment). Which frequency do you need to balance today?",
+    "booking": "We offer two premium healing formats: On-Site Alignments ($150, home/office visits within a 50-mile radius) and Live Video Portals ($88, remote video sessions). Bookings require a deposit and can be scheduled directly via the 'Book a Session' button at the top.",
+    "schedule": "To schedule a session, click the 'Book a Session' button at the top of the sanctuary. You can choose In-Person/On-Site or Remote Live Video Portal. We handle all calendar synchronizations securely.",
+    "celestial": "Celestial Fantasia is a 15-minute cosmic guided journey that utilizes gemstone frequencies, star alignments, and celestial music to calibrate your outer aura. Carissa's voice leads this stellar alignment.",
+    "fantasia": "Celestial Fantasia is a 15-minute guided meditation led by Carissa, bridging zodiac transits, orchestral frequencies, and crystal energy."
   },
   master_reiki: {
     "dai ko myo": {
