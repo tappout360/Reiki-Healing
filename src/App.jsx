@@ -569,13 +569,24 @@ const [showCheckoutModal, setShowCheckoutModal] = useState(false);
       if (isIpadOrIphone) {
         setShowInstallBanner(true);
       } else {
+        // Check if global event has already fired
+        if (window.deferredPrompt) {
+          setDeferredPrompt(window.deferredPrompt);
+          setShowInstallBanner(true);
+        }
+
         const handlePrompt = (e) => {
           e.preventDefault();
           setDeferredPrompt(e);
           setShowInstallBanner(true);
         };
         window.addEventListener('beforeinstallprompt', handlePrompt);
-        return () => window.removeEventListener('beforeinstallprompt', handlePrompt);
+        window.onBeforeInstallPrompt = handlePrompt;
+
+        return () => {
+          window.removeEventListener('beforeinstallprompt', handlePrompt);
+          window.onBeforeInstallPrompt = null;
+        };
       }
     }
   }, []);

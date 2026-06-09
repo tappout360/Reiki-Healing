@@ -1,4 +1,4 @@
-const CACHE_NAME = 'reiki-sage-v1';
+const CACHE_NAME = 'reiki-sage-v2';
 const ASSETS = [
   '/',
   '/index.html',
@@ -10,7 +10,6 @@ const ASSETS = [
 self.addEventListener('install', (e) => {
   e.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
-      // Install cache assets (fail-safe for offline checks)
       return cache.addAll(ASSETS).catch(() => {});
     })
   );
@@ -31,12 +30,27 @@ self.addEventListener('activate', (e) => {
 });
 
 self.addEventListener('fetch', (e) => {
-  // Pass-through network-first strategy to prevent stale caches during development
+  // Skip non-GET requests or requests from third-party / browser extensions
+  if (e.request.method !== 'GET' || !e.request.url.startsWith(self.location.origin)) {
+    return;
+  }
+
   e.respondWith(
-    fetch(e.request).catch(() => {
-      return caches.match(e.request).then((cachedResponse) => {
-        return cachedResponse || caches.match('/');
-      });
-    })
+    fetch(e.request)
+      .then((response) => {
+        // If response is valid, cache it dynamically
+        if (response && response.status === 200 && (response.type === 'basic' || response.type === 'cors')) {
+          const responseToCache = response.clone();
+          caches.open(CACHE_NAME).then((cache) => {
+            cache.put(e.request, responseToCache);
+          });
+        }
+        return response;
+      })
+      .catch(() => {
+        return caches.match(e.request).then((cachedResponse) => {
+          return cachedResponse || caches.match('/');
+        });
+      })
   );
 });
