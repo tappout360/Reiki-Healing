@@ -247,20 +247,28 @@ const BookingInterface = ({ type, onClose }) => {
             <p style={{marginBottom: '1.5rem', opacity: 0.7, fontSize: '0.85rem'}}>{t('bookingDetailsDesc')}</p>
             
             <input 
+              id="booking-name-input"
+              name="name"
               type="text" placeholder={t('bookingPlaceholderName')} value={name} onChange={e => setName(e.target.value)}
               className="booking-input"
             />
             <input 
+              id="booking-phone-input"
+              name="phone"
               type="tel" placeholder={t('bookingPlaceholderPhone')} value={phone} onChange={e => setPhone(e.target.value)}
               className="booking-input"
             />
             {subType === 'visit' && (
                 <input 
+                    id="booking-distance-input"
+                    name="distance"
                     type="number" placeholder={t('bookingPlaceholderDistance')} value={distance} onChange={e => setDistance(e.target.value)}
                     className="booking-input"
                 />
             )}
             <input 
+              id="booking-email-input"
+              name="email"
               type="email" placeholder={t('bookingPlaceholderEmail')} value={email} onChange={e => setEmail(e.target.value)}
               className="booking-input"
             />

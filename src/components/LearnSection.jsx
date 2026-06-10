@@ -544,6 +544,8 @@ const LearnSection = ({ isMobileLayout = false }) => {
       >
         <Search size={16} className="learn-search-icon" />
         <input
+          id="library-search-input"
+          name="search"
           type="text"
           className="learn-search-input"
           placeholder={t('librarySearch')}
