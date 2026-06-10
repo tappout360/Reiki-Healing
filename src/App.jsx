@@ -894,6 +894,12 @@ const [showCheckoutModal, setShowCheckoutModal] = useState(false);
 
   const handleProtocolEnd = useCallback(() => {
     setShowPortal(false);
+    if (typeof window.gtag === 'function') {
+      window.gtag('event', 'protocol_completed', {
+        protocol_id: selectedProtocol,
+        protocol_name: protocols.find(p => p.id === selectedProtocol)?.name || selectedProtocol
+      });
+    }
     if (!user) return;
 
     const currentProto = protocols.find(p => p.id === selectedProtocol);
@@ -1598,6 +1604,9 @@ const [showCheckoutModal, setShowCheckoutModal] = useState(false);
               if (checkboxChecked) {
                 setDisclaimerAccepted(true);
                 localStorage.setItem('aura_disclaimer_accepted', 'true');
+                if (typeof window.gtag === 'function') {
+                  window.gtag('event', 'disclaimer_accepted');
+                }
                 toast.success("Welcome to the Reiki & Sage Sanctuary.");
               } else {
                 toast.error("Please acknowledge the disclaimer to enter.");

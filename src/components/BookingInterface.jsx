@@ -122,6 +122,19 @@ const BookingInterface = ({ type, onClose }) => {
         ? parseInt(onsitePrice) 
         : parseInt(videoPrice);
 
+      if (typeof window.gtag === 'function') {
+        window.gtag('event', 'begin_checkout', {
+          value: priceVal,
+          currency: 'USD',
+          items: [{
+            item_id: subType === 'visit' ? 'onsite_session' : 'live_session',
+            item_name: subType === 'visit' ? 'On-Site Healing Session' : 'Live Video Portal Session',
+            price: priceVal,
+            quantity: 1
+          }]
+        });
+      }
+
       // Stripe expects amount in cents
       const priceCents = priceVal * 100;
 
