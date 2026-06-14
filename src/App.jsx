@@ -871,6 +871,14 @@ const [showCheckoutModal, setShowCheckoutModal] = useState(false);
     const currentClients = JSON.parse(localStorage.getItem('aura_clients') || '[]');
     const updatedClients = currentClients.map(c => c.email === updatedProfile.email ? updatedProfile : c);
     localStorage.setItem('aura_clients', JSON.stringify(updatedClients));
+
+    // Update Firestore if configured
+    if (isFirebaseConfigured() && updatedProfile.id) {
+      const { id, ...data } = updatedProfile;
+      db.updateProfile(updatedProfile.id, data).catch(err => {
+        console.error("Firestore profile update failed:", err);
+      });
+    }
   };
 
   useEffect(() => {
@@ -903,17 +911,29 @@ const [showCheckoutModal, setShowCheckoutModal] = useState(false);
     if (!user) return;
 
     const currentProto = protocols.find(p => p.id === selectedProtocol);
+    const hzGainVal = parseFloat((Math.random() * 5 + 10).toFixed(1));
     const newLog = {
       id: Date.now(),
       protocolId: selectedProtocol,
       protocolName: currentProto?.name,
       timestamp: new Date().toISOString(),
-      hzGain: (Math.random() * 5 + 10).toFixed(1)
+      hzGain: hzGainVal
     };
 
     // Save to logs
     const logs = JSON.parse(localStorage.getItem('vibrational_logs') || '[]');
     localStorage.setItem('vibrational_logs', JSON.stringify([newLog, ...logs].slice(0, 50)));
+
+    // Log to Firebase if configured
+    if (isFirebaseConfigured() && user.id) {
+      db.logSession({
+        userId: user.id,
+        protocolId: selectedProtocol,
+        protocolName: currentProto?.name,
+        timestamp: new Date().toISOString(),
+        hzGain: hzGainVal
+      }).catch(err => console.error("Firestore session logging failed:", err));
+    }
 
     // --- Healing Streak Calculation ---
     const today = new Date().toDateString();

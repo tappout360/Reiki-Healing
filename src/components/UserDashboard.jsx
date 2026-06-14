@@ -5,6 +5,7 @@ import {
   Activity, Calendar, CheckCircle, ChevronRight, Key, Send, Settings, Shield, Sparkles, Star, X, Zap,
   Compass, TrendingUp, Clock, Flame, Award, Mic, Square, Trash2, Play, Pause
 } from 'lucide-react';
+import { ResponsiveContainer, AreaChart, Area, XAxis, YAxis, Tooltip, CartesianGrid } from 'recharts';
 import { getZodiacSign, getAdvancedHoroscope } from '../utils/horoscopes';
 import { auth, db, isFirebaseConfigured } from '../lib/firebase';
 import { BADGES, BADGE_CATEGORIES, getLevel, getLevelProgress, getNextLevel, getStats, getBadgesByCategory } from '../utils/gamification';
@@ -12,6 +13,12 @@ import { BADGES, BADGE_CATEGORIES, getLevel, getLevelProgress, getNextLevel, get
 const UserDashboard = ({ user, onClose, onUpdateUser, onNavigateToBooking, onNavigateToProtocols, onJoinLivePortal, gamificationState }) => {
   const [activeTab, setActiveTab] = useState('overview');
   const [isCalibrating, setIsCalibrating] = useState(false);
+  const [showCalibrationModal, setShowCalibrationModal] = useState(false);
+  const [calibrationStep, setCalibrationStep] = useState(1);
+  const [calibRegistry, setCalibRegistry] = useState('heart'); // chakra register
+  const [calibFlow, setCalibFlow] = useState(3); // 1-5 rating
+  const [calibIntention, setCalibIntention] = useState('Balance');
+  const [isSubmittingCalibration, setIsSubmittingCalibration] = useState(false);
   const [isDeactivating, setIsDeactivating] = useState(false);
   const [deactivateConfirmPhrase, setDeactivateConfirmPhrase] = useState('');
   
@@ -242,26 +249,121 @@ const UserDashboard = ({ user, onClose, onUpdateUser, onNavigateToBooking, onNav
   // Dynamic Data Calculation
   const auraPurity = Math.min(100, 85 + (user.sessions || 0) * 1.5);
   
-  const generateBioFieldHistory = () => {
-    const base = [
-      { day: 'Mon', level: 65, color: '#ff7675' },
-      { day: 'Tue', level: 78, color: '#fdcb6e' },
-      { day: 'Wed', level: 72, color: '#e17055' },
-      { day: 'Thu', level: 85, color: '#00b894' },
-      { day: 'Fri', level: 92, color: '#00cec9' },
-      { day: 'Sat', level: 88, color: '#0984e3' },
-      { day: 'Sun', level: auraPurity, color: resonance?.color || '#6c5ce7' },
-    ];
-    return base;
+  const CustomTooltip = ({ active, payload }) => {
+    if (active && payload && payload.length) {
+      const data = payload[0].payload;
+      return (
+        <div className="glass" style={{ 
+          background: 'rgba(5, 5, 12, 0.95)', 
+          border: '1px solid var(--accent-gold)', 
+          padding: '1rem', 
+          borderRadius: '12px',
+          boxShadow: '0 0 20px rgba(212, 175, 55, 0.2)'
+        }}>
+          <p style={{ margin: 0, color: 'var(--accent-gold)', fontSize: '0.85rem', fontWeight: 'bold' }}>{data.date}</p>
+          <p style={{ margin: '4px 0 0 0', fontSize: '0.8rem', color: '#fff' }}>
+            Resonance: <span style={{ color: 'var(--accent-gold)' }}>{data.frequency} Hz</span>
+          </p>
+          <p style={{ margin: '2px 0 0 0', fontSize: '0.75rem', color: 'rgba(255,255,255,0.6)' }}>
+            Protocol: {data.protocol} (+{data.hzGain}Hz)
+          </p>
+        </div>
+      );
+    }
+    return null;
   };
 
-  const bioFieldHistory = generateBioFieldHistory();
+  const chartData = vibrationalLogs.length > 0 
+    ? [...vibrationalLogs]
+        .reverse()
+        .map((log, index) => {
+          const cumulativeHz = 432 + [...vibrationalLogs]
+            .reverse()
+            .slice(0, index + 1)
+            .reduce((sum, l) => sum + parseFloat(l.hzGain || 0), 0);
+          return {
+            date: log.timestamp ? new Date(log.timestamp).toLocaleDateString([], { month: 'short', day: 'numeric' }) : 'Calibration',
+            frequency: parseFloat(cumulativeHz.toFixed(1)),
+            hzGain: parseFloat(log.hzGain || 0),
+            protocol: log.protocolName || 'Calibration'
+          };
+        })
+    : [
+        { date: 'Mon', frequency: 432, hzGain: 0, protocol: 'Baseline' },
+        { date: 'Tue', frequency: 445, hzGain: 13, protocol: 'Rose Quartz Sync' },
+        { date: 'Wed', frequency: 457, hzGain: 12, protocol: 'Amethyst Purge' },
+        { date: 'Thu', frequency: 472, hzGain: 15, protocol: 'Citrine Manifestation' },
+        { date: 'Fri', frequency: 488, hzGain: 16, protocol: 'Lapis Throat Calibration' },
+        { date: 'Sat', frequency: 502, hzGain: 14, protocol: 'Quartz Lattice Uplift' },
+        { date: 'Sun', frequency: 518, hzGain: 16, protocol: 'Celestial Alignment' }
+      ];
 
-  const handleCalibrate = () => {
-    setIsCalibrating(true);
-    setTimeout(() => {
-      setIsCalibrating(false);
-    }, 2000);
+  const handleStartCalibration = () => {
+    setCalibrationStep(1);
+    setCalibRegistry('heart');
+    setCalibFlow(3);
+    setCalibIntention(user?.currentIntention || 'Balance');
+    setShowCalibrationModal(true);
+  };
+
+  const handleSubmitCalibration = async () => {
+    setIsSubmittingCalibration(true);
+    
+    // Calculate new resonance score
+    const flowMultiplier = calibFlow; // 1 to 5
+    const registryBonus = calibRegistry === 'crown' ? 5 : calibRegistry === 'heart' ? 4 : calibRegistry === 'third_eye' ? 3 : 2;
+    const computedScore = Math.min(100, 50 + (flowMultiplier * 8) + registryBonus);
+
+    const hzGain = parseFloat((calibFlow * 2.5 + Math.random() * 2 + 5).toFixed(1));
+
+    const newCalibrationLog = {
+      id: Date.now(),
+      protocolId: 'daily_calibration',
+      protocolName: `Daily Calibration (${calibRegistry.toUpperCase()})`,
+      timestamp: new Date().toISOString(),
+      hzGain: hzGain,
+      notes: `Intention: ${calibIntention}. Chakra Focus: ${calibRegistry.toUpperCase()}. Flow quality: ${calibFlow}/5.`
+    };
+
+    try {
+      // 1. Log to Firebase if configured
+      if (isFirebaseConfigured() && user?.id) {
+        await db.logSession({
+          userId: user.id,
+          protocolId: 'daily_calibration',
+          protocolName: newCalibrationLog.protocolName,
+          timestamp: newCalibrationLog.timestamp,
+          hzGain: newCalibrationLog.hzGain,
+          notes: newCalibrationLog.notes
+        });
+      }
+
+      // 2. Local logs update
+      const existingLogs = JSON.parse(localStorage.getItem('vibrational_logs') || '[]');
+      const updatedLogs = [newCalibrationLog, ...existingLogs].slice(0, 50);
+      localStorage.setItem('vibrational_logs', JSON.stringify(updatedLogs));
+      setVibrationalLogs(updatedLogs);
+
+      // 3. Update User Profile properties
+      const updatedUser = {
+        ...user,
+        resonanceScore: computedScore,
+        currentIntention: calibIntention,
+        sessions: (user.sessions || 0) + 1
+      };
+      
+      onUpdateUser(updatedUser);
+
+      // 4. Milestone/Achievement toasts
+      toast.success(`✨ Calibration complete! Resonance score updated to: ${computedScore}`);
+      
+      setShowCalibrationModal(false);
+    } catch (err) {
+      console.error("Failed to complete Daily Calibration:", err);
+      toast.error("An error occurred during calibration. Please try again.");
+    } finally {
+      setIsSubmittingCalibration(false);
+    }
   };
 
   const handleSubmitStory = async (e) => {
@@ -694,7 +796,7 @@ const UserDashboard = ({ user, onClose, onUpdateUser, onNavigateToBooking, onNav
                   </div>
                   <button 
                     className="btn"
-                    onClick={handleCalibrate}
+                    onClick={handleStartCalibration}
                     style={{
                       background: 'rgba(212, 175, 55, 0.1)',
                       border: '1px solid var(--accent-gold)',
@@ -705,8 +807,8 @@ const UserDashboard = ({ user, onClose, onUpdateUser, onNavigateToBooking, onNav
                       gap: '10px'
                     }}
                   >
-                    <Zap size={18} className={isCalibrating ? 'animate-spin' : ''} />
-                    {isCalibrating ? 'CALIBRATING...' : 'INSTANT REALIGNMENT'}
+                    <Zap size={18} />
+                    DAILY CALIBRATION
                   </button>
                 </div>
 
@@ -756,41 +858,52 @@ const UserDashboard = ({ user, onClose, onUpdateUser, onNavigateToBooking, onNav
                     <h4 style={{ margin: '0 0 2rem 0', fontSize: '0.9rem', color: 'rgba(255,255,255,0.6)', letterSpacing: '2px' }}>
                       BIO-FIELD HARMONY CHART
                     </h4>
-                      <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', height: '200px', padding: '0 2rem' }}>
-                         {bioFieldHistory.map((data, i) => (
-                           <div key={i} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1rem', flex: 1, position: 'relative' }}>
-                              <motion.div 
-                                initial={{ height: 0 }}
-                                animate={{ height: `${data.level * 1.5}px` }}
-                                transition={{ delay: i * 0.1, duration: 1 }}
-                                whileHover={{ scale: 1.05, filter: 'brightness(1.2)' }}
-                                onClick={() => {
-                                  setActiveNoteDay(data.day);
-                                  setNoteText(waveNotes[data.day] || '');
-                                }}
-                                style={{ 
-                                  width: '40px', 
-                                  background: `linear-gradient(to top, ${data.color}22, ${data.color})`,
-                                  borderRadius: '8px 8px 4px 4px',
-                                  boxShadow: `0 0 20px ${data.color}33`,
-                                  border: `1px solid ${data.color}44`,
-                                  cursor: 'pointer'
-                                }}
-                              />
-                              <span style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.3)' }}>{data.day}</span>
-                              {waveNotes[data.day] && (
-                                <div style={{
-                                  position: 'absolute',
-                                  top: '-10px',
-                                  width: '8px',
-                                  height: '8px',
-                                  borderRadius: '50%',
-                                  background: 'var(--accent-gold)',
-                                  boxShadow: '0 0 10px var(--accent-gold)'
-                                }} />
-                              )}
-                           </div>
-                         ))}
+                       <div style={{ height: '220px', width: '100%' }}>
+                         <ResponsiveContainer width="100%" height="100%">
+                            <AreaChart 
+                              data={chartData} 
+                              margin={{ top: 10, right: 10, left: -20, bottom: 0 }}
+                              onClick={(data) => {
+                                if (data && data.activePayload && data.activePayload.length) {
+                                  const clickedData = data.activePayload[0].payload;
+                                  setActiveNoteDay(clickedData.date);
+                                  setNoteText(waveNotes[clickedData.date] || '');
+                                }
+                              }}
+                              style={{ cursor: 'pointer' }}
+                            >
+                               <defs>
+                                  <linearGradient id="colorFreq" x1="0" y1="0" x2="0" y2="1">
+                                     <stop offset="5%" stopColor="var(--accent-gold)" stopOpacity={0.4}/>
+                                     <stop offset="95%" stopColor="var(--accent-gold)" stopOpacity={0.0}/>
+                                  </linearGradient>
+                               </defs>
+                               <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" vertical={false} />
+                               <XAxis 
+                                  dataKey="date" 
+                                  stroke="rgba(255,255,255,0.3)" 
+                                  fontSize={10} 
+                                  tickLine={false} 
+                                  axisLine={false}
+                               />
+                               <YAxis 
+                                  stroke="rgba(255,255,255,0.3)" 
+                                  fontSize={10} 
+                                  tickLine={false} 
+                                  axisLine={false}
+                                  domain={['dataMin - 10', 'dataMax + 10']}
+                               />
+                               <Tooltip content={<CustomTooltip />} />
+                               <Area 
+                                  type="monotone" 
+                                  dataKey="frequency" 
+                                  stroke="var(--accent-gold)" 
+                                  strokeWidth={2}
+                                  fillOpacity={1} 
+                                  fill="url(#colorFreq)" 
+                                />
+                            </AreaChart>
+                         </ResponsiveContainer>
                       </div>
 
                       {/* Note Editor Overlay */}
@@ -1771,6 +1884,262 @@ const UserDashboard = ({ user, onClose, onUpdateUser, onNavigateToBooking, onNav
               >
                 I ASCEND
               </button>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Daily Calibration Modal */}
+      <AnimatePresence>
+        {showCalibrationModal && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            style={{
+              position: 'fixed',
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              background: 'rgba(5, 5, 12, 0.96)',
+              zIndex: 10020,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              padding: '2rem',
+              backdropFilter: 'blur(15px)'
+            }}
+          >
+            <motion.div
+              initial={{ scale: 0.9, y: 20 }}
+              animate={{ scale: 1, y: 0 }}
+              exit={{ scale: 0.9, y: 20 }}
+              className="glass"
+              style={{
+                maxWidth: '600px',
+                width: '100%',
+                padding: '3rem',
+                borderRadius: '32px',
+                border: '1px solid rgba(212, 175, 55, 0.3)',
+                boxShadow: '0 0 50px rgba(212, 175, 55, 0.1)',
+                position: 'relative'
+              }}
+            >
+              <button
+                onClick={() => setShowCalibrationModal(false)}
+                style={{
+                  position: 'absolute',
+                  top: '20px',
+                  right: '20px',
+                  background: 'none',
+                  border: 'none',
+                  color: 'rgba(255,255,255,0.4)',
+                  cursor: 'pointer'
+                }}
+              >
+                <X size={24} />
+              </button>
+
+              <span style={{ fontSize: '0.75rem', color: 'var(--accent-gold)', fontWeight: 'bold', letterSpacing: '2px', textTransform: 'uppercase', display: 'block', marginBottom: '1.5rem', textAlign: 'center' }}>
+                ✦ Daily Calibration Cycle ✦
+              </span>
+
+              {/* Progress Indicator */}
+              <div style={{ display: 'flex', gap: '8px', marginBottom: '3rem' }}>
+                {[1, 2, 3].map(step => (
+                  <div 
+                    key={step} 
+                    style={{ 
+                      flex: 1, 
+                      height: '4px', 
+                      background: calibrationStep >= step ? 'var(--accent-gold)' : 'rgba(255,255,255,0.1)', 
+                      borderRadius: '2px',
+                      transition: 'all 0.3s ease'
+                    }} 
+                  />
+                ))}
+              </div>
+
+              {/* Step 1: Chakra Focus */}
+              {calibrationStep === 1 && (
+                <motion.div
+                  initial={{ opacity: 0, x: 20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: -20 }}
+                >
+                  <h3 style={{ fontSize: '1.6rem', fontFamily: 'Playfair Display', marginBottom: '1rem', color: '#fff' }}>
+                    Where does your awareness rest today?
+                  </h3>
+                  <p style={{ color: 'rgba(255,255,255,0.5)', marginBottom: '2.5rem', fontSize: '0.9rem' }}>
+                    Select the chakra center that feels most active or requires harmonization.
+                  </p>
+
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '3rem' }}>
+                    {[
+                      { id: 'root', name: 'Root Chakra', color: '#ff7675', symbol: '🔴' },
+                      { id: 'sacral', name: 'Sacral Chakra', color: '#fdcb6e', symbol: '🟠' },
+                      { id: 'solar', name: 'Solar Plexus', color: '#f1c40f', symbol: '🟡' },
+                      { id: 'heart', name: 'Heart Chakra', color: '#2ecc71', symbol: '🟢' },
+                      { id: 'throat', name: 'Throat Chakra', color: '#3498db', symbol: '🔵' },
+                      { id: 'crown', name: 'Crown Chakra', color: '#9b59b6', symbol: '🟣' }
+                    ].map(chakra => (
+                      <button
+                        key={chakra.id}
+                        type="button"
+                        onClick={() => setCalibRegistry(chakra.id)}
+                        style={{
+                          background: calibRegistry === chakra.id ? `${chakra.color}22` : 'rgba(255,255,255,0.02)',
+                          border: calibRegistry === chakra.id ? `1px solid ${chakra.color}` : '1px solid rgba(255,255,255,0.05)',
+                          padding: '1.2rem',
+                          borderRadius: '16px',
+                          color: calibRegistry === chakra.id ? chakra.color : 'rgba(255,255,255,0.7)',
+                          cursor: 'pointer',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '12px',
+                          transition: 'all 0.2s ease',
+                          fontSize: '0.9rem',
+                          fontWeight: '600'
+                        }}
+                      >
+                        <span style={{ fontSize: '1.2rem' }}>{chakra.symbol}</span>
+                        {chakra.name}
+                      </button>
+                    ))}
+                  </div>
+
+                  <button
+                    type="button"
+                    className="btn btn-primary"
+                    onClick={() => setCalibrationStep(2)}
+                    style={{ width: '100%', padding: '1rem' }}
+                  >
+                    CONTINUE PROTOCOL
+                  </button>
+                </motion.div>
+              )}
+
+              {/* Step 2: Energetic Flow */}
+              {calibrationStep === 2 && (
+                <motion.div
+                  initial={{ opacity: 0, x: 20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: -20 }}
+                >
+                  <h3 style={{ fontSize: '1.6rem', fontFamily: 'Playfair Display', marginBottom: '1rem', color: '#fff' }}>
+                    How is your current energetic flow?
+                  </h3>
+                  <p style={{ color: 'rgba(255,255,255,0.5)', marginBottom: '3rem', fontSize: '0.9rem' }}>
+                    Rate your vibrational register from sluggish (1) to radiant and coherent (5).
+                  </p>
+
+                  <div style={{ display: 'flex', justifyContent: 'center', gap: '16px', marginBottom: '4rem' }}>
+                    {[1, 2, 3, 4, 5].map(rating => (
+                      <button
+                        key={rating}
+                        type="button"
+                        onClick={() => setCalibFlow(rating)}
+                        style={{
+                          background: 'none',
+                          border: 'none',
+                          cursor: 'pointer',
+                          transform: calibFlow === rating ? 'scale(1.2)' : 'scale(1)',
+                          transition: 'all 0.2s ease',
+                        }}
+                      >
+                        <Star 
+                          size={40}
+                          fill={calibFlow >= rating ? 'var(--accent-gold)' : 'none'}
+                          stroke={calibFlow >= rating ? 'var(--accent-gold)' : 'rgba(255,255,255,0.2)'}
+                        />
+                      </button>
+                    ))}
+                  </div>
+
+                  <div style={{ display: 'flex', gap: '1rem' }}>
+                    <button
+                      type="button"
+                      className="btn"
+                      onClick={() => setCalibrationStep(1)}
+                      style={{ flex: 1, background: 'rgba(255,255,255,0.05)', padding: '1rem' }}
+                    >
+                      BACK
+                    </button>
+                    <button
+                      type="button"
+                      className="btn btn-primary"
+                      onClick={() => setCalibrationStep(3)}
+                      style={{ flex: 2, padding: '1rem' }}
+                    >
+                      CONTINUE PROTOCOL
+                    </button>
+                  </div>
+                </motion.div>
+              )}
+
+              {/* Step 3: Set Intention */}
+              {calibrationStep === 3 && (
+                <motion.div
+                  initial={{ opacity: 0, x: 20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: -20 }}
+                >
+                  <h3 style={{ fontSize: '1.6rem', fontFamily: 'Playfair Display', marginBottom: '1rem', color: '#fff' }}>
+                    State your focal intention
+                  </h3>
+                  <p style={{ color: 'rgba(255,255,255,0.5)', marginBottom: '2.5rem', fontSize: '0.9rem' }}>
+                    Direct your spiritual energy toward a specific realignment outcome.
+                  </p>
+
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginBottom: '3rem' }}>
+                    {['Balance', 'Anxiety Relief', 'Creative Flow', 'Physical Vitality', 'Spiritual Clarity'].map(intention => (
+                      <button
+                        key={intention}
+                        type="button"
+                        onClick={() => setCalibIntention(intention)}
+                        style={{
+                          background: calibIntention === intention ? 'rgba(212, 175, 55, 0.1)' : 'rgba(255,255,255,0.02)',
+                          border: calibIntention === intention ? '1px solid var(--accent-gold)' : '1px solid rgba(255,255,255,0.05)',
+                          padding: '1.2rem 2rem',
+                          borderRadius: '16px',
+                          color: calibIntention === intention ? 'var(--accent-gold)' : 'rgba(255,255,255,0.6)',
+                          cursor: 'pointer',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'space-between',
+                          fontWeight: '600',
+                          fontSize: '0.95rem',
+                          transition: 'all 0.2s ease'
+                        }}
+                      >
+                        {intention.toUpperCase()}
+                        {calibIntention === intention && <CheckCircle size={18} />}
+                      </button>
+                    ))}
+                  </div>
+
+                  <div style={{ display: 'flex', gap: '1rem' }}>
+                    <button
+                      type="button"
+                      className="btn"
+                      onClick={() => setCalibrationStep(2)}
+                      style={{ flex: 1, background: 'rgba(255,255,255,0.05)', padding: '1rem' }}
+                    >
+                      BACK
+                    </button>
+                    <button
+                      type="button"
+                      disabled={isSubmittingCalibration}
+                      className="btn btn-primary"
+                      onClick={handleSubmitCalibration}
+                      style={{ flex: 2, padding: '1rem' }}
+                    >
+                      {isSubmittingCalibration ? 'TRANSMITTING...' : 'ALIGN BIOFIELD'}
+                    </button>
+                  </div>
+                </motion.div>
+              )}
             </motion.div>
           </motion.div>
         )}
