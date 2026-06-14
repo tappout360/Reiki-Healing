@@ -228,8 +228,6 @@ export const getNextLevel = (xp) => {
  */
 export const evaluateBadges = (state) => {
   const earned = [];
-  const hour = new Date().getHours();
-  const dayOfWeek = new Date().getDay(); // 0=Sun, 6=Sat
 
   for (const badge of BADGES) {
     let isEarned = false;

@@ -36,7 +36,7 @@ const AdminLogin = ({ onLogin, onClose }) => {
                 role: 'owner',
                 subscription: 'healing'
               });
-            } catch (signUpErr) {
+            } catch {
               // If creation also fails, re-throw the original sign-in error
               throw signInErr;
             }

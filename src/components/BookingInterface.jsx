@@ -3,7 +3,6 @@ import { toast } from 'react-hot-toast';
 import Calendar from 'react-calendar';
 import 'react-calendar/dist/Calendar.css';
 import './BookingInterface.css';
-import { logTransaction } from '../utils/logger';
 import { isFirebaseConfigured, db } from '../lib/firebase';
 import { useLanguage } from '../contexts/LanguageContext';
 

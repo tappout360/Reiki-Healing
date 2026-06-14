@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef, useCallback, Suspense, lazy } from 'react'
+import React, { useEffect, useState, useCallback, Suspense, lazy } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { 
   Sparkles, Activity, Shield, Info, Heart, Zap, Waves, Moon, Sun, 
@@ -532,7 +532,7 @@ const [showCheckoutModal, setShowCheckoutModal] = useState(false);
           ...p,
           active: Object.prototype.hasOwnProperty.call(parsed, p.id) ? parsed[p.id] : p.active
         }));
-      } catch (e) {
+      } catch {
         return protocols;
       }
     }
@@ -918,7 +918,7 @@ const [showCheckoutModal, setShowCheckoutModal] = useState(false);
 
     // Update Firestore if configured
     if (isFirebaseConfigured() && updatedProfile.id) {
-      const { id, ...data } = updatedProfile;
+      const { id: _, ...data } = updatedProfile;
       db.updateProfile(updatedProfile.id, data).catch(err => {
         console.error("Firestore profile update failed:", err);
       });

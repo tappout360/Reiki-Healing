@@ -5,7 +5,7 @@ import { auth, isFirebaseConfigured } from '../lib/firebase';
 
 const BillingForm = ({ onSubmit, buttonText = "Subscribe", planId = '1_month', initialData = {} }) => {
   const [loading, setLoading] = useState(false);
-  const [showMockForm, setShowMockForm] = useState(!isFirebaseConfigured());
+  const showMockForm = !isFirebaseConfigured();
   const [cardData, setCardData] = useState({
     number: initialData.number || '',
     expiry: initialData.expiry || '',

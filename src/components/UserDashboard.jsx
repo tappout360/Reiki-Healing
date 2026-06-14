@@ -13,7 +13,6 @@ import { BADGES, BADGE_CATEGORIES, getLevel, getLevelProgress, getNextLevel, get
 
 const UserDashboard = ({ user, onClose, onUpdateUser, onNavigateToBooking, onNavigateToProtocols, onJoinLivePortal, gamificationState }) => {
   const [activeTab, setActiveTab] = useState('overview');
-  const [isCalibrating, setIsCalibrating] = useState(false);
   const [showCalibrationModal, setShowCalibrationModal] = useState(false);
   const [calibrationStep, setCalibrationStep] = useState(1);
   const [calibRegistry, setCalibRegistry] = useState('heart'); // chakra register
@@ -383,7 +382,7 @@ const UserDashboard = ({ user, onClose, onUpdateUser, onNavigateToBooking, onNav
 
       return () => clearInterval(interval);
     }
-  }, [user?.id, calibRegistry, user?.resonanceScore]);
+  }, [user?.id, user?.name, user?.displayName, user?.email, user?.resonanceScore, calibRegistry]);
 
   // Vibrational History
   const [vibrationalLogs, setVibrationalLogs] = useState([]);

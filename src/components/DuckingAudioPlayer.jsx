@@ -213,19 +213,19 @@ const DuckingAudioPlayer = ({
   useEffect(() => {
     const cleanupSynth = () => {
       if (droneOsc1Ref.current) {
-        try { droneOsc1Ref.current.stop(); } catch (e) { /* already stopped */ }
+        try { droneOsc1Ref.current.stop(); } catch { /* already stopped */ }
         droneOsc1Ref.current = null;
       }
       if (droneOsc2Ref.current) {
-        try { droneOsc2Ref.current.stop(); } catch (e) { /* already stopped */ }
+        try { droneOsc2Ref.current.stop(); } catch { /* already stopped */ }
         droneOsc2Ref.current = null;
       }
       if (droneOsc3Ref.current) {
-        try { droneOsc3Ref.current.stop(); } catch (e) { /* already stopped */ }
+        try { droneOsc3Ref.current.stop(); } catch { /* already stopped */ }
         droneOsc3Ref.current = null;
       }
       if (lfoRef.current) {
-        try { lfoRef.current.stop(); } catch (e) { /* already stopped */ }
+        try { lfoRef.current.stop(); } catch { /* already stopped */ }
         lfoRef.current = null;
       }
       if (synthGainRef.current) {
@@ -236,7 +236,6 @@ const DuckingAudioPlayer = ({
       }
     };
 
-    const isYouTube = musicSrc && (musicSrc.includes('youtube.com') || musicSrc.includes('youtu.be'));
     // Only play synthesized drone if:
     // 1. We are playing
     // 2. There is no custom music file (musicSrc is empty/falsy)
@@ -339,7 +338,7 @@ const DuckingAudioPlayer = ({
     return () => {
       cleanupSynth();
     };
-  }, [isPlaying, binauralCarrier, musicSrc]);
+  }, [isPlaying, binauralCarrier, musicSrc, volume]);
 
   // Binaural Beat Oscillator Management
   useEffect(() => {
@@ -347,7 +346,7 @@ const DuckingAudioPlayer = ({
       if (leftOscRef.current) {
         try {
           leftOscRef.current.stop();
-        } catch (e) {
+        } catch {
           /* ignore error if oscillator is not started */
         }
         leftOscRef.current = null;
@@ -355,7 +354,7 @@ const DuckingAudioPlayer = ({
       if (rightOscRef.current) {
         try {
           rightOscRef.current.stop();
-        } catch (e) {
+        } catch {
           /* ignore error if oscillator is not started */
         }
         rightOscRef.current = null;

@@ -64,7 +64,7 @@ const HealerDashboard = ({ onClose, onJoinPortal, healerAppsEnabled = false, onT
     if (saved) {
       try {
         return JSON.parse(saved);
-      } catch (e) {
+      } catch {
         // ignore
       }
     }
@@ -473,7 +473,7 @@ const HealerDashboard = ({ onClose, onJoinPortal, healerAppsEnabled = false, onT
               } else {
                 joinedDate = new Date().toISOString().split('T')[0];
               }
-            } catch (e) {
+            } catch {
               joinedDate = new Date().toISOString().split('T')[0];
             }
             return {
