@@ -39,7 +39,8 @@ const firebaseConfig = {
 const isConfigured = firebaseConfig.apiKey && firebaseConfig.projectId;
 const app = isConfigured ? initializeApp(firebaseConfig) : null;
 const authInstance = app ? getAuth(app) : null;
-const firestore = app ? getFirestore(app) : null;
+export const firestore = app ? getFirestore(app) : null;
+
 
 export const isFirebaseConfigured = () => isConfigured;
 

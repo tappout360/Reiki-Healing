@@ -7,7 +7,8 @@ import {
 } from 'lucide-react';
 import { ResponsiveContainer, AreaChart, Area, XAxis, YAxis, Tooltip, CartesianGrid } from 'recharts';
 import { getZodiacSign, getAdvancedHoroscope } from '../utils/horoscopes';
-import { auth, db, isFirebaseConfigured } from '../lib/firebase';
+import { auth, db, isFirebaseConfigured, firestore } from '../lib/firebase';
+import { collection, doc, setDoc, onSnapshot, deleteDoc } from 'firebase/firestore';
 import { BADGES, BADGE_CATEGORIES, getLevel, getLevelProgress, getNextLevel, getStats, getBadgesByCategory } from '../utils/gamification';
 
 const UserDashboard = ({ user, onClose, onUpdateUser, onNavigateToBooking, onNavigateToProtocols, onJoinLivePortal, gamificationState }) => {
@@ -21,6 +22,11 @@ const UserDashboard = ({ user, onClose, onUpdateUser, onNavigateToBooking, onNav
   const [isSubmittingCalibration, setIsSubmittingCalibration] = useState(false);
   const [isDeactivating, setIsDeactivating] = useState(false);
   const [deactivateConfirmPhrase, setDeactivateConfirmPhrase] = useState('');
+  
+  // Presence & Resonance States
+  const [onlineSeekers, setOnlineSeekers] = useState([]);
+  const [ripples, setRipples] = useState([]);
+  const [collectivePulseActive, setCollectivePulseActive] = useState(false);
   
   // Community & Feedback States
   const [stories, setStories] = useState([]);
@@ -253,6 +259,131 @@ const UserDashboard = ({ user, onClose, onUpdateUser, onNavigateToBooking, onNav
       cancelAnimationFrame(animationId);
     };
   }, [user.sessions, calibRegistry]);
+
+  // Live Resonance Presence & Listener
+  useEffect(() => {
+    if (!user?.id) return;
+
+    let unsubscribe = null;
+    let heartbeatInterval = null;
+
+    if (isFirebaseConfigured()) {
+      // 1. Write current user presence document
+      const userPresenceRef = doc(firestore, 'presence', user.id);
+      
+      const writePresence = async () => {
+        try {
+          await setDoc(userPresenceRef, {
+            uid: user.id,
+            name: user.name || user.displayName || 'Anonymous Seeker',
+            email: user.email || '',
+            activeChakra: calibRegistry || 'crown',
+            resonanceScore: user.resonanceScore || 50,
+            lastActive: Date.now()
+          });
+        } catch (err) {
+          console.error("Error setting presence:", err);
+        }
+      };
+
+      // Write immediately
+      writePresence();
+
+      // Set heartbeat interval (every 20 seconds)
+      heartbeatInterval = setInterval(writePresence, 20000);
+
+      // 2. Setup onSnapshot listener for presence collection
+      const presenceQuery = collection(firestore, 'presence');
+      unsubscribe = onSnapshot(presenceQuery, (snapshot) => {
+        const seekers = [];
+        snapshot.forEach((doc) => {
+          const data = doc.data();
+          // Filter out users who haven't updated in 60 seconds
+          if (data.lastActive && Date.now() - data.lastActive < 60000) {
+            seekers.push({
+              id: doc.id,
+              ...data
+            });
+          }
+        });
+        setOnlineSeekers(seekers);
+      }, (error) => {
+        console.error("Error listening to presence:", error);
+      });
+
+      // Cleanup presence on unmount
+      return () => {
+        if (heartbeatInterval) clearInterval(heartbeatInterval);
+        if (unsubscribe) unsubscribe();
+        deleteDoc(userPresenceRef).catch(err => console.error("Error deleting presence:", err));
+      };
+    } else {
+      // Offline Simulation mode
+      const mockNames = [
+        { name: "Luna Rivers", chakra: "third_eye", score: 92 },
+        { name: "Gavin Thorne", chakra: "solar", score: 85 },
+        { name: "Estella Sky", chakra: "heart", score: 98 },
+        { name: "Zev Brooks", chakra: "root", score: 78 },
+        { name: "Aria Breeze", chakra: "throat", score: 88 },
+        { name: "Carissa (Healer)", chakra: "crown", score: 100 },
+        { name: "Leo Solar", chakra: "sacral", score: 82 }
+      ];
+
+      // Format mock seekers
+      const initialSeekers = mockNames.map((item, idx) => ({
+        id: `mock-${idx}`,
+        uid: `mock-${idx}`,
+        name: item.name,
+        activeChakra: item.chakra,
+        resonanceScore: item.score,
+        lastActive: Date.now(),
+        // Assign random coordinates
+        x: 20 + Math.random() * 60,
+        y: 20 + Math.random() * 60
+      }));
+
+      // Add current user
+      const currentUserSeeker = {
+        id: user.id || 'current-user',
+        uid: user.id || 'current-user',
+        name: user.name || 'You (Seeker)',
+        email: user.email,
+        activeChakra: calibRegistry,
+        resonanceScore: user.resonanceScore || 50,
+        lastActive: Date.now(),
+        x: 50,
+        y: 50,
+        isSelf: true
+      };
+
+      setOnlineSeekers([currentUserSeeker, ...initialSeekers]);
+
+      const interval = setInterval(() => {
+        setOnlineSeekers(prev => {
+          return prev.map(seeker => {
+            if (seeker.isSelf) {
+              return {
+                ...seeker,
+                activeChakra: calibRegistry,
+                resonanceScore: user.resonanceScore || 50
+              };
+            }
+            const driftX = (Math.random() - 0.5) * 5;
+            const driftY = (Math.random() - 0.5) * 5;
+            const scoreDelta = (Math.random() - 0.5) * 4;
+            return {
+              ...seeker,
+              x: Math.min(85, Math.max(15, (seeker.x || 50) + driftX)),
+              y: Math.min(85, Math.max(15, (seeker.y || 50) + driftY)),
+              resonanceScore: Math.min(100, Math.max(50, Math.floor(seeker.resonanceScore + scoreDelta)))
+            };
+          });
+        });
+      }, 5000);
+
+      return () => clearInterval(interval);
+    }
+  }, [user?.id, calibRegistry, user?.resonanceScore]);
 
   // Vibrational History
   const [vibrationalLogs, setVibrationalLogs] = useState([]);
@@ -576,7 +707,7 @@ const UserDashboard = ({ user, onClose, onUpdateUser, onNavigateToBooking, onNav
 
         <div style={{ display: 'flex', alignItems: 'center', gap: '1.5rem' }}>
           <div style={{ display: 'flex', gap: '2rem', marginRight: '2rem' }}>
-            {['Overview', 'Vibrational Log', 'Achievements', 'Schedule', 'Community', 'My Reflections', 'Settings'].map(tab => (
+            {['Overview', 'Vibrational Log', 'Achievements', 'Schedule', 'Live Resonance', 'Community', 'My Reflections', 'Settings'].map(tab => (
               <button
                 key={tab}
                 onClick={() => setActiveTab(tab.toLowerCase())}
@@ -1352,6 +1483,486 @@ const UserDashboard = ({ user, onClose, onUpdateUser, onNavigateToBooking, onNav
                  </button>
               </motion.div>
             )}
+
+            {activeTab === 'live resonance' && (() => {
+              const getChakraDetails = (id) => {
+                const list = {
+                  root: { name: 'Root Chakra', color: '#ff7675', symbol: '🔴' },
+                  sacral: { name: 'Sacral Chakra', color: '#fdcb6e', symbol: '🟠' },
+                  solar: { name: 'Solar Plexus', color: '#f1c40f', symbol: '🟡' },
+                  heart: { name: 'Heart Chakra', color: '#2ecc71', symbol: '🟢' },
+                  throat: { name: 'Throat Chakra', color: '#3498db', symbol: '🔵' },
+                  crown: { name: 'Crown Chakra', color: '#9b59b6', symbol: '🟣' }
+                };
+                return list[id] || { name: 'Universal Aura', color: 'var(--accent-gold)', symbol: '✨' };
+              };
+
+              return (
+                <motion.div
+                  key="live-resonance"
+                  initial={{ opacity: 0, x: 20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: -20 }}
+                >
+                  <style>{`
+                    @keyframes pulse-dash {
+                      to { stroke-dashoffset: -40; }
+                    }
+                    @keyframes float-node {
+                      0% { transform: translate(-50%, -50%) translateY(0px); }
+                      50% { transform: translate(-50%, -50%) translateY(-6px); }
+                      100% { transform: translate(-50%, -50%) translateY(0px); }
+                    }
+                    @keyframes pulse-glow {
+                      0% { box-shadow: 0 0 10px var(--glow-color), inset 0 0 5px var(--glow-color); }
+                      50% { box-shadow: 0 0 25px var(--glow-color), inset 0 0 10px var(--glow-color); }
+                      100% { box-shadow: 0 0 10px var(--glow-color), inset 0 0 5px var(--glow-color); }
+                    }
+                    @keyframes ripple-out {
+                      0% { transform: translate(-50%, -50%) scale(0.6); opacity: 1; }
+                      100% { transform: translate(-50%, -50%) scale(4); opacity: 0; }
+                    }
+                    .seeker-node {
+                      position: absolute;
+                      cursor: pointer;
+                      display: flex;
+                      align-items: center;
+                      justify-content: center;
+                      border-radius: 50%;
+                      background: rgba(10, 10, 15, 0.95);
+                      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+                      z-index: 10;
+                    }
+                    .seeker-node:hover {
+                      transform: translate(-50%, -50%) scale(1.15) !important;
+                      z-index: 100;
+                    }
+                    .seeker-node-tooltip {
+                      position: absolute;
+                      bottom: 110%;
+                      left: 50%;
+                      transform: translateX(-50%);
+                      background: rgba(10, 10, 15, 0.95);
+                      border: 1px solid var(--border-color);
+                      padding: 8px 12px;
+                      border-radius: 12px;
+                      font-size: 0.75rem;
+                      white-space: nowrap;
+                      pointer-events: none;
+                      opacity: 0;
+                      transition: opacity 0.2s ease;
+                      box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+                      z-index: 200;
+                    }
+                    .seeker-node:hover .seeker-node-tooltip {
+                      opacity: 1;
+                    }
+                  `}</style>
+
+                  {/* Header with Stats */}
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2.5rem' }}>
+                    <div>
+                      <h2 style={{ fontSize: '2.5rem', marginBottom: '0.5rem', fontFamily: "'Playfair Display', serif" }}>Resonance Portal</h2>
+                      <p style={{ color: 'rgba(255,255,255,0.5)' }}>Observe and entangle with seekers currently aligned in the sanctuary field.</p>
+                    </div>
+                    
+                    <div style={{ display: 'flex', gap: '1rem' }}>
+                      <div className="glass" style={{ padding: '1rem 1.5rem', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.05)', display: 'flex', flexDirection: 'column', alignItems: 'center', minWidth: '120px' }}>
+                        <div style={{ fontSize: '0.65rem', color: 'rgba(255,255,255,0.4)', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '4px' }}>Seekers Aligned</div>
+                        <div style={{ fontSize: '1.5rem', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                          <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#2ecc71', display: 'inline-block', boxShadow: '0 0 10px #2ecc71' }}></span>
+                          {onlineSeekers.length}
+                        </div>
+                      </div>
+                      
+                      <div className="glass" style={{ padding: '1rem 1.5rem', borderRadius: '16px', border: '1px solid var(--accent-gold)', display: 'flex', flexDirection: 'column', alignItems: 'center', minWidth: '120px' }}>
+                        <div style={{ fontSize: '0.65rem', color: 'var(--accent-gold)', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '4px' }}>Field Freq (Avg)</div>
+                        <div style={{ fontSize: '1.5rem', fontWeight: 'bold' }}>
+                          {onlineSeekers.length > 0 
+                            ? Math.round(onlineSeekers.reduce((acc, s) => acc + (s.resonanceScore || 50), 0) / onlineSeekers.length * 1.5 + 432)
+                            : 432}
+                          <span style={{ fontSize: '0.8rem', opacity: 0.5, marginLeft: '2px' }}>Hz</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div style={{ display: 'grid', gridTemplateColumns: '1.8fr 1fr', gap: '3rem' }}>
+                    {/* Circular Map Box */}
+                    <div>
+                      <div 
+                        className="glass"
+                        style={{
+                          background: 'radial-gradient(circle, rgba(18, 12, 30, 0.95) 0%, rgba(5, 3, 10, 0.98) 100%)',
+                          border: '1px solid rgba(212, 175, 55, 0.15)',
+                          position: 'relative',
+                          overflow: 'hidden',
+                          height: '420px',
+                          borderRadius: '24px',
+                          boxShadow: '0 10px 40px rgba(0,0,0,0.8), inset 0 0 40px rgba(212,175,55,0.05)'
+                        }}
+                      >
+                        {/* Connections SVG */}
+                        <svg style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', pointerEvents: 'none' }}>
+                          {onlineSeekers.map((seeker, idx) => {
+                            const total = onlineSeekers.length;
+                            const angle = (idx / Math.max(1, total)) * 2 * Math.PI;
+                            const posX = seeker.x !== undefined ? seeker.x : (50 + 35 * Math.cos(angle));
+                            const posY = seeker.y !== undefined ? seeker.y : (50 + 35 * Math.sin(angle));
+                            
+                            return (
+                              <g key={`lines-${seeker.id}`}>
+                                {/* Pulse line to center */}
+                                <line 
+                                  x1="50%" y1="50%" 
+                                  x2={`${posX}%`} y2={`${posY}%`} 
+                                  stroke="rgba(212, 175, 55, 0.15)" 
+                                  strokeWidth="1.5" 
+                                  strokeDasharray="5,6" 
+                                  style={{
+                                    animation: 'pulse-dash 5s linear infinite',
+                                    animationDirection: seeker.isSelf ? 'normal' : 'reverse'
+                                  }}
+                                />
+                                
+                                {/* Connection to neighboring seeker */}
+                                {idx > 0 && (() => {
+                                  const prev = onlineSeekers[idx - 1];
+                                  const prevAngle = ((idx - 1) / total) * 2 * Math.PI;
+                                  const prevX = prev.x !== undefined ? prev.x : (50 + 35 * Math.cos(prevAngle));
+                                  const prevY = prev.y !== undefined ? prev.y : (50 + 35 * Math.sin(prevAngle));
+                                  return (
+                                    <line 
+                                      x1={`${prevX}%`} y1={`${prevY}%`} 
+                                      x2={`${posX}%`} y2={`${posY}%`} 
+                                      stroke="rgba(255, 255, 255, 0.04)" 
+                                      strokeWidth="1"
+                                    />
+                                  );
+                                })()}
+                              </g>
+                            );
+                          })}
+                        </svg>
+
+                        {/* Ripples */}
+                        {ripples.map(ripple => (
+                          <div 
+                            key={ripple.id}
+                            style={{
+                              position: 'absolute',
+                              left: `${ripple.x}%`,
+                              top: `${ripple.y}%`,
+                              width: '20px',
+                              height: '20px',
+                              borderRadius: '50%',
+                              border: `2px solid ${ripple.color}`,
+                              transform: 'translate(-50%, -50%)',
+                              animation: 'ripple-out 1.5s cubic-bezier(0.1, 0.8, 0.3, 1) forwards',
+                              pointerEvents: 'none'
+                            }}
+                          />
+                        ))}
+
+                        {/* Global Pulse Ripple */}
+                        {collectivePulseActive && (
+                          <div 
+                            style={{
+                              position: 'absolute',
+                              left: '50%',
+                              top: '50%',
+                              width: '40px',
+                              height: '40px',
+                              borderRadius: '50%',
+                              border: '3px solid var(--accent-gold)',
+                              transform: 'translate(-50%, -50%)',
+                              animation: 'ripple-out 2s cubic-bezier(0.1, 0.8, 0.3, 1) forwards',
+                              pointerEvents: 'none'
+                            }}
+                          />
+                        )}
+
+                        {/* Central Sanctuary Core Node */}
+                        <div 
+                          onClick={() => {
+                            setCollectivePulseActive(true);
+                            setTimeout(() => setCollectivePulseActive(false), 2000);
+                            toast.success("Collective Resonance Pulse broadcasted to all active seekers!");
+                          }}
+                          style={{
+                            position: 'absolute',
+                            left: '50%',
+                            top: '50%',
+                            transform: 'translate(-50%, -50%)',
+                            width: '70px',
+                            height: '70px',
+                            borderRadius: '50%',
+                            background: 'radial-gradient(circle, #d4af37 0%, #1a1a2e 90%)',
+                            border: '2px solid var(--accent-gold)',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            boxShadow: '0 0 25px rgba(212, 175, 55, 0.4), inset 0 0 10px rgba(255,255,255,0.2)',
+                            cursor: 'pointer',
+                            zIndex: 20
+                          }}
+                        >
+                          <Sparkles color="#000" size={24} style={{ animation: 'spin 20s linear infinite' }} />
+                        </div>
+
+                        {/* Seeker Nodes */}
+                        {onlineSeekers.map((seeker, idx) => {
+                          const total = onlineSeekers.length;
+                          const angle = (idx / Math.max(1, total)) * 2 * Math.PI;
+                          const posX = seeker.x !== undefined ? seeker.x : (50 + 35 * Math.cos(angle));
+                          const posY = seeker.y !== undefined ? seeker.y : (50 + 35 * Math.sin(angle));
+                          
+                          const chakra = getChakraDetails(seeker.activeChakra);
+                          const initials = seeker.name
+                            ? seeker.name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)
+                            : 'S';
+
+                          return (
+                            <div 
+                              key={seeker.id}
+                              className="seeker-node"
+                              onClick={() => {
+                                const clickX = seeker.x !== undefined ? seeker.x : posX;
+                                const clickY = seeker.y !== undefined ? seeker.y : posY;
+                                
+                                const newRipple = {
+                                  id: Date.now(),
+                                  x: clickX,
+                                  y: clickY,
+                                  color: chakra.color
+                                };
+                                setRipples(prev => [...prev, newRipple]);
+                                setTimeout(() => {
+                                  setRipples(prev => prev.filter(r => r.id !== newRipple.id));
+                                }, 1500);
+
+                                toast.success(`Resonating with ${seeker.name} (${chakra.name})`);
+                              }}
+                              style={{
+                                left: `${posX}%`,
+                                top: `${posY}%`,
+                                width: '45px',
+                                height: '45px',
+                                border: `2px solid ${chakra.color}`,
+                                '--glow-color': chakra.color,
+                                animation: `float-node ${4 + (idx % 3)}s ease-in-out infinite, pulse-glow 3s ease-in-out infinite`,
+                                boxShadow: `0 0 15px ${chakra.color}66`
+                              }}
+                            >
+                              <span style={{ fontSize: '0.85rem', color: '#fff', fontWeight: 'bold' }}>
+                                {initials}
+                              </span>
+                              
+                              {/* Hover Tooltip */}
+                              <div className="seeker-node-tooltip" style={{ '--border-color': chakra.color }}>
+                                <div style={{ fontWeight: 'bold', marginBottom: '2px', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                                  {seeker.name} {seeker.isSelf && <span style={{ color: 'var(--accent-gold)', fontSize: '0.65rem' }}>(You)</span>}
+                                </div>
+                                <div style={{ color: chakra.color, fontSize: '0.7rem', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                                  <span>{chakra.symbol}</span> {chakra.name} Aligned
+                                </div>
+                                <div style={{ opacity: 0.6, fontSize: '0.65rem' }}>
+                                  Frequency: {Math.round((seeker.resonanceScore || 50) * 1.5 + 432)} Hz
+                                </div>
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                      
+                      <p style={{ textAlign: 'center', fontSize: '0.75rem', opacity: 0.5, marginTop: '1rem', fontStyle: 'italic' }}>
+                        Click the central Sanctuary Core to broadcast a collective pulse, or click a seeker to synchronize fields.
+                      </p>
+                    </div>
+
+                    {/* Sidebar Seekers Registry & Info */}
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+                      <div className="glass" style={{ padding: '1.5rem', borderRadius: '20px', background: 'rgba(255,255,255,0.01)', border: '1px solid rgba(255,255,255,0.05)' }}>
+                        <h3 style={{ fontSize: '1rem', color: 'var(--accent-gold)', marginBottom: '1.2rem', textTransform: 'uppercase', letterSpacing: '1px' }}>
+                          Collective Registry
+                        </h3>
+                        
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem', maxHeight: '220px', overflowY: 'auto', paddingRight: '5px' }}>
+                          {onlineSeekers.map((seeker, idx) => {
+                            const chakra = getChakraDetails(seeker.activeChakra);
+                            const initials = seeker.name
+                              ? seeker.name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)
+                              : 'S';
+                            return (
+                              <div 
+                                key={seeker.id}
+                                style={{
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  justifyContent: 'space-between',
+                                  padding: '0.6rem 0.8rem',
+                                  borderRadius: '12px',
+                                  background: seeker.isSelf ? 'rgba(212, 175, 55, 0.05)' : 'rgba(255,255,255,0.02)',
+                                  border: seeker.isSelf ? '1px solid rgba(212, 175, 55, 0.2)' : '1px solid rgba(255,255,255,0.03)'
+                                }}
+                              >
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                                  <div style={{
+                                    width: '32px',
+                                    height: '32px',
+                                    borderRadius: '50%',
+                                    border: `1.5px solid ${chakra.color}`,
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    fontSize: '0.75rem',
+                                    fontWeight: 'bold',
+                                    color: '#fff',
+                                    background: 'rgba(0,0,0,0.2)'
+                                  }}>
+                                    {initials}
+                                  </div>
+                                  <div>
+                                    <div style={{ fontSize: '0.85rem', fontWeight: '500' }}>
+                                      {seeker.name} {seeker.isSelf && <span style={{ color: 'var(--accent-gold)', fontSize: '0.7rem' }}>(You)</span>}
+                                    </div>
+                                    <div style={{ fontSize: '0.7rem', color: chakra.color, display: 'flex', alignItems: 'center', gap: '3px' }}>
+                                      <span>{chakra.symbol}</span> {chakra.name}
+                                    </div>
+                                  </div>
+                                </div>
+                                
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                  <span style={{ fontSize: '0.75rem', opacity: 0.6 }}>
+                                    {Math.round((seeker.resonanceScore || 50) * 1.5 + 432)}Hz
+                                  </span>
+                                  
+                                  {!seeker.isSelf && (
+                                    <button
+                                      onClick={() => {
+                                        const clickX = seeker.x !== undefined ? seeker.x : (50 + 35 * Math.cos((idx / onlineSeekers.length) * 2 * Math.PI));
+                                        const clickY = seeker.y !== undefined ? seeker.y : (50 + 35 * Math.sin((idx / onlineSeekers.length) * 2 * Math.PI));
+                                        
+                                        const newRipple = {
+                                          id: Date.now(),
+                                          x: clickX,
+                                          y: clickY,
+                                          color: chakra.color
+                                        };
+                                        setRipples(prev => [...prev, newRipple]);
+                                        setTimeout(() => {
+                                          setRipples(prev => prev.filter(r => r.id !== newRipple.id));
+                                        }, 1500);
+                                        toast.success(`Resonance pulse sent to ${seeker.name.split(' ')[0]}!`);
+                                      }}
+                                      style={{
+                                        background: 'none',
+                                        border: 'none',
+                                        color: 'var(--accent-gold)',
+                                        cursor: 'pointer',
+                                        padding: '4px',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        opacity: 0.7,
+                                        transition: 'opacity 0.2s'
+                                      }}
+                                      title="Send Resonance Wave"
+                                    >
+                                      <Zap size={14} />
+                                    </button>
+                                  )}
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </div>
+
+                      <div className="glass" style={{ padding: '1.5rem', borderRadius: '20px', background: 'rgba(255,255,255,0.01)', border: '1px solid rgba(255,255,255,0.05)' }}>
+                        <h3 style={{ fontSize: '0.9rem', color: 'var(--accent-gold)', marginBottom: '0.8rem', textTransform: 'uppercase', letterSpacing: '1px' }}>
+                          Resonance Analytics
+                        </h3>
+                        <div style={{ fontSize: '0.8rem', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', opacity: 0.8 }}>
+                            <span>Entanglement Factor:</span>
+                            <span style={{ color: 'var(--accent-ethereal)', fontWeight: 'bold' }}>
+                              {onlineSeekers.length > 3 ? 'HIGH RESONANCE' : 'SYNCHRONIZING'}
+                            </span>
+                          </div>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', opacity: 0.8 }}>
+                            <span>Dominant Center:</span>
+                            {(() => {
+                              const chakraCounts = onlineSeekers.reduce((acc, s) => {
+                                acc[s.activeChakra] = (acc[s.activeChakra] || 0) + 1;
+                                return acc;
+                              }, {});
+                              let maxCount = 0;
+                              let domChakra = 'crown';
+                              Object.entries(chakraCounts).forEach(([k, v]) => {
+                                if (v > maxCount) {
+                                  maxCount = v;
+                                  domChakra = k;
+                                }
+                              });
+                              const ch = getChakraDetails(domChakra);
+                              return (
+                                <span style={{ color: ch.color, fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '3px' }}>
+                                  {ch.symbol} {ch.name.split(' ')[0]}
+                                </span>
+                              );
+                            })()}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Live Streams / Active Portals Section */}
+                  <div style={{ marginTop: '3rem' }}>
+                    <h3 style={{ fontSize: '1.2rem', color: 'var(--accent-gold)', marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '10px' }}>
+                      <Activity size={20} /> Active Sanctuary Streams
+                    </h3>
+                    
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '2rem' }}>
+                      <div className="glass" style={{ padding: '2rem', borderRadius: '24px', background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(212, 175, 55, 0.25)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <div>
+                          <div style={{ display: 'inline-block', background: 'rgba(233, 30, 99, 0.1)', border: '1px solid rgba(233, 30, 99, 0.3)', color: '#e91e63', fontSize: '0.65rem', fontWeight: 'bold', padding: '3px 8px', borderRadius: '10px', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '8px' }}>
+                            LIVE NOW
+                          </div>
+                          <h4 style={{ margin: 0, fontSize: '1.1rem', marginBottom: '4px' }}>Amethyst Attunement</h4>
+                          <p style={{ fontSize: '0.8rem', color: 'rgba(255,255,255,0.4)', margin: 0 }}>Carissa Bright • 96 Seekers Listening</p>
+                        </div>
+                        <button 
+                          onClick={() => onJoinLivePortal({ id: 2, title: 'Amethyst Attunement' })}
+                          className="btn btn-primary" 
+                          style={{ fontSize: '0.8rem', padding: '0.6rem 1.2rem' }}
+                        >
+                          JOIN STREAM
+                        </button>
+                      </div>
+
+                      <div className="glass" style={{ padding: '2rem', borderRadius: '24px', background: 'rgba(255,255,255,0.01)', border: '1px solid rgba(255,255,255,0.05)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', opacity: 0.8 }}>
+                        <div>
+                          <div style={{ display: 'inline-block', background: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.2)', color: 'rgba(255,255,255,0.6)', fontSize: '0.65rem', fontWeight: 'bold', padding: '3px 8px', borderRadius: '10px', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '8px' }}>
+                            SCHEDULED (8:00 PM)
+                          </div>
+                          <h4 style={{ margin: 0, fontSize: '1.1rem', marginBottom: '4px' }}>Rose Quartz Rehearsal</h4>
+                          <p style={{ fontSize: '0.8rem', color: 'rgba(255,255,255,0.4)', margin: 0 }}>Collective Heart-Opening Session</p>
+                        </div>
+                        <button 
+                          onClick={() => onJoinLivePortal({ id: 1, title: 'Rose Quartz Rehearsal' })}
+                          className="btn" 
+                          style={{ background: 'rgba(255,255,255,0.05)', fontSize: '0.8rem', padding: '0.6rem 1.2rem' }}
+                        >
+                          SET REMINDER
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </motion.div>
+              );
+            })()}
 
             {activeTab === 'community' && (
               <motion.div

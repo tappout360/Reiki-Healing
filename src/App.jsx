@@ -496,6 +496,11 @@ function AppContent() {
   const [binauralVolume, setBinauralVolume] = useState(30);
   // NEW: User Account State
   const [user, setUser] = useState(null);
+  const isPremiumUser = user && (
+    user.subscription === 'healing' || 
+    user.subscriptionStatus === 'active' || 
+    ['healer', 'admin', 'owner'].includes(user.role?.toLowerCase())
+  );
   const [showSignupFlow, setShowSignupFlow] = useState(false); // NEW: Single-page signup flow
   const [showLoginModal, setShowLoginModal] = useState(false);
   const [showSubscriptionPage, setShowSubscriptionPage] = useState(false); // Dedicated Page
@@ -740,6 +745,45 @@ const [showCheckoutModal, setShowCheckoutModal] = useState(false);
       }
     }
   }, []);
+
+  // Handle Stripe Membership Checkout redirect params
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const checkoutStatus = params.get('checkout');
+    
+    if (checkoutStatus === 'success') {
+      const updateMembership = async () => {
+        if (isFirebaseConfigured() && user?.id) {
+          try {
+            toast.success("Membership activated! Welcome, Guardian.");
+            const updatedProfile = await db.updateProfile(user.id, {
+              subscription: 'healing',
+              subscriptionStatus: 'active'
+            });
+            setUser(updatedProfile);
+            localStorage.setItem('user_profile', JSON.stringify(updatedProfile));
+          } catch (err) {
+            console.error("Failed to update profile in Firestore:", err);
+          }
+        } else if (!isFirebaseConfigured() && user) {
+          toast.success("Membership activated! Welcome, Guardian.");
+          const updatedUser = { 
+            ...user, 
+            subscription: 'healing',
+            subscriptionStatus: 'active'
+          };
+          setUser(updatedUser);
+          localStorage.setItem('user_profile', JSON.stringify(updatedUser));
+        }
+      };
+      
+      updateMembership();
+      window.history.replaceState({}, document.title, window.location.pathname);
+    } else if (checkoutStatus === 'cancelled') {
+      toast.error("Checkout cancelled. Your biofield alignment was not altered.");
+      window.history.replaceState({}, document.title, window.location.pathname);
+    }
+  }, [user]);
 
   // ─── Reusable Logout Handler ───
   const handleLogout = useCallback(async () => {
@@ -1867,6 +1911,35 @@ const [showCheckoutModal, setShowCheckoutModal] = useState(false);
       case 'protocols':
         return renderProtocolsSection(true);
       case 'ai-guide':
+        if (!isPremiumUser) {
+          return (
+            <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: 'calc(100vh - 125px)', padding: '2rem', textAlign: 'center' }}>
+              <div className="glass" style={{ maxWidth: '500px', padding: '3rem', borderRadius: '32px', border: '1px solid rgba(212, 175, 55, 0.25)', background: 'rgba(10, 10, 15, 0.8)' }}>
+                <Shield size={48} color="var(--accent-gold)" style={{ marginBottom: '1.5rem', filter: 'drop-shadow(0 0 10px rgba(212,175,55,0.4))' }} />
+                <h2 style={{ fontSize: '1.8rem', marginBottom: '1rem', fontFamily: "'Playfair Display', serif" }}>AI Aura & Biofield Guide</h2>
+                <p style={{ color: 'rgba(255,255,255,0.7)', fontSize: '0.95rem', lineHeight: '1.6', marginBottom: '2rem' }}>
+                  Unlock Carissa's digital twin to analyze your chakra alignment, log energy shifts, and receive personalized spiritual remedies.
+                </p>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                  <button 
+                    onClick={() => setShowSubscriptionPage(true)}
+                    className="btn btn-primary" 
+                    style={{ width: '100%', padding: '1rem' }}
+                  >
+                    UPGRADE TO GUARDIAN TIER
+                  </button>
+                  <button 
+                    onClick={() => setActiveTab('home')}
+                    className="btn" 
+                    style={{ width: '100%', padding: '1rem', background: 'rgba(255,255,255,0.05)' }}
+                  >
+                    RETURN HOME
+                  </button>
+                </div>
+              </div>
+            </div>
+          );
+        }
         return (
           <div style={{ flex: 1, display: 'flex', flexDirection: 'column', height: 'calc(100vh - 125px)' }}>
             <Suspense fallback={<LoadingSpinner />}>
@@ -2164,60 +2237,92 @@ const [showCheckoutModal, setShowCheckoutModal] = useState(false);
                       <input 
                         type="checkbox" 
                         checked={binauralEnabled} 
-                        onChange={(e) => setBinauralEnabled(e.target.checked)}
+                        onChange={(e) => {
+                          setBinauralEnabled(e.target.checked);
+                          if (e.target.checked && !isPremiumUser) {
+                            toast.error("Upgrade to Guardian Tier to customize Solfeggio frequencies!");
+                          }
+                        }}
                         style={{ accentColor: 'var(--accent-gold)' }}
                       />
-                      Binaural Beats Layer
+                      Binaural Beats Layer {!isPremiumUser && "🔒"}
                     </label>
                     
                     {binauralEnabled && (
-                      <motion.div 
-                        initial={{ opacity: 0, height: 0 }}
-                        animate={{ opacity: 1, height: 'auto' }}
-                        style={{ marginTop: '0.75rem', display: 'flex', flexDirection: 'column', gap: '0.5rem', textAlign: 'left' }}
-                      >
-                        <div>
-                          <label style={{ fontSize: '0.65rem', opacity: 0.8, display: 'block', marginBottom: '2px' }}>
-                            Binaural Volume: {binauralVolume}%
-                          </label>
-                          <input 
-                            type="range" min="0" max="100" value={binauralVolume} 
-                            onChange={(e) => setBinauralVolume(parseInt(e.target.value))}
-                            style={{ width: '100%', accentColor: 'var(--accent-gold)', cursor: 'pointer' }}
-                          />
-                        </div>
-                        
-                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
+                      <div style={{ position: 'relative' }}>
+                        <motion.div 
+                          initial={{ opacity: 0, height: 0 }}
+                          animate={{ opacity: 1, height: 'auto' }}
+                          style={{ 
+                            marginTop: '0.75rem', 
+                            display: 'flex', 
+                            flexDirection: 'column', 
+                            gap: '0.5rem', 
+                            textAlign: 'left',
+                            filter: !isPremiumUser ? 'blur(4px)' : 'none',
+                            pointerEvents: !isPremiumUser ? 'none' : 'auto'
+                          }}
+                        >
                           <div>
                             <label style={{ fontSize: '0.65rem', opacity: 0.8, display: 'block', marginBottom: '2px' }}>
-                              Carrier Freq: {binauralCarrier}Hz
+                              Binaural Volume: {binauralVolume}%
                             </label>
                             <input 
-                              type="range" min="200" max="800" value={binauralCarrier} 
-                              onChange={(e) => setBinauralCarrier(parseInt(e.target.value))}
+                              type="range" min="0" max="100" value={binauralVolume} 
+                              onChange={(e) => setBinauralVolume(parseInt(e.target.value))}
                               style={{ width: '100%', accentColor: 'var(--accent-gold)', cursor: 'pointer' }}
                             />
                           </div>
                           
-                          <div>
-                            <label style={{ fontSize: '0.65rem', opacity: 0.8, display: 'block', marginBottom: '2px' }}>
-                              Brainwave State
-                            </label>
-                            <select 
-                              value={binauralBeat} 
-                              onChange={(e) => setBinauralBeat(parseFloat(e.target.value))}
-                              className="glass"
-                              style={{ width: '100%', padding: '4px', fontSize: '0.65rem', border: '1px solid rgba(255,255,255,0.2)', borderRadius: '6px', background: 'rgba(0,0,0,0.6)', color: 'white' }}
-                            >
-                              <option value="2">2 Hz (Delta - Deep Sleep)</option>
-                              <option value="6">6 Hz (Theta - Meditation)</option>
-                              <option value="10">10 Hz (Alpha - Relaxation)</option>
-                              <option value="15">15 Hz (Beta - Focus)</option>
-                              <option value="30">30 Hz (Gamma - Cosmic Peak)</option>
-                            </select>
+                          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
+                            <div>
+                              <label style={{ fontSize: '0.65rem', opacity: 0.8, display: 'block', marginBottom: '2px' }}>
+                                Carrier Freq: {binauralCarrier}Hz
+                              </label>
+                              <input 
+                                type="range" min="200" max="800" value={binauralCarrier} 
+                                onChange={(e) => setBinauralCarrier(parseInt(e.target.value))}
+                                style={{ width: '100%', accentColor: 'var(--accent-gold)', cursor: 'pointer' }}
+                              />
+                            </div>
+                            
+                            <div>
+                              <label style={{ fontSize: '0.65rem', opacity: 0.8, display: 'block', marginBottom: '2px' }}>
+                                Brainwave State
+                              </label>
+                              <select 
+                                value={binauralBeat} 
+                                onChange={(e) => setBinauralBeat(parseFloat(e.target.value))}
+                                className="glass"
+                                style={{ width: '100%', padding: '4px', fontSize: '0.65rem', border: '1px solid rgba(255,255,255,0.2)', borderRadius: '6px', background: 'rgba(0,0,0,0.6)', color: 'white' }}
+                              >
+                                <option value="2">2 Hz (Delta - Deep Sleep)</option>
+                                <option value="6">6 Hz (Theta - Meditation)</option>
+                                <option value="10">10 Hz (Alpha - Relaxation)</option>
+                                <option value="15">15 Hz (Beta - Focus)</option>
+                                <option value="30">30 Hz (Gamma - Cosmic Peak)</option>
+                              </select>
+                            </div>
                           </div>
-                        </div>
-                      </motion.div>
+                        </motion.div>
+                        {!isPremiumUser && (
+                          <div style={{
+                            position: 'absolute', top: 0, left: 0, right: 0, bottom: 0,
+                            display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+                            background: 'rgba(0,0,0,0.3)', borderRadius: '12px', padding: '10px',
+                            border: '1px solid rgba(212,175,55,0.1)'
+                          }}>
+                            <Shield size={16} color="var(--accent-gold)" style={{ marginBottom: '4px', filter: 'drop-shadow(0 0 5px rgba(212,175,55,0.5))' }} />
+                            <span style={{ fontSize: '0.7rem', fontWeight: 'bold', color: 'var(--accent-gold)', letterSpacing: '1px' }}>GUARDIAN TIER REQUIRED</span>
+                            <span 
+                              onClick={() => setShowSubscriptionPage(true)} 
+                              style={{ fontSize: '0.65rem', color: '#fff', textDecoration: 'underline', cursor: 'pointer', marginTop: '2px', fontWeight: '500' }}
+                            >
+                              Upgrade to Customize Solfeggio
+                            </span>
+                          </div>
+                        )}
+                      </div>
                     )}
                   </div>
                 </div>
@@ -2498,60 +2603,92 @@ const [showCheckoutModal, setShowCheckoutModal] = useState(false);
                     <input 
                       type="checkbox" 
                       checked={binauralEnabled} 
-                      onChange={(e) => setBinauralEnabled(e.target.checked)}
+                      onChange={(e) => {
+                        setBinauralEnabled(e.target.checked);
+                        if (e.target.checked && !isPremiumUser) {
+                          toast.error("Upgrade to Guardian Tier to customize Solfeggio frequencies!");
+                        }
+                      }}
                       style={{ accentColor: 'var(--accent-gold)' }}
                     />
-                    Binaural Beats Layer
+                    Binaural Beats Layer {!isPremiumUser && "🔒"}
                   </label>
                   
                   {binauralEnabled && (
-                    <motion.div 
-                      initial={{ opacity: 0, height: 0 }}
-                      animate={{ opacity: 1, height: 'auto' }}
-                      style={{ marginTop: '0.75rem', display: 'flex', flexDirection: 'column', gap: '0.5rem', textAlign: 'left' }}
-                    >
-                      <div>
-                        <label style={{ fontSize: '0.65rem', opacity: 0.8, display: 'block', marginBottom: '2px' }}>
-                          Binaural Volume: {binauralVolume}%
-                        </label>
-                        <input 
-                          type="range" min="0" max="100" value={binauralVolume} 
-                          onChange={(e) => setBinauralVolume(parseInt(e.target.value))}
-                          style={{ width: '100%', accentColor: 'var(--accent-gold)', cursor: 'pointer' }}
-                        />
-                      </div>
-                      
-                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
+                    <div style={{ position: 'relative' }}>
+                      <motion.div 
+                        initial={{ opacity: 0, height: 0 }}
+                        animate={{ opacity: 1, height: 'auto' }}
+                        style={{ 
+                          marginTop: '0.75rem', 
+                          display: 'flex', 
+                          flexDirection: 'column', 
+                          gap: '0.5rem', 
+                          textAlign: 'left',
+                          filter: !isPremiumUser ? 'blur(4px)' : 'none',
+                          pointerEvents: !isPremiumUser ? 'none' : 'auto'
+                        }}
+                      >
                         <div>
                           <label style={{ fontSize: '0.65rem', opacity: 0.8, display: 'block', marginBottom: '2px' }}>
-                            Carrier Freq: {binauralCarrier}Hz
+                            Binaural Volume: {binauralVolume}%
                           </label>
                           <input 
-                            type="range" min="200" max="800" value={binauralCarrier} 
-                            onChange={(e) => setBinauralCarrier(parseInt(e.target.value))}
+                            type="range" min="0" max="100" value={binauralVolume} 
+                            onChange={(e) => setBinauralVolume(parseInt(e.target.value))}
                             style={{ width: '100%', accentColor: 'var(--accent-gold)', cursor: 'pointer' }}
                           />
                         </div>
                         
-                        <div>
-                          <label style={{ fontSize: '0.65rem', opacity: 0.8, display: 'block', marginBottom: '2px' }}>
-                            Brainwave State
-                          </label>
-                          <select 
-                            value={binauralBeat} 
-                            onChange={(e) => setBinauralBeat(parseFloat(e.target.value))}
-                            className="glass"
-                            style={{ width: '100%', padding: '4px', fontSize: '0.65rem', border: '1px solid rgba(255,255,255,0.2)', borderRadius: '6px', background: 'rgba(0,0,0,0.6)', color: 'white' }}
-                          >
-                            <option value="2">2 Hz (Delta - Deep Sleep)</option>
-                            <option value="6">6 Hz (Theta - Meditation)</option>
-                            <option value="10">10 Hz (Alpha - Relaxation)</option>
-                            <option value="15">15 Hz (Beta - Focus)</option>
-                            <option value="30">30 Hz (Gamma - Cosmic Peak)</option>
-                          </select>
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
+                          <div>
+                            <label style={{ fontSize: '0.65rem', opacity: 0.8, display: 'block', marginBottom: '2px' }}>
+                              Carrier Freq: {binauralCarrier}Hz
+                            </label>
+                            <input 
+                              type="range" min="200" max="800" value={binauralCarrier} 
+                              onChange={(e) => setBinauralCarrier(parseInt(e.target.value))}
+                              style={{ width: '100%', accentColor: 'var(--accent-gold)', cursor: 'pointer' }}
+                            />
+                          </div>
+                          
+                          <div>
+                            <label style={{ fontSize: '0.65rem', opacity: 0.8, display: 'block', marginBottom: '2px' }}>
+                              Brainwave State
+                            </label>
+                            <select 
+                              value={binauralBeat} 
+                              onChange={(e) => setBinauralBeat(parseFloat(e.target.value))}
+                              className="glass"
+                              style={{ width: '100%', padding: '4px', fontSize: '0.65rem', border: '1px solid rgba(255,255,255,0.2)', borderRadius: '6px', background: 'rgba(0,0,0,0.6)', color: 'white' }}
+                            >
+                              <option value="2">2 Hz (Delta - Deep Sleep)</option>
+                              <option value="6">6 Hz (Theta - Meditation)</option>
+                              <option value="10">10 Hz (Alpha - Relaxation)</option>
+                              <option value="15">15 Hz (Beta - Focus)</option>
+                              <option value="30">30 Hz (Gamma - Cosmic Peak)</option>
+                            </select>
+                          </div>
                         </div>
-                      </div>
-                    </motion.div>
+                      </motion.div>
+                      {!isPremiumUser && (
+                        <div style={{
+                          position: 'absolute', top: 0, left: 0, right: 0, bottom: 0,
+                          display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+                          background: 'rgba(0,0,0,0.3)', borderRadius: '12px', padding: '10px',
+                          border: '1px solid rgba(212,175,55,0.1)'
+                        }}>
+                          <Shield size={16} color="var(--accent-gold)" style={{ marginBottom: '4px', filter: 'drop-shadow(0 0 5px rgba(212,175,55,0.5))' }} />
+                          <span style={{ fontSize: '0.7rem', fontWeight: 'bold', color: 'var(--accent-gold)', letterSpacing: '1px' }}>GUARDIAN TIER REQUIRED</span>
+                          <span 
+                            onClick={() => setShowSubscriptionPage(true)} 
+                            style={{ fontSize: '0.65rem', color: '#fff', textDecoration: 'underline', cursor: 'pointer', marginTop: '2px', fontWeight: '500' }}
+                          >
+                            Upgrade to Customize Solfeggio
+                          </span>
+                        </div>
+                      )}
+                    </div>
                   )}
                 </div>
                 <div 
@@ -3211,13 +3348,66 @@ const [showCheckoutModal, setShowCheckoutModal] = useState(false);
       {/* AI Healer Components */}
       <Suspense fallback={null}>
         {showAIInterface && (
-          <AIHealerInterface 
-            user={user} 
-            onClose={() => setShowAIInterface(false)} 
-            onOpenBooking={() => setBookingType('portable')}
-            onOpenLogin={() => setShowLoginModal(true)}
-            onApply={() => setShowHealerApp(true)}
-          />
+          !isPremiumUser ? (
+            <div 
+              style={{
+                position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
+                background: 'rgba(0,0,0,0.85)', zIndex: 11000,
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                backdropFilter: 'blur(15px)'
+              }}
+            >
+              <motion.div
+                initial={{ scale: 0.9, y: 20 }}
+                animate={{ scale: 1, y: 0 }}
+                exit={{ scale: 0.9, y: 20 }}
+                style={{
+                  width: '100%', maxWidth: '500px', background: '#0a0a0f',
+                  padding: '3rem', borderRadius: '32px', border: '1px solid rgba(212, 175, 55, 0.3)',
+                  position: 'relative', textAlign: 'center'
+                }}
+              >
+                <button 
+                  onClick={() => setShowAIInterface(false)}
+                  style={{ position: 'absolute', top: '1.5rem', right: '1.5rem', background: 'none', border: 'none', color: 'white', cursor: 'pointer', opacity: 0.5 }}
+                >
+                  ✕
+                </button>
+                <Shield size={48} color="var(--accent-gold)" style={{ marginBottom: '1.5rem', filter: 'drop-shadow(0 0 10px rgba(212,175,55,0.4))' }} />
+                <h2 style={{ fontSize: '2rem', marginBottom: '1rem', fontFamily: "'Playfair Display', serif" }}>Guardian Tier Required</h2>
+                <p style={{ color: 'rgba(255,255,255,0.7)', fontSize: '0.95rem', lineHeight: '1.6', marginBottom: '2.5rem' }}>
+                  The AI Aura & Biofield Guide is reserved for members of our Guardian Tier. Upgrade to access Carissa's digital twin and receive advanced metaphysical alignments.
+                </p>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                  <button 
+                    onClick={() => {
+                      setShowAIInterface(false);
+                      setShowSubscriptionPage(true);
+                    }}
+                    className="btn btn-primary"
+                    style={{ width: '100%', padding: '1rem' }}
+                  >
+                    UPGRADE NOW
+                  </button>
+                  <button 
+                    onClick={() => setShowAIInterface(false)}
+                    className="btn"
+                    style={{ width: '100%', padding: '1rem', background: 'rgba(255,255,255,0.05)' }}
+                  >
+                    CLOSE
+                  </button>
+                </div>
+              </motion.div>
+            </div>
+          ) : (
+            <AIHealerInterface 
+              user={user} 
+              onClose={() => setShowAIInterface(false)} 
+              onOpenBooking={() => setBookingType('portable')}
+              onOpenLogin={() => setShowLoginModal(true)}
+              onApply={() => setShowHealerApp(true)}
+            />
+          )
         )}
       </Suspense>
       

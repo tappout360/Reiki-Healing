@@ -143,7 +143,7 @@ const SubscriptionPage = ({ onClose, onUpgrade }) => {
                                     </li>
                                 ))}
                             </ul>
-                            <button className={duration === resonantPlan ? "btn btn-primary" : "btn"} style={{marginTop: '2rem', width: '100%'}} onClick={onUpgrade}>
+                            <button className={duration === resonantPlan ? "btn btn-primary" : "btn"} style={{marginTop: '2rem', width: '100%'}} onClick={() => onUpgrade(duration)}>
                                 Upgrade Now
                             </button>
                         </div>
@@ -199,7 +199,7 @@ const SubscriptionPage = ({ onClose, onUpgrade }) => {
       </section>
 
       <footer style={{padding: '4rem', textAlign: 'center', borderTop: '1px solid rgba(255,255,255,0.1)'}}>
-          <button className="btn btn-primary" style={{fontSize: '1.2rem', padding: '1rem 3rem'}} onClick={onUpgrade}>
+          <button className="btn btn-primary" style={{fontSize: '1.2rem', padding: '1rem 3rem'}} onClick={() => onUpgrade('1_month')}>
               Begin Your Journey Today
           </button>
       </footer>
