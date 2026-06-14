@@ -1754,37 +1754,38 @@ const [showCheckoutModal, setShowCheckoutModal] = useState(false);
           <p style={{ color: 'var(--text-muted)', marginBottom: '2.5rem', fontSize: '0.9rem', lineHeight: '1.6' }}>
             We are hard at work engineering new dimensions of energetic connection. Soon, you will be able to unlock the full potential of your spiritual journey through:
           </p>
-
+ 
           <div style={{ display: 'grid', gridTemplateColumns: isMobileLayout ? '1fr' : 'repeat(4, 1fr)', gap: '1.5rem', textAlign: 'left' }}>
             <div className="glass" style={{ padding: '1.5rem', borderRadius: '20px', border: '1px solid rgba(255,255,255,0.05)' }}>
-              <div style={{ fontSize: '1.8rem', marginBottom: '0.75rem' }}>📈</div>
-              <h4 style={{ color: 'var(--accent-gold)', marginBottom: '0.5rem', fontSize: '1rem' }}>Personal Profiles</h4>
+              <div style={{ fontSize: '1.8rem', marginBottom: '0.75rem' }}>📱</div>
+              <h4 style={{ color: 'var(--accent-gold)', marginBottom: '0.5rem', fontSize: '1rem' }}>Mobile App</h4>
               <p style={{ fontSize: '0.78rem', color: 'var(--text-muted)', lineHeight: '1.5', margin: 0 }}>
-                Track your daily alignment scores, meditation streaks, and review your historical biofield calibration logs with deep statistics.
+                A standalone native iOS and Android experience to carry the healing sanctuary in your pocket.
               </p>
             </div>
-
-            <div className="glass" style={{ padding: '1.5rem', borderRadius: '20px', border: '1px solid rgba(255,255,255,0.05)' }}>
-              <div style={{ fontSize: '1.8rem', marginBottom: '0.75rem' }}>✨</div>
-              <h4 style={{ color: 'var(--accent-gold)', marginBottom: '0.5rem', fontSize: '1rem' }}>Avatar & Gamification</h4>
+ 
+            <div className="glass" style={{ padding: '1.5rem', borderRadius: '20px', border: '1px solid var(--accent-gold)', background: 'linear-gradient(135deg, rgba(255,255,255,0.03) 0%, rgba(212, 175, 55, 0.05) 100%)', position: 'relative' }}>
+              <span style={{ position: 'absolute', top: '10px', right: '10px', background: 'var(--accent-gold)', color: '#000', fontSize: '0.6rem', fontWeight: 'bold', padding: '2px 6px', borderRadius: '4px', textTransform: 'uppercase' }}>Now Live!</span>
+              <div style={{ fontSize: '1.8rem', marginBottom: '0.75rem' }}>🎙️</div>
+              <h4 style={{ color: 'var(--accent-gold)', marginBottom: '0.5rem', fontSize: '1rem' }}>Voice Reflections</h4>
               <p style={{ fontSize: '0.78rem', color: 'var(--text-muted)', lineHeight: '1.5', margin: 0 }}>
-                Evolve your personal energetic avatar, unlock ancient celestial badges, and complete daily mindfulness challenges to increase attributes.
+                Record and share 60-second spiritual audio alignment journals with seekers and guides worldwide.
               </p>
             </div>
             
             <div className="glass" style={{ padding: '1.5rem', borderRadius: '20px', border: '1px solid rgba(255,255,255,0.05)' }}>
-              <div style={{ fontSize: '1.8rem', marginBottom: '0.75rem' }}>🤝</div>
-              <h4 style={{ color: 'var(--accent-gold)', marginBottom: '0.5rem', fontSize: '1rem' }}>Energetic Community</h4>
+              <div style={{ fontSize: '1.8rem', marginBottom: '0.75rem' }}>⌚</div>
+              <h4 style={{ color: 'var(--accent-gold)', marginBottom: '0.5rem', fontSize: '1rem' }}>Biofield Pulse</h4>
               <p style={{ fontSize: '0.78rem', color: 'var(--text-muted)', lineHeight: '1.5', margin: 0 }}>
-                Join group resonance portals, share reflections in the collective feed, and coordinate spiritual intentions with seekers worldwide.
+                Direct integration with wearable sensors to map heart-rate resonance during daily meditations.
               </p>
             </div>
-
+ 
             <div className="glass" style={{ padding: '1.5rem', borderRadius: '20px', border: '1px solid rgba(255,255,255,0.05)' }}>
-              <div style={{ fontSize: '1.8rem', marginBottom: '0.75rem' }}>👑</div>
-              <h4 style={{ color: 'var(--accent-gold)', marginBottom: '0.5rem', fontSize: '1rem' }}>Premium Memberships</h4>
+              <div style={{ fontSize: '1.8rem', marginBottom: '0.75rem' }}>🌀</div>
+              <h4 style={{ color: 'var(--accent-gold)', marginBottom: '0.5rem', fontSize: '1rem' }}>Sonic Sound Baths</h4>
               <p style={{ fontSize: '0.78rem', color: 'var(--text-muted)', lineHeight: '1.5', margin: 0 }}>
-                Access recorded guided meditations, cosmic frequency sound baths, and masterclasses from certified Reiki masters on demand.
+                Infinite interactive Solfeggio frequency generators featuring customizable binaural beat sliders.
               </p>
             </div>
           </div>

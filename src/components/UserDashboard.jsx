@@ -1,9 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Toaster, toast } from 'react-hot-toast';
 import {
   Activity, Calendar, CheckCircle, ChevronRight, Key, Send, Settings, Shield, Sparkles, Star, X, Zap,
-  Compass, TrendingUp, Clock, Flame, Award, Mic
+  Compass, TrendingUp, Clock, Flame, Award, Mic, Square, Trash2, Play, Pause
 } from 'lucide-react';
 import { getZodiacSign, getAdvancedHoroscope } from '../utils/horoscopes';
 import { auth, db, isFirebaseConfigured } from '../lib/firebase';
@@ -21,6 +21,135 @@ const UserDashboard = ({ user, onClose, onUpdateUser, onNavigateToBooking, onNav
   const [newRating, setNewRating] = useState(5);
   const [isSubmittingStory, setIsSubmittingStory] = useState(false);
   
+  // Voice Recording & Playback States
+  const [isRecording, setIsRecording] = useState(false);
+  const [voiceBase64, setVoiceBase64] = useState('');
+  const [recordingDuration, setRecordingDuration] = useState(0);
+  const [isPlayingPreview, setIsPlayingPreview] = useState(false);
+  const [playingStoryId, setPlayingStoryId] = useState(null);
+
+  const mediaRecorderRef = useRef(null);
+  const audioChunksRef = useRef([]);
+  const recordingTimerRef = useRef(null);
+  const previewAudioRef = useRef(null);
+  const feedAudioRef = useRef(null);
+
+  // Start Audio Recording
+  const startRecording = async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      audioChunksRef.current = [];
+      const mediaRecorder = new MediaRecorder(stream, { mimeType: 'audio/webm' });
+      
+      mediaRecorder.ondataavailable = (event) => {
+        if (event.data.size > 0) {
+          audioChunksRef.current.push(event.data);
+        }
+      };
+
+      mediaRecorder.onstop = () => {
+        const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
+        
+        // Convert to Base64
+        const reader = new FileReader();
+        reader.readAsDataURL(audioBlob);
+        reader.onloadend = () => {
+          setVoiceBase64(reader.result);
+        };
+
+        // Close stream tracks
+        stream.getTracks().forEach(track => track.stop());
+      };
+
+      mediaRecorderRef.current = mediaRecorder;
+      mediaRecorder.start();
+      setIsRecording(true);
+      setRecordingDuration(0);
+
+      // Start duration timer
+      recordingTimerRef.current = setInterval(() => {
+        setRecordingDuration(prev => {
+          if (prev >= 60) {
+            stopRecording();
+            return 60;
+          }
+          return prev + 1;
+        });
+      }, 1000);
+
+    } catch (err) {
+      console.error("Failed to access microphone:", err);
+      toast.error("Microphone access denied or unsupported.");
+    }
+  };
+
+  // Stop Audio Recording
+  const stopRecording = () => {
+    if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
+      mediaRecorderRef.current.stop();
+    }
+    if (recordingTimerRef.current) {
+      clearInterval(recordingTimerRef.current);
+    }
+    setIsRecording(false);
+  };
+
+  // Preview Audio
+  const togglePreviewAudio = () => {
+    if (isPlayingPreview) {
+      if (previewAudioRef.current) {
+        previewAudioRef.current.pause();
+      }
+      setIsPlayingPreview(false);
+    } else {
+      if (voiceBase64) {
+        const audio = new Audio(voiceBase64);
+        audio.onended = () => setIsPlayingPreview(false);
+        previewAudioRef.current = audio;
+        audio.play().catch(e => console.error("Audio playback error:", e));
+        setIsPlayingPreview(true);
+      }
+    }
+  };
+
+  // Discard Recording
+  const discardRecording = () => {
+    if (previewAudioRef.current) {
+      previewAudioRef.current.pause();
+    }
+    setVoiceBase64('');
+    setIsPlayingPreview(false);
+    setRecordingDuration(0);
+  };
+
+  // Play Story Voice Reflection in Feed
+  const toggleFeedAudio = (storyId, voiceData) => {
+    if (playingStoryId === storyId) {
+      if (feedAudioRef.current) {
+        feedAudioRef.current.pause();
+      }
+      setPlayingStoryId(null);
+    } else {
+      if (feedAudioRef.current) {
+        feedAudioRef.current.pause();
+      }
+      const audio = new Audio(voiceData);
+      audio.onended = () => setPlayingStoryId(null);
+      feedAudioRef.current = audio;
+      audio.play().catch(e => console.error("Feed audio playback error:", e));
+      setPlayingStoryId(storyId);
+    }
+  };
+
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      if (recordingTimerRef.current) clearInterval(recordingTimerRef.current);
+      if (previewAudioRef.current) previewAudioRef.current.pause();
+      if (feedAudioRef.current) feedAudioRef.current.pause();
+    };
+  }, []);
+
   // Vibrational History
   const [vibrationalLogs, setVibrationalLogs] = useState([]);
 
@@ -137,14 +266,16 @@ const UserDashboard = ({ user, onClose, onUpdateUser, onNavigateToBooking, onNav
 
   const handleSubmitStory = async (e) => {
     e.preventDefault();
-    if (!newStory.trim()) return toast.error("Please share a reflection before submitting.");
+    if (!newStory.trim() && !voiceBase64) return toast.error("Please share a reflection or record a voice note before submitting.");
     
     setIsSubmittingStory(true);
     try {
       const storyEntry = {
         userName: user.name,
+        userEmail: user.email,
         story: newStory,
         rating: newRating,
+        voiceData: voiceBase64 || null,
         userId: isFirebaseConfigured() ? auth.getUser()?.uid || null : null,
       };
 
@@ -152,12 +283,14 @@ const UserDashboard = ({ user, onClose, onUpdateUser, onNavigateToBooking, onNav
         await db.submitStory(storyEntry);
       } else {
         const existing = JSON.parse(localStorage.getItem('aura_stories') || '[]');
-        localStorage.setItem('aura_stories', JSON.stringify([...existing, { ...storyEntry, id: Date.now().toString(), status: 'pending', timestamp: new Date().toISOString() }]));
-        setStories([...existing, storyEntry]);
+        const localEntry = { ...storyEntry, id: Date.now().toString(), status: 'pending', timestamp: new Date().toISOString() };
+        localStorage.setItem('aura_stories', JSON.stringify([...existing, localEntry]));
+        setStories([...existing, localEntry]);
       }
 
       setNewStory('');
       setNewRating(5);
+      discardRecording();
       toast.success("Reflection sent to the Archive for resonance check.");
     } catch (error) {
       console.error("Story submission failed:", error);
@@ -1063,31 +1196,72 @@ const UserDashboard = ({ user, onClose, onUpdateUser, onNavigateToBooking, onNav
                              />
                            </div>
 
-                           <div style={{ 
-                              marginBottom: '1.5rem', 
-                              padding: '1rem', 
-                              borderRadius: '12px', 
-                              background: 'rgba(255,255,255,0.02)', 
-                              border: '1px dashed rgba(255,255,255,0.1)',
-                              display: 'flex',
-                              alignItems: 'center',
-                              justifyContent: 'space-between'
-                           }}>
-                              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                                 <Mic size={18} color="rgba(255,255,255,0.3)" />
-                                 <span style={{ fontSize: '0.8rem', color: 'rgba(255,255,255,0.3)' }}>Voice Resonance (Coming Soon)</span>
-                              </div>
-                              <div style={{ fontSize: '0.7rem', color: 'var(--accent-gold)', opacity: 0.5, fontStyle: 'italic' }}>Ready for future audio hooks...</div>
-                           </div>
-                          <button 
-                             type="submit"
-                             disabled={isSubmittingStory}
-                             className="btn btn-primary"
-                             style={{ width: '100%', padding: '1rem' }}
-                          >
-                             {isSubmittingStory ? 'TRANSMITTING...' : 'SUBMIT TO ARCHIVE'}
-                          </button>
-                       </form>
+                            <div style={{ 
+                               marginBottom: '1.5rem', 
+                               padding: '1rem', 
+                               borderRadius: '12px', 
+                               background: 'rgba(255,255,255,0.02)', 
+                               border: '1px solid rgba(212, 175, 55, 0.15)',
+                               display: 'flex',
+                               alignItems: 'center',
+                               justifyContent: 'space-between'
+                            }}>
+                               <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                                  <Mic size={18} color={isRecording ? 'var(--accent-gold)' : 'rgba(255,255,255,0.5)'} />
+                                  <span style={{ fontSize: '0.85rem', color: 'var(--text-main)' }}>
+                                     {isRecording 
+                                       ? `Recording (${recordingDuration}s / 60s)` 
+                                       : voiceBase64 
+                                         ? 'Voice Reflection Recorded' 
+                                         : 'Record Voice Reflection'}
+                                  </span>
+                               </div>
+                               <div style={{ display: 'flex', gap: '10px' }}>
+                                  {isRecording ? (
+                                     <button
+                                        type="button"
+                                        onClick={stopRecording}
+                                        style={{ background: '#e74c3c', border: 'none', borderRadius: '50%', width: '32px', height: '32px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: 'white' }}
+                                     >
+                                        <Square size={14} />
+                                     </button>
+                                  ) : voiceBase64 ? (
+                                     <>
+                                        <button
+                                           type="button"
+                                           onClick={togglePreviewAudio}
+                                           style={{ background: 'var(--accent-gold)', border: 'none', borderRadius: '50%', width: '32px', height: '32px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: 'black' }}
+                                        >
+                                           {isPlayingPreview ? <Pause size={14} /> : <Play size={14} style={{ marginLeft: '2px' }} />}
+                                        </button>
+                                        <button
+                                           type="button"
+                                           onClick={discardRecording}
+                                           style={{ background: 'rgba(255,255,255,0.1)', border: 'none', borderRadius: '50%', width: '32px', height: '32px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: 'white' }}
+                                        >
+                                           <Trash2 size={14} />
+                                        </button>
+                                     </>
+                                  ) : (
+                                     <button
+                                        type="button"
+                                        onClick={startRecording}
+                                        style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.2)', borderRadius: '50%', width: '32px', height: '32px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: 'white' }}
+                                     >
+                                        <Mic size={14} />
+                                     </button>
+                                  )}
+                               </div>
+                            </div>
+                           <button 
+                              type="submit"
+                              disabled={isSubmittingStory}
+                              className="btn btn-primary"
+                              style={{ width: '100%', padding: '1rem' }}
+                           >
+                              {isSubmittingStory ? 'TRANSMITTING...' : 'SUBMIT TO ARCHIVE'}
+                           </button>
+                        </form>
                     </div>
 
                     {/* Community Feed */}
@@ -1112,6 +1286,52 @@ const UserDashboard = ({ user, onClose, onUpdateUser, onNavigateToBooking, onNav
                                    <p style={{ fontSize: '0.85rem', color: 'rgba(255,255,255,0.7)', lineHeight: '1.6', margin: 0 }}>
                                       "{story.story}"
                                    </p>
+                                   {story.voiceData && (
+                                       <div style={{
+                                          background: 'rgba(255,255,255,0.03)',
+                                          border: '1px solid rgba(212, 175, 55, 0.15)',
+                                          borderRadius: '12px',
+                                          padding: '0.8rem 1rem',
+                                          display: 'flex',
+                                          alignItems: 'center',
+                                          gap: '12px',
+                                          marginTop: '1rem',
+                                          marginBottom: '0.5rem'
+                                       }}>
+                                          <button
+                                             type="button"
+                                             onClick={() => toggleFeedAudio(story.id, story.voiceData)}
+                                             style={{
+                                                background: 'var(--accent-gold)',
+                                                border: 'none',
+                                                borderRadius: '50%',
+                                                width: '32px',
+                                                height: '32px',
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                justifyContent: 'center',
+                                                cursor: 'pointer',
+                                                color: 'black'
+                                             }}
+                                          >
+                                             {playingStoryId === story.id ? <Pause size={14} /> : <Play size={14} style={{ marginLeft: '2px' }} />}
+                                          </button>
+                                          <div style={{ flex: 1 }}>
+                                             <div style={{ fontSize: '0.7rem', color: 'var(--accent-gold)', textTransform: 'uppercase', letterSpacing: '1px', fontWeight: 'bold' }}>Voice Reflection</div>
+                                             <div style={{ height: '3px', background: 'rgba(255,255,255,0.1)', borderRadius: '2px', marginTop: '4px', overflow: 'hidden', position: 'relative' }}>
+                                                <motion.div
+                                                   animate={{ width: playingStoryId === story.id ? '100%' : '0%' }}
+                                                   transition={{ duration: playingStoryId === story.id ? 60 : 0, ease: 'linear' }}
+                                                   style={{
+                                                      background: 'var(--accent-gold)',
+                                                      height: '100%',
+                                                      width: '0%'
+                                                   }}
+                                                />
+                                             </div>
+                                          </div>
+                                       </div>
+                                    )}
                                    <div style={{ marginTop: '0.8rem', fontSize: '0.7rem', color: 'rgba(255,255,255,0.3)', textAlign: 'right' }}>
                                       {new Date(story.timestamp).toLocaleDateString()}
                                    </div>
@@ -1165,6 +1385,51 @@ const UserDashboard = ({ user, onClose, onUpdateUser, onNavigateToBooking, onNav
                         <p style={{ fontSize: '0.95rem', lineHeight: '1.6', color: 'rgba(255,255,255,0.8)', margin: '0 0 0.8rem 0', fontStyle: 'italic' }}>
                           "{story.story}"
                         </p>
+                        {story.voiceData && (
+                           <div style={{
+                              background: 'rgba(255,255,255,0.03)',
+                              border: '1px solid rgba(212, 175, 55, 0.15)',
+                              borderRadius: '12px',
+                              padding: '0.8rem 1rem',
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: '12px',
+                              marginBottom: '0.8rem'
+                           }}>
+                              <button
+                                 type="button"
+                                 onClick={() => toggleFeedAudio(story.id, story.voiceData)}
+                                 style={{
+                                    background: 'var(--accent-gold)',
+                                    border: 'none',
+                                    borderRadius: '50%',
+                                    width: '32px',
+                                    height: '32px',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    cursor: 'pointer',
+                                    color: 'black'
+                                 }}
+                              >
+                                 {playingStoryId === story.id ? <Pause size={14} /> : <Play size={14} style={{ marginLeft: '2px' }} />}
+                              </button>
+                              <div style={{ flex: 1 }}>
+                                 <div style={{ fontSize: '0.7rem', color: 'var(--accent-gold)', textTransform: 'uppercase', letterSpacing: '1px', fontWeight: 'bold' }}>Voice Reflection</div>
+                                 <div style={{ height: '3px', background: 'rgba(255,255,255,0.1)', borderRadius: '2px', marginTop: '4px', overflow: 'hidden', position: 'relative' }}>
+                                    <motion.div
+                                       animate={{ width: playingStoryId === story.id ? '100%' : '0%' }}
+                                       transition={{ duration: playingStoryId === story.id ? 60 : 0, ease: 'linear' }}
+                                       style={{
+                                          background: 'var(--accent-gold)',
+                                          height: '100%',
+                                          width: '0%'
+                                       }}
+                                    />
+                                 </div>
+                              </div>
+                           </div>
+                        )}
                         <div style={{ fontSize: '0.7rem', color: 'rgba(255,255,255,0.3)', textAlign: 'right' }}>
                           {new Date(story.timestamp).toLocaleDateString()} at {new Date(story.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                         </div>
