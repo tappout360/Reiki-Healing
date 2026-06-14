@@ -4,7 +4,8 @@ import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContai
 import {
   Activity, Users, Calendar as CalendarIcon, Settings, FileText, Download, UserPlus,
   Trash2, Mail, ExternalLink, Filter, Plus, X, List, Grid, Key,
-  TrendingUp, Clock, AlertCircle, CheckCircle2, ChevronRight, Sparkles, Star
+  TrendingUp, Clock, AlertCircle, CheckCircle2, ChevronRight, Sparkles, Star,
+  CheckSquare
 } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import Calendar from 'react-calendar';
@@ -58,6 +59,303 @@ const HealerDashboard = ({ onClose, onJoinPortal, healerAppsEnabled = false, onT
       videoSessionPrice: localStorage.getItem('aura_video_price') || '88'
     };
   });
+  const [checklist, setChecklist] = useState(() => {
+    const saved = localStorage.getItem('aura_launch_checklist');
+    if (saved) {
+      try {
+        return JSON.parse(saved);
+      } catch (e) {
+        // ignore
+      }
+    }
+    return {
+      llc: false,
+      ein: false,
+      stateLic: false,
+      cityLic: false,
+      homeOcc: false,
+      insurance: false,
+      stripeSecret: false,
+      stripePublishable: false,
+      firebaseServiceAccount: false,
+      resendKey: false,
+      fromEmail: false,
+      healerEmail: false,
+      gaId: false,
+      stripeWebhook: false,
+      stripeTestPayment: false,
+      voiceAmethyst: false,
+      voiceRose: false,
+      voiceSage: false,
+      printIntake: false,
+      printCards: false
+    };
+  });
+
+  useEffect(() => {
+    localStorage.setItem('aura_launch_checklist', JSON.stringify(checklist));
+  }, [checklist]);
+
+  const toggleChecklistItem = (key) => {
+    setChecklist(prev => ({ ...prev, [key]: !prev[key] }));
+  };
+
+  const handlePrintIntake = () => {
+    const printWindow = window.open('', '_blank');
+    if (!printWindow) {
+      toast.error("Popup blocked! Please allow popups to print the form.");
+      return;
+    }
+    
+    const content = `
+      <!DOCTYPE html>
+      <html lang="en">
+      <head>
+        <meta charset="UTF-8">
+        <title>Reiki & Sage — Client Intake & Waiver</title>
+        <style>
+          body {
+            font-family: 'Georgia', serif;
+            color: #111;
+            background: #fff;
+            margin: 0;
+            padding: 20px;
+            line-height: 1.5;
+            font-size: 14px;
+          }
+          .container {
+            max-width: 800px;
+            margin: 0 auto;
+            border: 1px solid #ddd;
+            padding: 40px;
+            border-radius: 4px;
+          }
+          .header {
+            text-align: center;
+            border-bottom: 2px solid #b8973d;
+            padding-bottom: 20px;
+            margin-bottom: 30px;
+          }
+          .header h1 {
+            font-family: 'Times New Roman', serif;
+            font-size: 28px;
+            margin: 0;
+            color: #8c7633;
+            letter-spacing: 2px;
+          }
+          .header p {
+            margin: 5px 0 0;
+            color: #666;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+          }
+          h2 {
+            font-size: 16px;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 5px;
+            color: #8c7633;
+            margin-top: 25px;
+            margin-bottom: 15px;
+          }
+          .form-row {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 15px;
+          }
+          .form-group {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+          }
+          .form-group.third {
+            flex: 0 0 30%;
+          }
+          label {
+            font-size: 11px;
+            text-transform: uppercase;
+            color: #555;
+            margin-bottom: 4px;
+            font-weight: bold;
+          }
+          .input-line {
+            border: none;
+            border-bottom: 1px solid #777;
+            padding: 6px 0;
+            font-size: 14px;
+            font-family: inherit;
+            background: transparent;
+            outline: none;
+          }
+          .checkbox-group {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin: 10px 0;
+          }
+          .textarea-box {
+            border: 1px solid #777;
+            height: 80px;
+            border-radius: 4px;
+            margin-top: 5px;
+          }
+          .disclaimer-box {
+            background: #fdfaf2;
+            border: 1px solid #e2d7b8;
+            padding: 20px;
+            border-radius: 4px;
+            font-size: 12px;
+            color: #444;
+            line-height: 1.6;
+            margin-top: 25px;
+            margin-bottom: 25px;
+          }
+          .signature-row {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 50px;
+            gap: 50px;
+          }
+          .signature-group {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+          }
+          .footer-note {
+            text-align: center;
+            font-size: 10px;
+            color: #777;
+            margin-top: 40px;
+            border-top: 1px solid #eee;
+            padding-top: 15px;
+          }
+          @media print {
+            body {
+              padding: 0;
+              font-size: 12px;
+            }
+            .container {
+              border: none;
+              padding: 0;
+            }
+            .no-print {
+              display: none;
+            }
+          }
+        </style>
+      </head>
+      <body>
+        <div class="no-print" style="text-align: center; margin-bottom: 20px; background: #f0f0f0; padding: 10px; border-radius: 4px;">
+          <button onclick="window.print();" style="padding: 10px 20px; background: #8c7633; color: white; border: none; border-radius: 4px; cursor: pointer; font-family: sans-serif; font-size: 14px; font-weight: bold;">Print Intake & Waiver Form</button>
+          <span style="margin-left: 10px; font-family: sans-serif; font-size: 12px; color: #555;">(Use Portrait orientation, Letter paper)</span>
+        </div>
+        <div class="container">
+          <div class="header">
+            <h1>✦ REIKI & SAGE HEALING SANCTUARY ✦</h1>
+            <p>Seattle, WA &bull; info@reikiandsage.com &bull; Certified Usui Reiki Master</p>
+          </div>
+          
+          <h2>I. CLIENT INFORMATION</h2>
+          <div class="form-row">
+            <div class="form-group">
+              <label>Full Name</label>
+              <div class="input-line"></div>
+            </div>
+            <div class="form-group third">
+              <label>Date of Birth</label>
+              <div class="input-line"></div>
+            </div>
+          </div>
+          
+          <div class="form-row">
+            <div class="form-group">
+              <label>Email Address</label>
+              <div class="input-line"></div>
+            </div>
+            <div class="form-group">
+              <label>Phone Number</label>
+              <div class="input-line"></div>
+            </div>
+          </div>
+          
+          <div class="form-row">
+            <div class="form-group">
+              <label>Address</label>
+              <div class="input-line"></div>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label>Emergency Contact Name</label>
+              <div class="input-line"></div>
+            </div>
+            <div class="form-group">
+              <label>Relationship</label>
+              <div class="input-line"></div>
+            </div>
+            <div class="form-group">
+              <label>Emergency Contact Phone</label>
+              <div class="input-line"></div>
+            </div>
+          </div>
+
+          <h2>II. WELLNESS PROFILE & INTENTIONS</h2>
+          <div class="form-group" style="margin-bottom: 20px;">
+            <label>What are your main physical, emotional, or spiritual intentions for this session?</label>
+            <div class="textarea-box"></div>
+          </div>
+          
+          <div class="form-row" style="margin-bottom: 20px;">
+            <div class="form-group" style="flex: 0 0 auto;">
+              <label>Have you experienced Reiki / crystal energy healing before?</label>
+              <div class="checkbox-group">
+                <span style="border: 1px solid #777; width: 14px; height: 14px; display: inline-block;"></span> Yes
+                <span style="border: 1px solid #777; width: 14px; height: 14px; display: inline-block; margin-left: 20px;"></span> No
+              </div>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label>Are you currently under the care of a physician or taking any regular prescription medications? Please list below:</label>
+            <div class="textarea-box" style="height: 60px;"></div>
+          </div>
+
+          <h2>III. STATEMENT OF CONSENT & MEDICAL DISCLAIMER</h2>
+          <div class="disclaimer-box">
+            <strong>1. Complementary Nature:</strong> Reiki is a gentle, hands-on (or hands-off) Japanese method of energy balancing intended for stress reduction, relaxation, and wellness support. I understand that Reiki is a complementary energy therapy and does <em>not</em> replace professional medical diagnosis, clinical treatment, or prescriptions.<br/><br/>
+            <strong>2. Scope of Practice:</strong> I acknowledge that Carissa Bright is a certified Reiki Master and is <em>not</em> a licensed physician, psychologist, or healthcare provider. She does not diagnose medical conditions, perform spinal manipulations, prescribe substances, or interfere with the advice of qualified healthcare professionals.<br/><br/>
+            <strong>3. Physical Contact Consent:</strong> Reiki may involve light touch on specific non-contact locations (head, chest, stomach, hands, knees, feet). Touch is always non-diagnostic and non-invasive. I understand I have the right to request a fully non-contact session at any point.<br/><br/>
+            <strong>4. Data Privacy:</strong> I understand that Reiki & Sage maintains a "No PHI" (Protected Health Information) privacy policy. This physical document is kept in a secure, confidential local file and is not transmitted electronically or shared with any third party.
+          </div>
+
+          <div style="font-size: 13px; line-height: 1.6; margin-top: 15px;">
+            By signing below, I acknowledge that I have read and understand this statement. I consent to receive energy healing services and assume all risks associated with the treatment.
+          </div>
+
+          <div class="signature-row">
+            <div class="signature-group">
+              <div class="input-line" style="margin-top: 20px;"></div>
+              <label style="margin-top: 5px;">Client Signature</label>
+            </div>
+            <div class="signature-group" style="flex: 0 0 25%;">
+              <div class="input-line" style="margin-top: 20px;"></div>
+              <label style="margin-top: 5px;">Date</label>
+            </div>
+          </div>
+
+          <div class="footer-note">
+            © 2026 Reiki & Sage LLC &bull; Seattle, Washington &bull; www.reikiandsage.com
+          </div>
+        </div>
+      </body>
+      </html>
+    `;
+    
+    printWindow.document.write(content);
+    printWindow.document.close();
+  };
+
   const [blockedDates, setBlockedDates] = useState(
     JSON.parse(localStorage.getItem('aura_blocked_dates') || '[]')
   );
@@ -500,6 +798,9 @@ const HealerDashboard = ({ onClose, onJoinPortal, healerAppsEnabled = false, onT
               </button>
               <button className={activeTab === 'settings' ? 'active' : ''} onClick={() => setActiveTab('settings')}>
               <Settings size={18} /> Settings
+            </button>
+            <button className={activeTab === 'checklist' ? 'active' : ''} onClick={() => setActiveTab('checklist')}>
+              <CheckSquare size={18} /> Launch Checklist
             </button>
           </div>
         </header>
@@ -1781,6 +2082,297 @@ const HealerDashboard = ({ onClose, onJoinPortal, healerAppsEnabled = false, onT
                   </button>
                 </div>
               )}
+            </div>
+          )}
+
+          {activeTab === 'checklist' && (
+            <div className="checklist-view fade-in" style={{ padding: '1.5rem', color: '#fff' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
+                <div>
+                  <h2 style={{ fontFamily: "'Playfair Display', serif", color: 'var(--accent-ethereal)', margin: 0 }}>Soft Launch Checklist</h2>
+                  <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', marginTop: '5px' }}>
+                    Track your business foundation, Vercel/Stripe settings, and media assets.
+                  </p>
+                </div>
+                <div style={{ textAlign: 'right' }}>
+                  <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: 'var(--accent-gold)' }}>
+                    {Math.round((Object.values(checklist).filter(Boolean).length / Object.keys(checklist).length) * 100)}%
+                  </div>
+                  <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Completion</div>
+                </div>
+              </div>
+
+              {/* Progress Bar */}
+              <div style={{ background: 'rgba(255,255,255,0.05)', height: '8px', borderRadius: '4px', overflow: 'hidden', marginBottom: '2.5rem', border: '1px solid rgba(255,255,255,0.05)' }}>
+                <div style={{
+                  background: 'linear-gradient(90deg, var(--accent-gold), var(--accent-ethereal))',
+                  width: `${(Object.values(checklist).filter(Boolean).length / Object.keys(checklist).length) * 100}%`,
+                  height: '100%',
+                  transition: 'width 0.4s ease'
+                }} />
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '2rem' }}>
+                
+                {/* 1. Legal & Regulatory */}
+                <div className="glass" style={{ padding: '1.5rem' }}>
+                  <h3 style={{ color: 'var(--accent-gold)', marginBottom: '1.2rem', display: 'flex', alignItems: 'center', gap: '10px' }}>
+                    <CheckSquare size={18} /> 1. Legal & Regulatory Setup
+                  </h3>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
+                    <div style={{ display: 'flex', gap: '10px', alignItems: 'flex-start' }}>
+                      <input type="checkbox" checked={checklist.llc} onChange={() => toggleChecklistItem('llc')} style={{ width: 'auto', marginTop: '4px' }} />
+                      <div>
+                        <strong style={{ display: 'block', color: '#fff' }}>Register Washington LLC</strong>
+                        <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
+                          File Articles of Organization at the <a href="https://ccfs.sos.wa.gov/" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--accent-ethereal)', textDecoration: 'underline' }}>WA Corporations Portal <ExternalLink size={10} style={{ display: 'inline' }} /></a> ($200 fee).
+                        </span>
+                      </div>
+                    </div>
+
+                    <div style={{ display: 'flex', gap: '10px', alignItems: 'flex-start' }}>
+                      <input type="checkbox" checked={checklist.ein} onChange={() => toggleChecklistItem('ein')} style={{ width: 'auto', marginTop: '4px' }} />
+                      <div>
+                        <strong style={{ display: 'block', color: '#fff' }}>Apply for Federal EIN</strong>
+                        <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
+                          Obtain your EIN for the LLC via the official <a href="https://www.irs.gov/businesses/small-businesses-self-employed/apply-for-an-employer-identification-number-ein-online" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--accent-ethereal)', textDecoration: 'underline' }}>IRS Assistant <ExternalLink size={10} style={{ display: 'inline' }} /></a> (Free).
+                        </span>
+                      </div>
+                    </div>
+
+                    <div style={{ display: 'flex', gap: '10px', alignItems: 'flex-start' }}>
+                      <input type="checkbox" checked={checklist.stateLic} onChange={() => toggleChecklistItem('stateLic')} style={{ width: 'auto', marginTop: '4px' }} />
+                      <div>
+                        <strong style={{ display: 'block', color: '#fff' }}>State Business License (DOR)</strong>
+                        <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
+                          File on <a href="https://secure.dor.wa.gov/" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--accent-ethereal)', textDecoration: 'underline' }}>My DOR <ExternalLink size={10} style={{ display: 'inline' }} /></a> ($50). Register trade name "Reiki & Sage". Classify digital sales tax sourcing.
+                        </span>
+                      </div>
+                    </div>
+
+                    <div style={{ display: 'flex', gap: '10px', alignItems: 'flex-start' }}>
+                      <input type="checkbox" checked={checklist.cityLic} onChange={() => toggleChecklistItem('cityLic')} style={{ width: 'auto', marginTop: '4px' }} />
+                      <div>
+                        <strong style={{ display: 'block', color: '#fff' }}>Seattle Business License</strong>
+                        <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
+                          Register on <a href="https://www.filelocal-wa.gov/" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--accent-ethereal)', textDecoration: 'underline' }}>FileLocal WA <ExternalLink size={10} style={{ display: 'inline' }} /></a> (~$60/yr under $20k gross).
+                        </span>
+                      </div>
+                    </div>
+
+                    <div style={{ display: 'flex', gap: '10px', alignItems: 'flex-start' }}>
+                      <input type="checkbox" checked={checklist.homeOcc} onChange={() => toggleChecklistItem('homeOcc')} style={{ width: 'auto', marginTop: '4px' }} />
+                      <div>
+                        <strong style={{ display: 'block', color: '#fff' }}>Seattle Home Occupation Compliance</strong>
+                        <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
+                          Verify Seattle zoning rules (SMC 23.42.050): no external signage, client appointments spaced out, max 2 clients on-site.
+                        </span>
+                      </div>
+                    </div>
+
+                    <div style={{ display: 'flex', gap: '10px', alignItems: 'flex-start' }}>
+                      <input type="checkbox" checked={checklist.insurance} onChange={() => toggleChecklistItem('insurance')} style={{ width: 'auto', marginTop: '4px' }} />
+                      <div>
+                        <strong style={{ display: 'block', color: '#fff' }}>Secure Liability Insurance</strong>
+                        <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
+                          Secure professional energy-work liability insurance (minimum $1M per occurrence) before treating clients.
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div style={{ marginTop: '1.5rem', borderTop: '1px solid rgba(255,255,255,0.06)', paddingTop: '1rem' }}>
+                    <h4 style={{ color: 'var(--accent-gold)', fontSize: '0.85rem', marginBottom: '0.5rem' }}>Liability Insurance Comparison:</h4>
+                    <table style={{ width: '100%', fontSize: '0.75rem', color: 'var(--text-muted)', borderCollapse: 'collapse' }}>
+                      <thead>
+                        <tr style={{ borderBottom: '1px solid rgba(255,255,255,0.1)' }}>
+                          <th style={{ textAlign: 'left', padding: '5px 0' }}>Provider</th>
+                          <th style={{ textAlign: 'left', padding: '5px 0' }}>Coverage</th>
+                          <th style={{ textAlign: 'right', padding: '5px 0' }}>Annual Cost</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr>
+                          <td style={{ padding: '5px 0', color: '#fff' }}>Hands On Trade</td>
+                          <td style={{ padding: '5px 0' }}>Professional + General</td>
+                          <td style={{ padding: '5px 0', textAlign: 'right', color: 'var(--accent-gold)' }}>$175</td>
+                        </tr>
+                        <tr>
+                          <td style={{ padding: '5px 0', color: '#fff' }}>EMPA</td>
+                          <td style={{ padding: '5px 0' }}>Malpractice + Liability</td>
+                          <td style={{ padding: '5px 0', textAlign: 'right', color: 'var(--accent-gold)' }}>$185 - $220</td>
+                        </tr>
+                        <tr>
+                          <td style={{ padding: '5px 0', color: '#fff' }}>ABMP</td>
+                          <td style={{ padding: '5px 0' }}>Bodywork + Reiki</td>
+                          <td style={{ padding: '5px 0', textAlign: 'right', color: 'var(--accent-gold)' }}>$199 - $229</td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+
+                {/* 2. Vercel & Stripe Config */}
+                <div className="glass" style={{ padding: '1.5rem' }}>
+                  <h3 style={{ color: 'var(--accent-gold)', marginBottom: '1.2rem', display: 'flex', alignItems: 'center', gap: '10px' }}>
+                    <Settings size={18} /> 2. Vercel & Stripe Configuration
+                  </h3>
+                  
+                  <div style={{ background: 'rgba(255,255,255,0.02)', padding: '12px', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.05)', marginBottom: '1.5rem' }}>
+                    <h4 style={{ margin: '0 0 8px 0', fontSize: '0.8rem', color: '#fff' }}>Environment Variables Status:</h4>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', fontSize: '0.75rem' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+                        <span style={{ display: 'inline-block', width: '8px', height: '8px', borderRadius: '50%', background: isFirebaseConfigured() ? '#2ecc71' : '#f1c40f' }} />
+                        <span>Firebase API Key</span>
+                      </div>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+                        <span style={{ display: 'inline-block', width: '8px', height: '8px', borderRadius: '50%', background: isFirebaseConfigured() ? '#2ecc71' : '#f1c40f' }} />
+                        <span>Firebase Project ID</span>
+                      </div>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+                        <span style={{ display: 'inline-block', width: '8px', height: '8px', borderRadius: '50%', background: import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY ? '#2ecc71' : '#f1c40f' }} />
+                        <span>Stripe Publishable Key</span>
+                      </div>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+                        <span style={{ display: 'inline-block', width: '8px', height: '8px', borderRadius: '50%', background: import.meta.env.VITE_GA_MEASUREMENT_ID || window.gtag ? '#2ecc71' : '#e74c3c' }} />
+                        <span>GA4 ID (Optional)</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
+                    <div style={{ display: 'flex', gap: '10px', alignItems: 'flex-start' }}>
+                      <input type="checkbox" checked={checklist.stripeSecret} onChange={() => toggleChecklistItem('stripeSecret')} style={{ width: 'auto', marginTop: '4px' }} />
+                      <div>
+                        <strong style={{ display: 'block', color: '#fff' }}>Add `STRIPE_SECRET_KEY`</strong>
+                        <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Paste Stripe Live secret key (`sk_live_...`) in Vercel settings.</span>
+                      </div>
+                    </div>
+
+                    <div style={{ display: 'flex', gap: '10px', alignItems: 'flex-start' }}>
+                      <input type="checkbox" checked={checklist.stripePublishable} onChange={() => toggleChecklistItem('stripePublishable')} style={{ width: 'auto', marginTop: '4px' }} />
+                      <div>
+                        <strong style={{ display: 'block', color: '#fff' }}>Add `VITE_STRIPE_PUBLISHABLE_KEY`</strong>
+                        <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Paste Stripe Live publishable key (`pk_live_...`) in Vercel settings.</span>
+                      </div>
+                    </div>
+
+                    <div style={{ display: 'flex', gap: '10px', alignItems: 'flex-start' }}>
+                      <input type="checkbox" checked={checklist.stripeWebhook} onChange={() => toggleChecklistItem('stripeWebhook')} style={{ width: 'auto', marginTop: '4px' }} />
+                      <div>
+                        <strong style={{ display: 'block', color: '#fff' }}>Add Stripe Webhook Secret</strong>
+                        <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
+                          Create endpoint `https://reikiandsage.com/api/stripe-webhook` in Stripe dashboard and add its secret as `STRIPE_WEBHOOK_SECRET` in Vercel.
+                        </span>
+                      </div>
+                    </div>
+
+                    <div style={{ display: 'flex', gap: '10px', alignItems: 'flex-start' }}>
+                      <input type="checkbox" checked={checklist.firebaseServiceAccount} onChange={() => toggleChecklistItem('firebaseServiceAccount')} style={{ width: 'auto', marginTop: '4px' }} />
+                      <div>
+                        <strong style={{ display: 'block', color: '#fff' }}>Add Firebase Service Account</strong>
+                        <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
+                          Generate private key JSON in Firebase console, and add as `FIREBASE_SERVICE_ACCOUNT` in Vercel.
+                        </span>
+                      </div>
+                    </div>
+
+                    <div style={{ display: 'flex', gap: '10px', alignItems: 'flex-start' }}>
+                      <input type="checkbox" checked={checklist.resendKey} onChange={() => toggleChecklistItem('resendKey')} style={{ width: 'auto', marginTop: '4px' }} />
+                      <div>
+                        <strong style={{ display: 'block', color: '#fff' }}>Add `RESEND_API_KEY`</strong>
+                        <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Get key from Resend, add to Vercel, and configure `FROM_EMAIL` / `HEALER_EMAIL` (`carissabright@gmail.com`).</span>
+                      </div>
+                    </div>
+
+                    <div style={{ display: 'flex', gap: '10px', alignItems: 'flex-start' }}>
+                      <input type="checkbox" checked={checklist.stripeTestPayment} onChange={() => toggleChecklistItem('stripeTestPayment')} style={{ width: 'auto', marginTop: '4px' }} />
+                      <div>
+                        <strong style={{ display: 'block', color: '#fff' }}>Execute Live Checkout Verification</strong>
+                        <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Perform a real transaction with a live debit/credit card to verify end-to-end booking webhook flow.</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* 3. Media & Brand Assets */}
+                <div className="glass" style={{ padding: '1.5rem', gridColumn: 'span 2' }}>
+                  <h3 style={{ color: 'var(--accent-gold)', marginBottom: '1.2rem', display: 'flex', alignItems: 'center', gap: '10px' }}>
+                    <Sparkles size={18} /> 3. Media & Brand Asset Deliverables
+                  </h3>
+                  
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '1.5rem' }}>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
+                      <h4 style={{ margin: 0, fontSize: '0.9rem', color: '#fff', borderBottom: '1px solid rgba(255,255,255,0.06)', paddingBottom: '5px' }}>Guided Voice MP3s</h4>
+                      
+                      <div style={{ display: 'flex', gap: '10px', alignItems: 'flex-start' }}>
+                        <input type="checkbox" checked={checklist.voiceAmethyst} onChange={() => toggleChecklistItem('voiceAmethyst')} style={{ width: 'auto', marginTop: '4px' }} />
+                        <div>
+                          <strong style={{ display: 'block', color: '#fff', fontSize: '0.85rem' }}>Amethyst Voiceover (`amethyst_meditation_voice.mp3`)</strong>
+                          <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Record voiceover, compress to mono MP3, and store in public assets directory.</span>
+                        </div>
+                      </div>
+
+                      <div style={{ display: 'flex', gap: '10px', alignItems: 'flex-start' }}>
+                        <input type="checkbox" checked={checklist.voiceRose} onChange={() => toggleChecklistItem('voiceRose')} style={{ width: 'auto', marginTop: '4px' }} />
+                        <div>
+                          <strong style={{ display: 'block', color: '#fff', fontSize: '0.85rem' }}>Rose Quartz Voiceover (`rose_quartz_meditation_voice.mp3`)</strong>
+                          <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Record emotional healing voice instructions and save mono MP3.</span>
+                        </div>
+                      </div>
+
+                      <div style={{ display: 'flex', gap: '10px', alignItems: 'flex-start' }}>
+                        <input type="checkbox" checked={checklist.voiceSage} onChange={() => toggleChecklistItem('voiceSage')} style={{ width: 'auto', marginTop: '4px' }} />
+                        <div>
+                          <strong style={{ display: 'block', color: '#fff', fontSize: '0.85rem' }}>Sage Purification Voiceover (`sage_purification_meditation_voice.mp3`)</strong>
+                          <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Record aura grounding voice files and compress to mono MP3.</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
+                      <h4 style={{ margin: 0, fontSize: '0.9rem', color: '#fff', borderBottom: '1px solid rgba(255,255,255,0.06)', paddingBottom: '5px' }}>Physical Deliverables</h4>
+
+                      <div style={{ display: 'flex', gap: '10px', alignItems: 'flex-start' }}>
+                        <input type="checkbox" checked={checklist.printCards} onChange={() => toggleChecklistItem('printCards')} style={{ width: 'auto', marginTop: '4px' }} />
+                        <div>
+                          <strong style={{ display: 'block', color: '#fff', fontSize: '0.85rem' }}>Order Premium Business Cards</strong>
+                          <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
+                            Print 250 matte business cards with Spot UV finish featuring the colorful chakra tree and the back QR code linking to booking.
+                          </span>
+                        </div>
+                      </div>
+
+                      <div style={{ display: 'flex', gap: '10px', alignItems: 'flex-start' }}>
+                        <input type="checkbox" checked={checklist.printIntake} onChange={() => toggleChecklistItem('printIntake')} style={{ width: 'auto', marginTop: '4px' }} />
+                        <div>
+                          <strong style={{ display: 'block', color: '#fff', fontSize: '0.85rem' }}>Client Intake & Waiver Form</strong>
+                          <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Print physical intake forms containing the FDA and medical consent disclaimer for in-person clients.</span>
+                        </div>
+                      </div>
+                      
+                      {/* Print Generator Button */}
+                      <button
+                        onClick={handlePrintIntake}
+                        className="btn btn-primary"
+                        style={{
+                          marginTop: '10px',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          gap: '8px',
+                          padding: '0.6rem 1rem',
+                          fontSize: '0.8rem',
+                          fontFamily: "'Outfit', sans-serif"
+                        }}
+                      >
+                        <FileText size={16} /> Print Client Intake Form & Waiver
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+              </div>
             </div>
           )}
         </div>
