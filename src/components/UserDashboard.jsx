@@ -40,6 +40,7 @@ const UserDashboard = ({ user, onClose, onUpdateUser, onNavigateToBooking, onNav
   const recordingTimerRef = useRef(null);
   const previewAudioRef = useRef(null);
   const feedAudioRef = useRef(null);
+  const canvasRef = useRef(null);
 
   // Start Audio Recording
   const startRecording = async () => {
@@ -156,6 +157,102 @@ const UserDashboard = ({ user, onClose, onUpdateUser, onNavigateToBooking, onNav
       if (feedAudioRef.current) feedAudioRef.current.pause();
     };
   }, []);
+
+  // Dynamic Lightbody Particle Loop
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    let animationId;
+    
+    // Config based on user stats
+    const particleCount = Math.min(120, 40 + (user.sessions || 0) * 3);
+    const resonanceColor = calibRegistry === 'root' ? '#ff7675'
+                         : calibRegistry === 'sacral' ? '#fdcb6e'
+                         : calibRegistry === 'solar' ? '#f1c40f'
+                         : calibRegistry === 'heart' ? '#2ecc71'
+                         : calibRegistry === 'throat' ? '#3498db'
+                         : calibRegistry === 'crown' ? '#9b59b6'
+                         : 'var(--accent-gold)';
+
+    // Parse hex or variable color
+    const baseColor = resonanceColor.startsWith('var') ? '#d4af37' : resonanceColor;
+
+    // Create particles
+    const particles = [];
+    for (let i = 0; i < particleCount; i++) {
+      const angle = Math.random() * Math.PI * 2;
+      const distance = 10 + Math.random() * 40;
+      particles.push({
+        x: canvas.width / 2 + Math.cos(angle) * distance,
+        y: canvas.height / 2 + Math.sin(angle) * distance,
+        angle: angle,
+        distance: distance,
+        speed: 0.01 + Math.random() * 0.02,
+        size: 0.8 + Math.random() * 1.5,
+        opacity: 0.1 + Math.random() * 0.8,
+        pulseOffset: Math.random() * Math.PI * 2
+      });
+    }
+
+    let time = 0;
+    const render = () => {
+      time += 0.02;
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      // Draw central energy core (glowing gradient)
+      const coreGradient = ctx.createRadialGradient(
+        canvas.width / 2, canvas.height / 2, 0,
+        canvas.width / 2, canvas.height / 2, 45
+      );
+      coreGradient.addColorStop(0, `${baseColor}22`);
+      coreGradient.addColorStop(0.5, `${baseColor}05`);
+      coreGradient.addColorStop(1, 'transparent');
+      
+      ctx.fillStyle = coreGradient;
+      ctx.beginPath();
+      ctx.arc(canvas.width / 2, canvas.height / 2, 45, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Draw outer gold boundary circle
+      ctx.strokeStyle = `${baseColor}22`;
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.arc(canvas.width / 2, canvas.height / 2, 54, 0, Math.PI * 2);
+      ctx.stroke();
+
+      // Draw particles orbiting
+      particles.forEach((p) => {
+        // Orbit logic
+        p.angle += p.speed;
+        
+        // Dynamic breathing scale (breathe cycle)
+        const breathe = Math.sin(time) * 4;
+        const radius = p.distance + breathe;
+
+        const x = canvas.width / 2 + Math.cos(p.angle) * radius;
+        const y = canvas.height / 2 + Math.sin(p.angle) * radius;
+
+        // Particle pulse
+        const opacity = Math.abs(Math.sin(time * 2 + p.pulseOffset)) * p.opacity;
+
+        ctx.fillStyle = baseColor;
+        ctx.globalAlpha = opacity;
+        ctx.beginPath();
+        ctx.arc(x, y, p.size, 0, Math.PI * 2);
+        ctx.fill();
+      });
+
+      ctx.globalAlpha = 1.0;
+      animationId = requestAnimationFrame(render);
+    };
+
+    render();
+
+    return () => {
+      cancelAnimationFrame(animationId);
+    };
+  }, [user.sessions, calibRegistry]);
 
   // Vibrational History
   const [vibrationalLogs, setVibrationalLogs] = useState([]);
@@ -569,20 +666,31 @@ const UserDashboard = ({ user, onClose, onUpdateUser, onNavigateToBooking, onNav
           background: 'rgba(255,255,255,0.01)'
         }}>
           <div style={{ marginBottom: '3rem', textAlign: 'center' }}>
-            {/* Profile area — pending rebuild */}
+            {/* Dynamic Lightbody Canvas */}
             <div style={{
               width: '120px',
               height: '120px',
               borderRadius: '100%',
               margin: '0 auto 1.5rem',
-              padding: '6px',
-              border: '2px solid rgba(212, 175, 55, 0.2)',
+              position: 'relative',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              background: 'rgba(255,255,255,0.03)'
+              background: 'rgba(5,5,12,0.6)',
+              boxShadow: '0 0 25px rgba(0,0,0,0.5)',
+              overflow: 'hidden',
+              border: '2px solid rgba(212, 175, 55, 0.2)'
             }}>
-              <Sparkles size={48} color="var(--accent-gold)" style={{ opacity: 0.6 }} />
+              <canvas 
+                ref={canvasRef} 
+                width={120} 
+                height={120} 
+                style={{ 
+                  width: '120px', 
+                  height: '120px',
+                  display: 'block'
+                }} 
+              />
             </div>
             <h3 style={{ fontSize: '1.4rem', margin: '0 0 0.5rem 0' }}>{user.name}</h3>
             <span style={{ 
