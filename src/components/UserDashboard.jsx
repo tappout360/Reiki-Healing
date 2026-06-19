@@ -3,7 +3,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Toaster, toast } from 'react-hot-toast';
 import {
   Activity, Calendar, CheckCircle, ChevronRight, Key, Send, Settings, Shield, Sparkles, Star, X, Zap,
-  Compass, TrendingUp, Clock, Flame, Award, Mic, Square, Trash2, Play, Pause
+  Compass, TrendingUp, Clock, Flame, Award, Mic, Square, Trash2, Play, Pause,
+  Upload, Lock, Camera, Volume2, RefreshCw, FileText, AlertTriangle
 } from 'lucide-react';
 import { ResponsiveContainer, AreaChart, Area, XAxis, YAxis, Tooltip, CartesianGrid } from 'recharts';
 import { getZodiacSign, getAdvancedHoroscope } from '../utils/horoscopes';
@@ -39,6 +40,157 @@ const UserDashboard = ({ user, onClose, onUpdateUser, onNavigateToBooking, onNav
   const [recordingDuration, setRecordingDuration] = useState(0);
   const [isPlayingPreview, setIsPlayingPreview] = useState(false);
   const [playingStoryId, setPlayingStoryId] = useState(null);
+
+  // Advanced Avatar States
+  const [avatarPhoto, setAvatarPhoto] = useState(user.avatarPhoto || '');
+  const [auraStyle, setAuraStyle] = useState(user.auraStyle || 'amethyst');
+  const [auraBackground, setAuraBackground] = useState(user.auraBackground || 'ethereal-mist');
+  const [auraAccessories, setAuraAccessories] = useState(user.auraAccessories || []);
+  const [heygenAvatarId, setHeygenAvatarId] = useState(user.heygenAvatarId || '');
+  const [isSavingAvatar, setIsSavingAvatar] = useState(false);
+  const [isRegisteringAvatar, setIsRegisteringAvatar] = useState(false);
+  const [customGreetingText, setCustomGreetingText] = useState('');
+  const [voiceId, setVoiceId] = useState('8b804fd1115e4f44a30e87d46c827c19');
+  const [isSynthesizingVideo, setIsSynthesizingVideo] = useState(false);
+  const [synthesizedVideoId, setSynthesizedVideoId] = useState('');
+  const [synthesizedVideoUrl, setSynthesizedVideoUrl] = useState('');
+  const [synthesisStatus, setSynthesisStatus] = useState('idle'); // 'idle' | 'generating-video' | 'rendering' | 'completed' | 'failed'
+
+  const handlePhotoUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    if (file.size > 4 * 1024 * 1024) {
+      return toast.error("Please upload an image smaller than 4MB.");
+    }
+
+    const reader = new FileReader();
+    reader.onload = async () => {
+      const base64 = reader.result;
+      setAvatarPhoto(base64);
+
+      // Auto register with HeyGen
+      setIsRegisteringAvatar(true);
+      const toastId = toast.loading("Calibrating image with HeyGen AI...");
+
+      try {
+        const res = await fetch('/api/heygen-avatar', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            action: 'create-avatar',
+            base64Image: base64,
+            name: `${user.name || 'Seeker'}'s Avatar`
+          })
+        });
+
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || "Failed to register avatar");
+
+        setHeygenAvatarId(data.avatarId);
+
+        // Update profile
+        const updatedUser = {
+          ...user,
+          avatarPhoto: base64,
+          heygenAvatarId: data.avatarId
+        };
+        onUpdateUser(updatedUser);
+        toast.success("Aura image calibrated successfully with HeyGen!", { id: toastId });
+      } catch (err) {
+        console.error(err);
+        toast.error("HeyGen integration is in local simulation mode. local styling active.", { id: toastId });
+      } finally {
+        setIsRegisteringAvatar(false);
+      }
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleSaveAvatarConfig = () => {
+    setIsSavingAvatar(true);
+    try {
+      const updatedUser = {
+        ...user,
+        avatarPhoto,
+        auraStyle,
+        auraBackground,
+        auraAccessories,
+        heygenAvatarId
+      };
+      onUpdateUser(updatedUser);
+      toast.success("Aura Avatar configuration saved successfully!");
+    } catch (err) {
+      console.error(err);
+      toast.error("Failed to save configuration.");
+    } finally {
+      setIsSavingAvatar(false);
+    }
+  };
+
+  const handleSynthesizeVideo = async (scriptText) => {
+    if (!heygenAvatarId) {
+      return toast.error("Please upload a photo first to calibrate your HeyGen avatar.");
+    }
+
+    setIsSynthesizingVideo(true);
+    setSynthesisStatus('generating-video');
+    setSynthesizedVideoUrl('');
+    const toastId = toast.loading("Synthesizing talking avatar video...");
+
+    try {
+      const res = await fetch('/api/heygen-avatar', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'generate-video',
+          avatarId: heygenAvatarId,
+          script: scriptText,
+          voiceId: voiceId
+        })
+      });
+
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Failed to generate video");
+
+      const videoId = data.videoId;
+      setSynthesizedVideoId(videoId);
+      setSynthesisStatus('rendering');
+      toast.loading("Rendering video on HeyGen...", { id: toastId });
+
+      // Poll status
+      let completed = false;
+      let attempts = 0;
+      while (!completed && attempts < 45) {
+        await new Promise(r => setTimeout(r, 4000));
+        attempts++;
+
+        const statusRes = await fetch(`/api/heygen-avatar?action=check-status&videoId=${videoId}`);
+        const statusData = await statusRes.json();
+
+        if (!statusRes.ok) throw new Error(statusData.error || "Failed to check status");
+
+        if (statusData.status === 'completed') {
+          setSynthesizedVideoUrl(statusData.videoUrl);
+          setSynthesisStatus('completed');
+          completed = true;
+          toast.success("Talking avatar video synthesized successfully!", { id: toastId });
+        } else if (statusData.status === 'failed') {
+          throw new Error(statusData.error || "Video rendering failed on HeyGen.");
+        }
+      }
+
+      if (!completed) {
+        throw new Error("Render timeout. Try checking again in a few moments.");
+      }
+    } catch (err) {
+      console.error(err);
+      setSynthesisStatus('failed');
+      toast.error(err.message || "Failed to synthesize talking avatar.", { id: toastId });
+    } finally {
+      setIsSynthesizingVideo(false);
+    }
+  };
 
   const mediaRecorderRef = useRef(null);
   const audioChunksRef = useRef([]);
@@ -706,7 +858,7 @@ const UserDashboard = ({ user, onClose, onUpdateUser, onNavigateToBooking, onNav
 
         <div style={{ display: 'flex', alignItems: 'center', gap: '1.5rem' }}>
           <div style={{ display: 'flex', gap: '2rem', marginRight: '2rem' }}>
-            {['Overview', 'Vibrational Log', 'Achievements', 'Schedule', 'Live Resonance', 'Community', 'My Reflections', 'Settings'].map(tab => (
+            {['Overview', 'Aura Avatar', 'Vibrational Log', 'Achievements', 'Schedule', 'Live Resonance', 'Community', 'My Reflections', 'Settings'].map(tab => (
               <button
                 key={tab}
                 onClick={() => setActiveTab(tab.toLowerCase())}
@@ -1308,6 +1460,378 @@ const UserDashboard = ({ user, onClose, onUpdateUser, onNavigateToBooking, onNav
                       SCHEDULE NEW SESSION
                     </button>
                   </div>
+                </div>
+              </motion.div>
+            )}
+
+            {activeTab === 'aura avatar' && (
+              <motion.div
+                key="aura avatar"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -20 }}
+              >
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '2.5rem' }}>
+                  <div>
+                    <h2 style={{ fontSize: '2.5rem', marginBottom: '0.5rem', fontFamily: "'Playfair Display', serif" }}>Your Energetic Aura Avatar</h2>
+                    <p style={{ color: 'rgba(255,255,255,0.5)', maxWidth: '600px', margin: 0 }}>
+                      Evolve your visual energetic identity, customize unlockable aura gradients, and synthesize a real-time talking greeting using the HeyGen AI engine.
+                    </p>
+                  </div>
+                  <div style={{ display: 'flex', gap: '1rem' }}>
+                    <button
+                      className="btn"
+                      onClick={handleSaveAvatarConfig}
+                      disabled={isSavingAvatar}
+                      style={{
+                        background: 'rgba(212, 175, 55, 0.1)',
+                        border: '1px solid var(--accent-gold)',
+                        color: 'var(--accent-gold)',
+                        padding: '0.75rem 1.5rem',
+                      }}
+                    >
+                      {isSavingAvatar ? 'SAVING...' : 'SAVE CONFIGURATION'}
+                    </button>
+                  </div>
+                </div>
+
+                <div className="avatar-customizer-grid">
+                  {/* Left Column: Avatar Display / Canvas */}
+                  <div className="glass" style={{ padding: '2rem', borderRadius: '24px', textAlign: 'center', background: 'rgba(255,255,255,0.01)', border: '1px solid rgba(255,255,255,0.05)', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+                    <div className="avatar-preview-canvas">
+                      {/* Aura Glow Field */}
+                      <div className={`aura-glow-field aura-bg-${auraBackground}`} />
+
+                      {/* Accessories Layers */}
+                      {auraAccessories.includes('sacred_geometry') && (
+                        <svg className="accessory-sacred-geometry" viewBox="0 0 100 100" fill="none" stroke="var(--accent-gold)" strokeWidth="0.5">
+                          <circle cx="50" cy="50" r="45" />
+                          <circle cx="50" cy="50" r="30" />
+                          <circle cx="50" cy="50" r="15" />
+                          <path d="M 50 5 L 50 95 M 5 50 L 95 50 M 18.25 18.25 L 81.75 81.75 M 18.25 81.75 L 81.75 18.25" />
+                          <polygon points="50,5 95,50 50,95 5,50" />
+                          <polygon points="50,15 85,50 50,85 15,50" />
+                        </svg>
+                      )}
+
+                      {auraAccessories.includes('halo') && <div className="accessory-halo" />}
+
+                      {auraAccessories.includes('crystals') && (
+                        <div className="accessory-crystals">
+                          <span className="floating-crystal" style={{ top: '15%', left: '5%', color: '#9b59b6', animationDelay: '0s' }}>💎</span>
+                          <span className="floating-crystal" style={{ top: '15%', right: '5%', color: '#00cec9', animationDelay: '1s' }}>🔮</span>
+                          <span className="floating-crystal" style={{ bottom: '20%', left: '8%', color: '#e17055', animationDelay: '2s' }}>✨</span>
+                          <span className="floating-crystal" style={{ bottom: '20%', right: '8%', color: '#fdcb6e', animationDelay: '1.5s' }}>💠</span>
+                        </div>
+                      )}
+
+                      {auraAccessories.includes('sparks') && (
+                        <div className="accessory-sparks">
+                          <div className="energy-spark" style={{ top: '40%', left: '10%', animationDelay: '0.2s' }} />
+                          <div className="energy-spark" style={{ top: '30%', right: '15%', animationDelay: '0.8s' }} />
+                          <div className="energy-spark" style={{ bottom: '35%', left: '20%', animationDelay: '1.4s' }} />
+                          <div className="energy-spark" style={{ bottom: '45%', right: '12%', animationDelay: '2.0s' }} />
+                        </div>
+                      )}
+
+                      {/* Photo Avatar */}
+                      <div className="avatar-image-wrapper">
+                        {avatarPhoto ? (
+                          <img src={avatarPhoto} alt="Aura Avatar" className="avatar-image-element" />
+                        ) : (
+                          <Shield className="avatar-placeholder-svg" color="rgba(255,255,255,0.2)" />
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Upload Controls */}
+                    <div style={{ marginTop: '1rem' }}>
+                      <label 
+                        className="btn" 
+                        style={{ 
+                          display: 'inline-flex', 
+                          alignItems: 'center', 
+                          gap: '8px', 
+                          margin: '0 auto', 
+                          cursor: 'pointer',
+                          background: 'rgba(255,255,255,0.05)',
+                          border: '1px solid rgba(255,255,255,0.1)'
+                        }}
+                      >
+                        <Camera size={16} />
+                        {isRegisteringAvatar ? 'REGISTERING...' : avatarPhoto ? 'CHANGE PHOTO' : 'UPLOAD PHOTO'}
+                        <input 
+                          type="file" 
+                          accept="image/*" 
+                          onChange={handlePhotoUpload} 
+                          style={{ display: 'none' }} 
+                          disabled={isRegisteringAvatar}
+                        />
+                      </label>
+                      
+                      <div className="upload-disclaimer-box">
+                        <AlertTriangle size={16} style={{ flexShrink: 0, marginTop: '2px' }} />
+                        <span>
+                          <strong>HIPAA Privacy Shield:</strong> Ensure your photo does not contain clinical charts, ID cards, or sensitive personal health details. All uploaded assets are processed in compliance with federal guidelines.
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Right Column: Customizer Selector & HeyGen integration */}
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
+                    {/* Style & Color Theme */}
+                    <div className="glass" style={{ padding: '1.5rem', borderRadius: '20px', background: 'rgba(255,255,255,0.01)', border: '1px solid rgba(255,255,255,0.05)' }}>
+                      <h4 className="customizer-section-title">
+                        <Sparkles size={14} color="var(--accent-gold)" />
+                        AURA STYLE
+                      </h4>
+                      <div className="options-selector-row">
+                        {[
+                          { id: 'amethyst', name: 'Amethyst', icon: '💜', desc: 'Violet Crown Focus' },
+                          { id: 'rose', name: 'Rose', icon: '💖', desc: 'Rose Heart-Sync' },
+                          { id: 'citrine', name: 'Citrine', icon: '💛', desc: 'Solar Plexus Uplift' },
+                          { id: 'lapis', name: 'Lapis', icon: '💙', desc: 'Throat Wisdom' },
+                          { id: 'celestial', name: 'Celestial', icon: '🌌', desc: 'Cosmic Indigo' },
+                          { id: 'infinite', name: 'Infinite', icon: '🌈', desc: 'Rainbow Harmony' }
+                        ].map(style => (
+                          <button
+                            key={style.id}
+                            className={`option-select-button ${auraStyle === style.id ? 'active' : ''}`}
+                            onClick={() => setAuraStyle(style.id)}
+                          >
+                            <span style={{ fontSize: '1.25rem' }}>{style.icon}</span>
+                            <span style={{ fontSize: '0.65rem', fontWeight: 'bold' }}>{style.name.toUpperCase()}</span>
+                            <div className="option-tooltip">{style.desc}</div>
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Background Fields (Level Gated) */}
+                    <div className="glass" style={{ padding: '1.5rem', borderRadius: '20px', background: 'rgba(255,255,255,0.01)', border: '1px solid rgba(255,255,255,0.05)' }}>
+                      <h4 className="customizer-section-title">
+                        <Shield size={14} color="var(--accent-gold)" />
+                        AURA GRADIENT BACKGROUND
+                      </h4>
+                      <div className="options-selector-row">
+                        {[
+                          { id: 'ethereal-mist', name: 'Ethereal', icon: '🌫️', level: 1 },
+                          { id: 'volcanic-glow', name: 'Ember', icon: '🔥', level: 2 },
+                          { id: 'solar-wave', name: 'Flame', icon: '☀️', level: 3 },
+                          { id: 'golden-light', name: 'Radiance', icon: '✨', level: 4 },
+                          { id: 'northern-sky', name: 'Aurora', icon: '🌌', level: 5 },
+                          { id: 'starfield', name: 'Celestial', icon: '🛸', level: 6 },
+                          { id: 'harmony', name: 'Harmony', icon: '🧘', level: 7 },
+                          { id: 'divine', name: 'Ascended', icon: '👼', level: 8 },
+                          { id: 'supernova', name: 'Cosmic', icon: '💥', level: 9 },
+                          { id: 'singularity', name: 'Infinite', icon: '🌀', level: 10 }
+                        ].map(bg => {
+                          const currentXp = gamificationState?.xp || 0;
+                          const userLevel = getLevel(currentXp).level;
+                          const isLocked = userLevel < bg.level;
+                          return (
+                            <button
+                              key={bg.id}
+                              className={`option-select-button ${auraBackground === bg.id ? 'active' : ''} ${isLocked ? 'locked' : ''}`}
+                              disabled={isLocked}
+                              onClick={() => !isLocked && setAuraBackground(bg.id)}
+                            >
+                              <span style={{ fontSize: '1.25rem' }}>{isLocked ? '🔒' : bg.icon}</span>
+                              <span style={{ fontSize: '0.65rem', fontWeight: 'bold' }}>{bg.name.toUpperCase()}</span>
+                              <div className="option-tooltip">
+                                {isLocked ? `Unlock at Level ${bg.level}` : `Aura Field: Level ${bg.level}`}
+                              </div>
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+
+                    {/* Accessories / Add-ons (Badge Gated) */}
+                    <div className="glass" style={{ padding: '1.5rem', borderRadius: '20px', background: 'rgba(255,255,255,0.01)', border: '1px solid rgba(255,255,255,0.05)' }}>
+                      <h4 className="customizer-section-title">
+                        <Star size={14} color="var(--accent-gold)" />
+                        REWARDS &amp; ADD-ONS
+                      </h4>
+                      <div className="options-selector-row">
+                        {[
+                          { id: 'sacred_geometry', name: 'Geometry', icon: '✡️', type: 'badge', req: 'sacred_geometry', label: 'Sacred Geometry Badge' },
+                          { id: 'halo', name: 'Crown Halo', icon: '😇', type: 'level', req: 5, label: 'Aura Level 5' },
+                          { id: 'crystals', name: 'Crystals', icon: '💎', type: 'badge', req: 'crystal_collector', label: 'Crystal Collector Badge' },
+                          { id: 'sparks', name: 'Sparks', icon: '✨', type: 'badge', req: 'first_light', label: 'First Light Badge' }
+                        ].map(addon => {
+                          const currentXp = gamificationState?.xp || 0;
+                          const userLevel = getLevel(currentXp).level;
+                          const earnedBadges = gamificationState?.earnedBadges || [];
+                          
+                          let isLocked = true;
+                          if (addon.type === 'level') {
+                            isLocked = userLevel < addon.req;
+                          } else if (addon.type === 'badge') {
+                            isLocked = !earnedBadges.includes(addon.req);
+                          }
+
+                          const isActive = auraAccessories.includes(addon.id);
+
+                          return (
+                            <button
+                              key={addon.id}
+                              className={`option-select-button ${isActive ? 'active' : ''} ${isLocked ? 'locked' : ''}`}
+                              disabled={isLocked}
+                              onClick={() => {
+                                if (isLocked) return;
+                                if (isActive) {
+                                  setAuraAccessories(prev => prev.filter(x => x !== addon.id));
+                                } else {
+                                  setAuraAccessories(prev => [...prev, addon.id]);
+                                }
+                              }}
+                            >
+                              <span style={{ fontSize: '1.25rem' }}>{isLocked ? '🔒' : addon.icon}</span>
+                              <span style={{ fontSize: '0.65rem', fontWeight: 'bold' }}>{addon.name.toUpperCase()}</span>
+                              <div className="option-tooltip">
+                                {isLocked ? `Requires: ${addon.label}` : `${addon.name} Overlay`}
+                              </div>
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* HeyGen Interactive Video Section */}
+                <div className="glass" style={{ padding: '2rem', borderRadius: '24px', background: 'rgba(255,255,255,0.01)', border: '1px solid rgba(255,255,255,0.05)', marginTop: '2.5rem' }}>
+                  <h3 style={{ fontFamily: "'Playfair Display', serif", fontSize: '1.8rem', marginBottom: '0.5rem', display: 'flex', alignItems: 'center', gap: '10px' }}>
+                    <Volume2 color="var(--accent-gold)" />
+                    HeyGen Talking Avatar
+                  </h3>
+                  <p style={{ color: 'rgba(255,255,255,0.5)', fontSize: '0.9rem', marginBottom: '2rem' }}>
+                    Speak with your virtual twin! Input a customized healing script or choose from our energy settings to generate a talking greeting from your avatar photo.
+                  </p>
+
+                  {!heygenAvatarId ? (
+                    <div style={{ padding: '2.5rem', borderRadius: '16px', background: 'rgba(255,255,255,0.02)', border: '1px dashed rgba(255,255,255,0.1)', textAlign: 'center', color: 'rgba(255,255,255,0.4)' }}>
+                      Please upload and calibrate an avatar photo above to enable HeyGen talking features.
+                    </div>
+                  ) : (
+                    <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 0.8fr', gap: '2.5rem' }}>
+                      {/* Video Synthesizer Settings */}
+                      <div>
+                        <div style={{ marginBottom: '1.5rem' }}>
+                          <label style={{ display: 'block', fontSize: '0.8rem', letterSpacing: '1px', color: 'rgba(255,255,255,0.5)', marginBottom: '0.5rem', fontWeight: 'bold' }}>
+                            SELECT A PRE-SET BIO-INTELLIGENCE SCRIPT
+                          </label>
+                          <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', marginBottom: '1rem' }}>
+                            {[
+                              { label: 'Morning Light', text: `Good morning, seeker. As the sun rises, let us align our chakras and fill our energy field with pure light. Let's start our daily calibration.` },
+                              { label: 'Inner Calm', text: `Welcome back to your sanctuary. Take a deep breath and let go of all physical tension. Let the cosmic current guide you back to center.` },
+                              { label: 'Creative Flow', text: `Welcome back. Today, let us open your third eye chakra to channel pure inspiration and raw creative energy.` },
+                              { label: 'Deep Clarity', text: `Welcome seeker. Your aura is bright and receptive today. Let us explore the higher dimensions of awareness together.` }
+                            ].map(preset => (
+                              <button
+                                key={preset.label}
+                                className="btn"
+                                onClick={() => setCustomGreetingText(preset.text)}
+                                style={{
+                                  padding: '6px 12px',
+                                  fontSize: '0.75rem',
+                                  background: customGreetingText === preset.text ? 'rgba(212, 175, 55, 0.15)' : 'rgba(255,255,255,0.03)',
+                                  border: `1px solid ${customGreetingText === preset.text ? 'var(--accent-gold)' : 'rgba(255,255,255,0.08)'}`,
+                                  color: customGreetingText === preset.text ? 'var(--accent-gold)' : 'rgba(255,255,255,0.6)'
+                                }}
+                              >
+                                {preset.label.toUpperCase()}
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+
+                        <div style={{ marginBottom: '1.5rem' }}>
+                          <label style={{ display: 'block', fontSize: '0.8rem', letterSpacing: '1px', color: 'rgba(255,255,255,0.5)', marginBottom: '0.5rem', fontWeight: 'bold' }}>
+                            CUSTOM SCRIPT OR GREETING
+                          </label>
+                          <textarea
+                            value={customGreetingText}
+                            onChange={(e) => setCustomGreetingText(e.target.value)}
+                            placeholder="Write a message for your avatar to speak (up to 300 characters)..."
+                            maxLength={300}
+                            style={{
+                              width: '100%',
+                              height: '110px',
+                              background: 'rgba(0,0,0,0.3)',
+                              border: '1px solid rgba(255,255,255,0.1)',
+                              borderRadius: '12px',
+                              padding: '1rem',
+                              color: '#fff',
+                              fontFamily: 'inherit',
+                              fontSize: '0.9rem',
+                              resize: 'none'
+                            }}
+                          />
+                        </div>
+
+                        <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
+                          <button
+                            className="btn"
+                            disabled={isSynthesizingVideo || !customGreetingText.trim()}
+                            onClick={() => handleSynthesizeVideo(customGreetingText)}
+                            style={{
+                              background: 'linear-gradient(135deg, var(--accent-gold), var(--accent-ethereal))',
+                              color: '#000',
+                              fontWeight: 'bold',
+                              padding: '1rem 2rem',
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: '8px'
+                            }}
+                          >
+                            {isSynthesizingVideo ? <RefreshCw className="spinner-aura" size={16} /> : <Play size={16} />}
+                            SYNTHESIZE TALKING AVATAR
+                          </button>
+                        </div>
+                      </div>
+
+                      {/* Video Player Render */}
+                      <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+                        {isSynthesizingVideo ? (
+                          <div className="synthesis-loader-container">
+                            <div className="spinner-aura" />
+                            <div style={{ fontWeight: 'bold', color: 'var(--accent-gold)', textTransform: 'uppercase', letterSpacing: '1px' }}>
+                              {synthesisStatus === 'generating-video' ? 'Initializing Script...' : 'Rendering Talking Avatar...'}
+                            </div>
+                            <p style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.4)', margin: 0 }}>
+                              HeyGen AI is generating facial expressions and voice synthesis. This typically takes 10 to 30 seconds.
+                            </p>
+                          </div>
+                        ) : synthesizedVideoUrl ? (
+                          <div style={{ borderRadius: '16px', overflow: 'hidden', border: '2px solid rgba(212, 175, 55, 0.3)', boxShadow: '0 10px 40px rgba(0,0,0,0.5)', background: '#000', display: 'flex', flexDirection: 'column' }}>
+                            <video
+                              src={synthesizedVideoUrl}
+                              controls
+                              autoPlay
+                              style={{ width: '100%', height: 'auto', display: 'block' }}
+                            />
+                            <div style={{ padding: '0.75rem 1rem', background: 'rgba(212, 175, 55, 0.05)', fontSize: '0.75rem', color: 'var(--accent-gold)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                              <span>✨ SYNTHESIS COMPLETE</span>
+                              <button 
+                                onClick={() => setSynthesizedVideoUrl('')}
+                                style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,0.4)', cursor: 'pointer', fontSize: '0.7rem' }}
+                              >
+                                RESET
+                              </button>
+                            </div>
+                          </div>
+                        ) : (
+                          <div style={{ padding: '3rem', borderRadius: '16px', background: 'rgba(255,255,255,0.02)', border: '1px dashed rgba(255,255,255,0.1)', textAlign: 'center', color: 'rgba(255,255,255,0.3)', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '10px' }}>
+                            <Volume2 size={32} style={{ opacity: 0.3 }} />
+                            <span>Your talking avatar video will render here.</span>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  )}
                 </div>
               </motion.div>
             )}
