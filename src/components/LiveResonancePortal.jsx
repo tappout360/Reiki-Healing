@@ -9,8 +9,10 @@ import {
   Share2, Eye, TrendingUp
 } from 'lucide-react';
 import { toast } from 'react-hot-toast';
+import { isFirebaseConfigured, db } from '../lib/firebase';
+import DailyIframe from '@daily-co/daily-js';
 
-const LiveResonancePortal = ({ user, onClose }) => {
+const LiveResonancePortal = ({ user, session, onClose }) => {
   const [isMuted, setIsMuted] = useState(false);
   const [isVideoOff, setIsVideoOff] = useState(false);
   const [showChat, setShowChat] = useState(false);
@@ -27,6 +29,49 @@ const LiveResonancePortal = ({ user, onClose }) => {
   const [isLive, setIsLive] = useState(false);
   const [seekerWaiting, setSeekerWaiting] = useState(true);
   const [seekerAdmitted, setSeekerAdmitted] = useState(false);
+
+  // Gating & WebRTC States
+  const [waitingRoomConsent, setWaitingRoomConsent] = useState(false);
+  const [dailyCallFrame, setDailyCallFrame] = useState(null);
+
+  useEffect(() => {
+    if (isLive && seekerAdmitted && !dailyCallFrame) {
+      const frame = DailyIframe.createFrame(document.getElementById('daily-video-container'), {
+        iframeStyle: {
+          width: '100%',
+          height: '100%',
+          border: '0',
+          borderRadius: '24px'
+        },
+        showLeaveButton: false,
+        showFullscreenButton: true
+      });
+      const roomName = session?.sessionCode || session?.stripeSessionId || 'test-resonance-field';
+      frame.join({ url: `https://reikiandsage.daily.co/${roomName}` })
+        .catch(err => {
+          console.warn("Daily join failed (using mock feed fallback):", err);
+        });
+      setDailyCallFrame(frame);
+    }
+
+    return () => {
+      if (dailyCallFrame) {
+        dailyCallFrame.destroy();
+      }
+    };
+  }, [isLive, seekerAdmitted, dailyCallFrame, session]);
+
+  useEffect(() => {
+    if (dailyCallFrame) {
+      dailyCallFrame.setLocalAudio(!isMuted);
+    }
+  }, [isMuted, dailyCallFrame]);
+
+  useEffect(() => {
+    if (dailyCallFrame) {
+      dailyCallFrame.setLocalVideo(!isVideoOff);
+    }
+  }, [isVideoOff, dailyCallFrame]);
 
   // Micro-interaction states
   const [hearts, setHearts] = useState([]);
@@ -230,30 +275,29 @@ const LiveResonancePortal = ({ user, onClose }) => {
             <div style={{ flex: 1, position: 'relative', borderRadius: '24px', overflow: 'hidden', border: '1px solid rgba(255,255,255,0.1)' }}>
                 {/* Main Video Window */}
                 <div style={{ width: '100%', height: '100%', background: 'rgba(0,0,0,0.3)', position: 'relative' }}>
-                    {/* Simulated Camera Feed */}
-                    <div style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    
+                    {/* Daily.co WebRTC Video Iframe Container */}
+                    <div id="daily-video-container" style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', zIndex: 1, display: (isLive && seekerAdmitted) ? 'block' : 'none' }} />
+
+                    {/* Camera Feed HUD & Waiting Room Overlay */}
+                    <div style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 2, pointerEvents: (isLive && seekerAdmitted) ? 'none' : 'auto' }}>
                          <div style={{ textAlign: 'center', width: '100%' }}>
                              {isLive && seekerAdmitted ? (
-                               <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '300px' }}>
-                                 {/* Dynamic Audio Waveform Visualizer */}
-                                 <div style={{ display: 'flex', alignItems: 'end', justifyContent: 'center', gap: '6px', height: '120px', width: '280px', marginBottom: '1.5rem' }}>
-                                   {waveHeights.map((h, i) => (
-                                     <motion.div
-                                       key={i}
-                                       animate={{ height: `${h}%` }}
-                                       transition={{ type: 'spring', stiffness: 300, damping: 20 }}
-                                       style={{
-                                         width: '8px',
-                                         borderRadius: '4px',
-                                         background: isAmplified 
-                                           ? 'linear-gradient(to top, var(--accent-gold), #fff)' 
-                                           : (isPurifying ? 'linear-gradient(to top, #9b59b6, var(--accent-ethereal))' : 'linear-gradient(to top, #8e44ad, var(--accent-ethereal))'),
-                                         boxShadow: isAmplified ? '0 0 15px var(--accent-gold)' : (isPurifying ? '0 0 10px rgba(155, 89, 182, 0.4)' : 'none'),
-                                         transformOrigin: 'bottom'
-                                       }}
-                                     />
-                                   ))}
-                                 </div>
+                               // Keep visualizer overlay in the corner of the stream or floating
+                               <div style={{ position: 'absolute', bottom: '2rem', right: '2rem', display: 'flex', alignItems: 'end', gap: '4px', height: '40px', width: '100px', zIndex: 10, pointerEvents: 'none' }}>
+                                 {waveHeights.slice(0, 8).map((h, i) => (
+                                   <motion.div
+                                     key={i}
+                                     animate={{ height: `${h / 2}%` }}
+                                     transition={{ type: 'spring', stiffness: 300, damping: 20 }}
+                                     style={{
+                                       width: '4px',
+                                       borderRadius: '2px',
+                                       background: isAmplified ? '#d4af37' : '#8e44ad',
+                                       transformOrigin: 'bottom'
+                                     }}
+                                   />
+                                 ))}
                                </div>
                              ) : (
                                <motion.div
@@ -331,16 +375,63 @@ const LiveResonancePortal = ({ user, onClose }) => {
                                 </div>
                              )}
                              {!isHealer && isLive && !seekerAdmitted && (
-                                <div style={{ marginTop: '2rem' }}>
-                                   <p style={{ color: 'var(--accent-gold)', fontSize: '0.9rem', marginBottom: '1rem' }}>Practitioner is Live! Request entry into the Sanctuary.</p>
+                                <div style={{ marginTop: '2rem', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1.5rem' }}>
+                                   <p style={{ color: 'var(--accent-gold)', fontSize: '0.9rem' }}>Practitioner is Live! Request entry into the Sanctuary.</p>
+                                   
+                                   {/* Waiting Room Consent Box */}
+                                   <div style={{
+                                     background: 'rgba(231, 76, 60, 0.08)',
+                                     border: '1px solid rgba(231, 76, 60, 0.2)',
+                                     borderRadius: '12px',
+                                     padding: '1.25rem',
+                                     maxWidth: '450px',
+                                     textAlign: 'left',
+                                     fontSize: '0.8rem',
+                                     lineHeight: '1.5',
+                                     color: 'rgba(255,255,255,0.8)',
+                                     pointerEvents: 'auto'
+                                   }}>
+                                     <p style={{ fontWeight: '700', color: '#e74c3c', margin: '0 0 0.5rem 0' }}>
+                                       ⚠️ Spiritual Wellness Notice
+                                     </p>
+                                     I confirm I am entering a spiritual wellness sanctuary. I understand this session is strictly non-medical and is not regulated or approved by the FDA. I understand that the healer does not diagnose, treat, or cure medical conditions.
+                                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '1rem' }}>
+                                       <input 
+                                         type="checkbox" 
+                                         id="waiting-room-consent" 
+                                         checked={waitingRoomConsent} 
+                                         onChange={(e) => setWaitingRoomConsent(e.target.checked)} 
+                                         style={{ cursor: 'pointer' }}
+                                       />
+                                       <label htmlFor="waiting-room-consent" style={{ cursor: 'pointer', userSelect: 'none', fontSize: '0.78rem', color: '#fff' }}>
+                                         I confirm and wish to enter.
+                                       </label>
+                                     </div>
+                                   </div>
+
                                    <button 
-                                       onClick={() => {
+                                       disabled={!waitingRoomConsent}
+                                       onClick={async () => {
+                                           if (isFirebaseConfigured() && session?.id) {
+                                               try {
+                                                   await db.updateBookingStatus(session.id, {
+                                                       consentAccepted: true,
+                                                       consentTimestamp: new Date().toISOString()
+                                                   });
+                                               } catch (err) {
+                                                   console.error("Failed to save consent to Firestore:", err);
+                                               }
+                                           } else {
+                                               const bookingsList = JSON.parse(localStorage.getItem('aura_bookings') || '[]');
+                                               const updated = bookingsList.map(b => b.id === session?.id ? { ...b, consentRecorded: true, consentTimestamp: new Date().toISOString() } : b);
+                                               localStorage.setItem('aura_bookings', JSON.stringify(updated));
+                                           }
                                            setSeekerAdmitted(true);
                                            setSeekerWaiting(false);
                                            toast.success("Admitted to Sanctuary!");
                                        }}
                                        className="btn-primary" 
-                                       style={{ padding: '0.8rem 2rem', borderRadius: '30px' }}
+                                       style={{ padding: '0.8rem 2.5rem', borderRadius: '30px', opacity: waitingRoomConsent ? 1 : 0.5 }}
                                    >
                                        ENTER SANCTUARY
                                    </button>

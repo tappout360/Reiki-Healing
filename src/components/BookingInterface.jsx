@@ -5,6 +5,17 @@ import 'react-calendar/dist/Calendar.css';
 import './BookingInterface.css';
 import { isFirebaseConfigured, db } from '../lib/firebase';
 import { useLanguage } from '../contexts/LanguageContext';
+const calculateHaversineDistance = (lat1, lon1, lat2, lon2) => {
+  const R = 3958.8; // Radius of the Earth in miles
+  const dLat = (lat2 - lat1) * Math.PI / 180;
+  const dLon = (lon2 - lon1) * Math.PI / 180;
+  const a = 
+    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * 
+    Math.sin(dLon / 2) * Math.sin(dLon / 2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  return R * c; // Distance in miles
+};
 
 const BookingInterface = ({ type, onClose }) => {
   const { t } = useLanguage();
@@ -23,6 +34,59 @@ const BookingInterface = ({ type, onClose }) => {
   const [loading, setLoading] = useState(false);
   const [onsitePrice, setOnsitePrice] = useState('150');
   const [videoPrice, setVideoPrice] = useState('88');
+
+  // Geocoding & Address states
+  const [address, setAddress] = useState('');
+  const [geocoding, setGeocoding] = useState(false);
+  const [addressVerified, setAddressVerified] = useState(false);
+  const [distanceError, setDistanceError] = useState('');
+  const [waiverAccepted, setWaiverAccepted] = useState(false);
+
+  const verifyAddress = async (addrQuery) => {
+    if (!addrQuery.trim()) return;
+    setGeocoding(true);
+    setDistanceError('');
+    setAddressVerified(false);
+    try {
+      const response = await fetch(
+        `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(addrQuery)}&limit=1`,
+        {
+          headers: {
+            'User-Agent': 'ReikiSageSanctuary/1.0'
+          }
+        }
+      );
+      if (!response.ok) throw new Error("Geocoding failed");
+      const data = await response.json();
+      if (data && data.length > 0) {
+        const lat = parseFloat(data[0].lat);
+        const lon = parseFloat(data[0].lon);
+        
+        const spaceNeedleLat = 47.6205;
+        const spaceNeedleLon = -122.3493;
+        
+        const dist = calculateHaversineDistance(spaceNeedleLat, spaceNeedleLon, lat, lon);
+        
+        if (dist <= 50) {
+          setDistance(dist.toFixed(1));
+          setAddressVerified(true);
+          toast.success(`Address verified: ${dist.toFixed(1)} miles from Seattle.`);
+        } else {
+          setDistance(dist.toFixed(1));
+          setDistanceError(`Out of Range: Your location is ${dist.toFixed(1)} miles away. Max limit is 50 miles.`);
+          toast.error("Address is outside our 50-mile service radius.");
+        }
+      } else {
+        setDistanceError("Address not found. Please try a more specific address including city and zip code.");
+        toast.error("Address verification failed.");
+      }
+    } catch (err) {
+      console.error(err);
+      setDistanceError("Verification service temporarily unavailable. Please enter your address again.");
+    } finally {
+      setGeocoding(false);
+    }
+  };
 
   // Load restrictions and settings from localStorage & Firestore
   useEffect(() => {
@@ -97,15 +161,70 @@ const BookingInterface = ({ type, onClose }) => {
     '10:00 AM', '11:00 AM', '1:00 PM', '2:00 PM', '3:00 PM', '4:00 PM'
   ];
 
+  const parseTimeToMinutes = (timeStr) => {
+    if (!timeStr) return 0;
+    const match = timeStr.trim().match(/^(\d+):(\d+)\s*(AM|PM)$/i);
+    if (!match) return 0;
+    let hours = parseInt(match[1]);
+    const minutes = parseInt(match[2]);
+    const period = match[3].toUpperCase();
+    if (period === 'PM' && hours !== 12) hours += 12;
+    if (period === 'AM' && hours === 12) hours = 0;
+    return hours * 60 + minutes;
+  };
+
+  const getTravelBuffer = (miles) => {
+    if (!miles) return 0;
+    const roadMiles = parseFloat(miles) * 1.3;
+    return Math.round((roadMiles / 30) * 60 + 15);
+  };
+
   const getAvailableSlots = () => {
     const dateStr = date.toDateString();
     const dayBookings = existingBookings.filter(b => b.date === dateStr);
     const dayBlockedSlots = (blockedSlots[dateStr] || []).map(s => s.replace(/^0/, ''));
     
+    const currentIsOnsite = subType === 'visit';
+    const currentBuffer = currentIsOnsite ? getTravelBuffer(distance) : 0;
+
     return timeSlots.filter(slot => {
       const normalizedSlot = slot.replace(/^0/, '');
-      return !dayBookings.some(b => (b.time || '').replace(/^0/, '') === normalizedSlot) && 
-             !dayBlockedSlots.includes(normalizedSlot);
+      if (dayBlockedSlots.includes(normalizedSlot)) return false;
+
+      const slotStart = parseTimeToMinutes(normalizedSlot);
+      const slotEnd = slotStart + 60; // Assume 1-hour sessions
+
+      // Check conflicts with all existing bookings on the same day
+      for (const b of dayBookings) {
+        const bTime = (b.time || '').replace(/^0/, '');
+        const bStart = parseTimeToMinutes(bTime);
+        const bEnd = bStart + 60;
+
+        // Determine if existing booking is on-site and its buffer
+        const bIsOnsite = b.serviceType === 'onsite' || b.type?.toLowerCase().includes('visit') || (b.notes && b.notes.toLowerCase().includes('address'));
+        let bDistance = 0;
+        if (b.notes) {
+          const matchDist = b.notes.match(/Distance:\s*([\d.]+)\s*miles/i);
+          if (matchDist) bDistance = parseFloat(matchDist[1]);
+        }
+        const bBuffer = bIsOnsite ? getTravelBuffer(bDistance) : 0;
+
+        // Calculate required separation
+        const requiredSeparation = currentIsOnsite && bIsOnsite
+          ? currentBuffer + bBuffer
+          : (currentIsOnsite ? currentBuffer : bBuffer);
+
+        // Check if there is enough time between the two slots
+        if (slotStart >= bStart) {
+          const separation = slotStart - bEnd;
+          if (separation < requiredSeparation) return false;
+        } else {
+          const separation = bStart - slotEnd;
+          if (separation < requiredSeparation) return false;
+        }
+      }
+
+      return true;
     });
   };
 
@@ -149,7 +268,7 @@ const BookingInterface = ({ type, onClose }) => {
           customerName: name,
           bookingDate: date.toDateString(),
           bookingTime: time,
-          notes: `Phone: ${phone}${distance ? `, Distance: ${distance} miles` : ''}`
+          notes: `Phone: ${phone}${distance ? `, Distance: ${distance} miles` : ''}${address ? `, Address: ${address}` : ''}`
         })
       });
 
@@ -163,7 +282,7 @@ const BookingInterface = ({ type, onClose }) => {
       
       // Save tentative booking info to localStorage for recovery/verification
       const tentativeBooking = {
-        name, phone, email,
+        name, phone, email, address,
         serviceType: subType === 'visit' ? 'onsite' : 'live',
         date: date.toDateString(),
         time,
@@ -271,12 +390,34 @@ const BookingInterface = ({ type, onClose }) => {
               className="booking-input"
             />
             {subType === 'visit' && (
+              <div style={{ marginBottom: '1rem' }}>
                 <input 
-                    id="booking-distance-input"
-                    name="distance"
-                    type="number" placeholder={t('bookingPlaceholderDistance')} value={distance} onChange={e => setDistance(e.target.value)}
-                    className="booking-input"
+                  id="booking-address-input"
+                  name="address"
+                  type="text" 
+                  placeholder={t('bookingPlaceholderAddress')} 
+                  value={address} 
+                  onChange={e => setAddress(e.target.value)}
+                  onBlur={() => verifyAddress(address)}
+                  className="booking-input"
+                  style={{ marginBottom: '0.5rem' }}
                 />
+                {geocoding && (
+                  <p style={{ fontSize: '0.8rem', color: 'var(--accent-gold)', margin: '0 0 0.5rem 0' }}>
+                    ⏳ {t('bookingVerifyingAddress')}
+                  </p>
+                )}
+                {addressVerified && !geocoding && (
+                  <p style={{ fontSize: '0.8rem', color: '#2ecc71', margin: '0 0 0.5rem 0' }}>
+                    ✓ {t('bookingAddressVerified').replace('{distance}', distance)}
+                  </p>
+                )}
+                {distanceError && !geocoding && (
+                  <p style={{ fontSize: '0.8rem', color: '#e74c3c', margin: '0 0 0.5rem 0' }}>
+                    ⚠ {distanceError}
+                  </p>
+                )}
+              </div>
             )}
             <input 
               id="booking-email-input"
@@ -303,11 +444,32 @@ const BookingInterface = ({ type, onClose }) => {
               </div>
             </div>
 
-            {subType === 'visit' && parseInt(distance) > 50 && (
-                <p style={{color: '#e74c3c', fontSize: '0.8rem', marginBottom: '1rem', marginTop: '1rem'}}>
-                    {t('bookingDistanceError')}
-                </p>
-            )}
+            {/* Liability Waiver Checkbox */}
+            <div style={{ 
+              display: 'flex', 
+              alignItems: 'flex-start', 
+              gap: '10px', 
+              marginTop: '1.25rem', 
+              padding: '10px 12px', 
+              background: 'rgba(255,255,255,0.02)', 
+              border: '1px solid rgba(255,255,255,0.08)', 
+              borderRadius: '8px', 
+              textAlign: 'left' 
+            }}>
+              <input 
+                id="booking-waiver-checkbox"
+                type="checkbox" 
+                checked={waiverAccepted}
+                onChange={e => setWaiverAccepted(e.target.checked)}
+                style={{ marginTop: '3px', cursor: 'pointer' }}
+              />
+              <label 
+                htmlFor="booking-waiver-checkbox"
+                style={{ fontSize: '0.75rem', opacity: 0.8, cursor: 'pointer', userSelect: 'none', lineHeight: '1.4' }}
+              >
+                {t('bookingWaiverText')}
+              </label>
+            </div>
 
             {/* HIPAA Intake Disclaimer */}
             <div style={{ marginTop: '1.25rem', padding: '10px 12px', background: 'rgba(0,184,148,0.05)', border: '1px solid rgba(0,184,148,0.2)', borderRadius: '8px', textAlign: 'left' }}>
@@ -318,7 +480,14 @@ const BookingInterface = ({ type, onClose }) => {
 
             <button 
               onClick={handleCheckoutRedirect} 
-              disabled={!name || !phone || !email || (subType === 'visit' && parseInt(distance) > 50) || loading}
+              disabled={
+                !name || 
+                !phone || 
+                !email || 
+                (subType === 'visit' && (!addressVerified || parseFloat(distance) > 50)) || 
+                !waiverAccepted || 
+                loading
+              }
               className="btn-primary"
               style={{width: '100%', marginTop: '1.5rem'}}
             >

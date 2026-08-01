@@ -36,6 +36,68 @@ async function buffer(readable) {
   return Buffer.concat(chunks);
 }
 
+async function logTransactionToLedger(db, stripe, session, type) {
+  const totalCents = session.amount_total || 0;
+  const taxCents = session.total_details?.amount_tax || 0;
+  
+  let feeCents = 0;
+  try {
+    if (session.payment_intent) {
+      const pi = await stripe.paymentIntents.retrieve(session.payment_intent, {
+        expand: ['latest_charge.balance_transaction']
+      });
+      const charge = pi.latest_charge;
+      if (charge && charge.balance_transaction) {
+        feeCents = charge.balance_transaction.fee || 0;
+      }
+    }
+  } catch (err) {
+    console.warn("Could not retrieve balance transaction fee from Stripe API, using standard fallback:", err.message);
+  }
+
+  if (feeCents === 0 && totalCents > 0) {
+    feeCents = Math.round(totalCents * 0.029) + 30; // Standard 2.9% + 30c
+  }
+
+  const netCents = totalCents - feeCents;
+  const grossRevenueCents = totalCents - taxCents;
+
+  const entries = [
+    { account: 'assets_cash', type: 'debit', amount: netCents },
+    { account: 'expenses_stripe_fees', type: 'debit', amount: feeCents }
+  ];
+
+  if (taxCents > 0) {
+    entries.push({ account: 'liabilities_sales_tax', type: 'credit', amount: taxCents });
+  }
+
+  const revenueAccount = type === 'booking' ? 'revenue_bookings' : 'revenue_subscriptions';
+  entries.push({ account: revenueAccount, type: 'credit', amount: grossRevenueCents });
+
+  // Validate Double-Entry Constraint (Debits == Credits)
+  const totalDebits = entries.filter(e => e.type === 'debit').reduce((sum, e) => sum + e.amount, 0);
+  const totalCredits = entries.filter(e => e.type === 'credit').reduce((sum, e) => sum + e.amount, 0);
+
+  if (totalDebits !== totalCredits) {
+    console.error(`Ledger imbalance! Debits: ${totalDebits}, Credits: ${totalCredits}`);
+    const difference = totalCredits - totalDebits;
+    entries[0].amount += difference; 
+  }
+
+  await db.collection('ledger').doc(session.id).set({
+    timestamp: admin.firestore.FieldValue.serverTimestamp(),
+    stripeSessionId: session.id,
+    stripePaymentIntentId: session.payment_intent || null,
+    stripeCustomerId: session.customer || null,
+    description: type === 'booking' 
+      ? `Booking payment from ${session.metadata?.customerName || 'Seeker'} (${session.metadata?.serviceType || 'online'})` 
+      : `Subscription payment for plan: ${session.metadata?.planId || 'healing_tier'}`,
+    entries,
+    metadata: session.metadata || {}
+  });
+  console.log(`Immutable ledger transaction written for Stripe Session ${session.id}`);
+}
+
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
@@ -103,6 +165,12 @@ export default async function handler(req, res) {
               createdAt: admin.firestore.FieldValue.serverTimestamp()
             });
             console.log(`Booking created for ${customerName} (${serviceType}) on ${bookingDate}`);
+            
+            try {
+              await logTransactionToLedger(db, stripe, session, 'booking');
+            } catch (ledgerErr) {
+              console.error('Failed to log booking to ledger:', ledgerErr.message);
+            }
           }
 
           // Send confirmation emails (fire-and-forget; don't block webhook response)
@@ -141,6 +209,12 @@ export default async function handler(req, res) {
               updatedAt: admin.firestore.FieldValue.serverTimestamp()
             });
             console.log(`Subscription activated for user ${userId}`);
+            
+            try {
+              await logTransactionToLedger(db, stripe, session, 'subscription');
+            } catch (ledgerErr) {
+              console.error('Failed to log subscription to ledger:', ledgerErr.message);
+            }
           }
         }
         break;

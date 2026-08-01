@@ -85,6 +85,7 @@ export default async function handler(req, res) {
       mode: 'payment',
       customer_email: customerEmail,
       metadata,
+      automatic_tax: { enabled: true },
       line_items: [
         {
           price_data: {

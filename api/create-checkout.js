@@ -44,6 +44,7 @@ export default async function handler(req, res) {
         userId,
         planId
       },
+      automatic_tax: { enabled: true },
       success_url: `${req.headers.origin || process.env.NEXT_PUBLIC_SITE_URL}/?checkout=success`,
       cancel_url: `${req.headers.origin || process.env.NEXT_PUBLIC_SITE_URL}/?checkout=cancelled`
     };

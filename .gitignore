@@ -25,3 +25,7 @@ dev-tools/
 
 .vercel
 .env*
+
+# Large Media
+public/assets/*.mp4
+public/assets/*.webm

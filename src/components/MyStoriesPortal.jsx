@@ -314,16 +314,41 @@ const MyStoriesPortal = ({ onClose }) => {
             const name = e.target.name.value;
             const content = e.target.story.value;
             const rating = parseInt(e.target.rating.value);
+            const sharePublicly = e.target.sharePublicly?.checked ?? true;
 
             if (!name || !content) return;
 
+            // Content Moderation check (keep out discrimination & sexual content)
+            try {
+              const { moderateContent } = await import('../utils/moderation');
+              const moderationResult = moderateContent(content);
+              if (!moderationResult.isSafe) {
+                import('react-hot-toast').then(({ toast }) => {
+                  toast.error("Submission flagged: Please ensure your reflection aligns with our sanctuary's guidelines (no discriminatory, abusive, or sexually explicit content).");
+                });
+                return;
+              }
+            } catch (modErr) {
+              console.error("Moderation import error:", modErr);
+            }
+
+            const currentUser = isFirebaseConfigured() ? auth.getUser() : null;
+            if (!sharePublicly && !currentUser && isFirebaseConfigured()) {
+              import('react-hot-toast').then(({ toast }) => {
+                toast.error("Please log in to save private reflections to your personal profile.");
+              });
+              return;
+            }
+
             const newStory = {
               userName: name,
+              userEmail: currentUser?.email || null,
               story: content,
               rating,
               voiceData: voiceBase64 || null,
-              status: 'pending',
-              userId: isFirebaseConfigured() ? auth.getUser()?.uid || null : null,
+              status: sharePublicly ? 'pending' : 'private',
+              userId: currentUser?.uid || null,
+              timestamp: new Date().toISOString()
             };
 
             try {
@@ -335,7 +360,7 @@ const MyStoriesPortal = ({ onClose }) => {
               }
               
               import('react-hot-toast').then(({ toast }) => {
-                toast.success(t('reflectionsSuccessToast'));
+                toast.success(sharePublicly ? t('reflectionsSuccessToast') : "Reflection saved privately to your profile.");
               });
               discardRecording();
             } catch (err) {
@@ -368,6 +393,18 @@ const MyStoriesPortal = ({ onClose }) => {
           <div className="form-group">
             <label style={{ fontSize: '0.8rem', opacity: 0.6, marginBottom: '0.5rem', display: 'block' }}>{t('reflectionsLabelJourney')}</label>
             <textarea name="story" rows="4" placeholder={t('reflectionsPlaceholderJourney')} required style={{ width: '100%', padding: '1rem', borderRadius: '12px', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: 'white', resize: 'vertical' }} />
+          </div>
+          <div className="form-group" style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '0.5rem' }}>
+            <input 
+              type="checkbox" 
+              name="sharePublicly" 
+              id="sharePublicly" 
+              defaultChecked={true}
+              style={{ cursor: 'pointer', width: '18px', height: '18px', accentColor: 'var(--accent-gold)' }}
+            />
+            <label htmlFor="sharePublicly" style={{ fontSize: '0.9rem', color: 'white', cursor: 'pointer' }}>
+              Share publicly on homepage (Requires Carissa's approval)
+            </label>
           </div>
           
           <style>{`

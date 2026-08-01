@@ -29,6 +29,7 @@ export const translations = {
     
     // Navigation
     navPhilosophy: "Philosophy",
+    navMeditation: "Meditation",
     navScheduling: "Scheduling",
     navProtocols: "Protocols",
     navLearning: "Learning",
@@ -146,6 +147,10 @@ export const translations = {
     bookingPlaceholderName: "Your Name",
     bookingPlaceholderPhone: "Phone Number",
     bookingPlaceholderDistance: "Distance from Sanctuary (miles)",
+    bookingPlaceholderAddress: "Street Address (e.g. Seattle, WA)",
+    bookingWaiverText: "I agree to the Reiki liability waiver & consent terms for this session.",
+    bookingVerifyingAddress: "Verifying address in the ether...",
+    bookingAddressVerified: "Address verified! Distance: {distance} miles.",
     bookingPlaceholderEmail: "Email Address",
     bookingSummaryService: "Service:",
     bookingSummaryInPerson: "In-Person Healing Session",
@@ -214,6 +219,7 @@ export const translations = {
     
     // Navigation
     navPhilosophy: "Filosofía",
+    navMeditation: "Meditación",
     navScheduling: "Programación",
     navProtocols: "Protocolos",
     navLearning: "Aprendizaje",
@@ -399,6 +405,7 @@ export const translations = {
     
     // Navigation
     navPhilosophy: "哲学理念",
+    navMeditation: "冥想视频",
     navScheduling: "服务预约",
     navProtocols: "能量理疗",
     navLearning: "正念知识",
@@ -584,6 +591,7 @@ export const translations = {
     
     // Navigation
     navPhilosophy: "Filosofia",
+    navMeditation: "Meditação",
     navScheduling: "Agendamento",
     navProtocols: "Protocolos",
     navLearning: "Aprendizado",
@@ -769,6 +777,7 @@ export const translations = {
     
     // Navigation
     navPhilosophy: "哲学",
+    navMeditation: "ガイド付き瞑想",
     navScheduling: "セッション予約",
     navProtocols: "プロトコル",
     navLearning: "学び",
@@ -954,6 +963,7 @@ export const translations = {
     
     // Navigation
     navPhilosophy: "Philosophie",
+    navMeditation: "Méditation",
     navScheduling: "Rendez-vous",
     navProtocols: "Protocoles",
     navLearning: "Apprentissage",

@@ -145,6 +145,7 @@ const protocols = [
     active: true,
     duration: 600,
     video: [
+      'amethyst_resonance.png',
       'amethyst_aura_realistic_1769877822836.png',
       'sage_protocol_cosmic_alignment_1770424972911.png',
       'amethyst_core_purge_macro_1769852056191.png',
@@ -172,6 +173,7 @@ const protocols = [
     active: true,
     duration: 600,
     video: [
+      'quartz_resonance.png',
       'quartz_macro_realistic_1769877835658.png',
       'quartz_aura_realistic_1769877849374.png',
       'quartz_lattice_macro_1769852085365.png',
@@ -194,6 +196,7 @@ const protocols = [
     active: true,
     duration: 600,
     video: [
+      'rose_resonance.png',
       'rose_macro_realistic_1769877861535.png',
       'rose_aura_realistic_1769877874595.png',
       'rose_quartz_macro_1769852112446.png',
@@ -217,6 +220,7 @@ const protocols = [
     active: true,
     duration: 600,
     video: [
+      'lapis_resonance.png',
       'lapis_macro.png',
       'lapis_aura.png',
       'sage_protocol_cosmic_alignment_1770424972911.png',
@@ -236,7 +240,7 @@ const protocols = [
     color: '#f1c40f',
     borderColor: '#d4af37',
     isImmersive: true,
-    active: true,
+    active: false,
     duration: 600,
     video: [
       'citrine_macro.png',
@@ -260,7 +264,7 @@ const protocols = [
     color: '#27ae60',
     borderColor: '#2ecc71',
     isImmersive: true,
-    active: true,
+    active: false,
     duration: 600,
     video: [
       'sage_protocol_shoreline_1770441338466.png',
@@ -287,7 +291,7 @@ const protocols = [
     color: '#f39c12',
     borderColor: '#e67e22',
     isImmersive: true,
-    active: true,
+    active: false,
     duration: 900,
     video: [
       'reiki_crown_chakra_light_1770423834100.png',
@@ -312,7 +316,7 @@ const protocols = [
     color: '#1a1a4e',
     borderColor: '#4a2f8a',
     isImmersive: true,
-    active: true,
+    active: false,
     duration: 900,
     video: [
       'sage_protocol_cosmic_alignment_1770424972911.png',
@@ -482,6 +486,7 @@ function AppContent() {
   const [showAIInterface, setShowAIInterface] = useState(false);
   const [showAuraGuide, setShowAuraGuide] = useState(false);
   const [showScience, setShowScience] = useState(false); // Science Modal
+  const [showMeditationModal, setShowMeditationModal] = useState(false); // Guided Meditation Modal
   const [showHealerDashboard, setShowHealerDashboard] = useState(false); // Admin access
   const [showAdminLogin, setShowAdminLogin] = useState(false); // NEW: Staff/Admin login
   const [showLegalModal, setShowLegalModal] = useState(null); // 'terms' | 'privacy' | 'disclaimer' | null
@@ -512,6 +517,8 @@ const [showJoinPortalModal, setShowJoinPortalModal] = useState(false);
 const [showMyStories, setShowMyStories] = useState(false);
 const [healerAppsEnabled, setHealerAppsEnabled] = useState(localStorage.getItem('aura_applications_enabled') !== 'false');
 const [showCheckoutModal, setShowCheckoutModal] = useState(false);
+  const [meditationConsent, setMeditationConsent] = useState(false);
+  const [meditationConsentPending, setMeditationConsentPending] = useState(false);
 
   // NEW: Tablet/Mobile App Shell States
   const [viewMode, setViewMode] = useState(() => {
@@ -558,6 +565,17 @@ const [showCheckoutModal, setShowCheckoutModal] = useState(false);
     }
   };
 
+  // Auto-reset selectedProtocol if it becomes deactivated
+  useEffect(() => {
+    if (selectedProtocol) {
+      const current = protocolList.find(p => p.id === selectedProtocol);
+      if (!current || !current.active) {
+        const firstActive = protocolList.find(p => p.active);
+        setSelectedProtocol(firstActive ? firstActive.id : null);
+      }
+    }
+  }, [protocolList, selectedProtocol]);
+
 
   // NEW: PWA Install State
   const [deferredPrompt, setDeferredPrompt] = useState(null);
@@ -569,8 +587,8 @@ const [showCheckoutModal, setShowCheckoutModal] = useState(false);
   const [gamificationState, setGamificationState] = useState(null);
   const [showLevelUp, setShowLevelUp] = useState(null);
 
-  const currentProtocol = protocols.find(p => p.id === selectedProtocol);
-  const activeProtocols = protocols.filter(p => p.active);
+  const currentProtocol = protocolList.find(p => p.id === selectedProtocol);
+  const activeProtocols = protocolList.filter(p => p.active);
 
   const selectRandomProtocol = () => {
     const available = activeProtocols.filter(p => p.id !== selectedProtocol);
@@ -876,8 +894,8 @@ const [showCheckoutModal, setShowCheckoutModal] = useState(false);
   // Auto-rotate visuals every 8 seconds for meditative flow
   useEffect(() => {
     if (showPortal && selectedProtocol) {
-      const currentProto = protocols.find(p => p.id === selectedProtocol);
-      if (Array.isArray(currentProto.video)) {
+      const currentProto = protocolList.find(p => p.id === selectedProtocol);
+      if (Array.isArray(currentProto?.video)) {
         const interval = setInterval(() => {
           if (!isPaused) {
             setVideoIndex(prev => (prev + 1) % currentProto.video.length);
@@ -886,7 +904,19 @@ const [showCheckoutModal, setShowCheckoutModal] = useState(false);
         return () => clearInterval(interval);
       }
     }
-  }, [showPortal, selectedProtocol, isPaused]);
+  }, [showPortal, selectedProtocol, isPaused, protocolList]);
+
+  // Control native HTML5 video play/pause states based on portal status and isPaused
+  useEffect(() => {
+    const videoElements = document.querySelectorAll('.video-background video');
+    videoElements.forEach(video => {
+      if (showPortal && !isPaused) {
+        video.play().catch(() => {});
+      } else {
+        video.pause();
+      }
+    });
+  }, [showPortal, isPaused, videoIndex]);
 
   // Set default carrier/beat frequencies for protocols
   useEffect(() => {
@@ -949,12 +979,12 @@ const [showCheckoutModal, setShowCheckoutModal] = useState(false);
     if (typeof window.gtag === 'function') {
       window.gtag('event', 'protocol_completed', {
         protocol_id: selectedProtocol,
-        protocol_name: protocols.find(p => p.id === selectedProtocol)?.name || selectedProtocol
+        protocol_name: protocolList.find(p => p.id === selectedProtocol)?.name || selectedProtocol
       });
     }
     if (!user) return;
 
-    const currentProto = protocols.find(p => p.id === selectedProtocol);
+    const currentProto = protocolList.find(p => p.id === selectedProtocol);
     const hzGainVal = parseFloat((Math.random() * 5 + 10).toFixed(1));
     const newLog = {
       id: Date.now(),
@@ -1047,7 +1077,7 @@ const [showCheckoutModal, setShowCheckoutModal] = useState(false);
         }, result.newBadges.length > 0 ? 2000 : 500);
       }
     }
-  }, [user, selectedProtocol, gamificationState, setUser, setGamificationState, setShowLevelUp]);
+  }, [user, selectedProtocol, gamificationState, setUser, setGamificationState, setShowLevelUp, protocolList]);
 
   // Sync session duration timer (countdown clock)
   useEffect(() => {
@@ -1320,6 +1350,171 @@ const [showCheckoutModal, setShowCheckoutModal] = useState(false);
           </div>
         </div>
       </section>
+    );
+  };
+
+  const renderGuidedMeditationSection = (isMobileLayout = false) => {
+    return (
+      <section id="guided-meditation-section" style={{ padding: isMobileLayout ? '3rem 1rem' : '6rem 0', backgroundColor: 'var(--bg-section-alt)' }}>
+        <div className="container" style={{ maxWidth: '900px', margin: '0 auto' }}>
+          <div style={{ textAlign: 'center', marginBottom: isMobileLayout ? '2.5rem' : '4rem' }}>
+            <h2 style={{ fontSize: isMobileLayout ? '2rem' : '3rem', color: 'var(--text-main)', marginBottom: '0.5rem' }}>
+              Guided Meditation Journey
+            </h2>
+            <div style={{ width: '60px', height: '3px', background: 'var(--accent-gold)', margin: '1rem auto' }}></div>
+            <p style={{ color: 'var(--accent-gold)', fontSize: isMobileLayout ? '0.9rem' : '1.1rem', fontWeight: '500', letterSpacing: '1px', textTransform: 'uppercase', marginBottom: '0.5rem' }}>
+              The Golden Horizon Quest – Manifestation Adventure
+            </p>
+          </div>
+          
+          <div className="glass" style={{ padding: isMobileLayout ? '1rem' : '2.5rem', borderRadius: '24px', border: '1px solid rgba(212, 175, 55, 0.25)', background: 'radial-gradient(circle at center, rgba(212, 175, 55, 0.05) 0%, transparent 80%)', backdropFilter: 'blur(10px)', boxShadow: '0 0 40px rgba(212, 175, 55, 0.05)', position: 'relative', overflow: 'hidden' }}>
+            <div 
+              style={{ position: 'relative', width: '100%', borderRadius: '16px', overflow: 'hidden', boxShadow: '0 15px 35px rgba(0,0,0,0.6)', aspectRatio: '16/9', background: '#000', cursor: 'pointer', border: '1px solid rgba(255,255,255,0.05)' }}
+              onClick={() => {
+                if (!user) {
+                  toast.error("Please log in or create an account to start the Guided Meditation.");
+                  setShowLoginModal(true);
+                } else {
+                  setShowMeditationModal(true);
+                }
+              }}
+            >
+              <img 
+                src="/assets/hero-energy.png" 
+                alt="Meditation Poster"
+                style={{ width: '100%', height: '100%', objectFit: 'cover', opacity: 0.65, display: 'block', transition: 'transform 0.5s ease' }}
+              />
+              <div style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', background: 'linear-gradient(to top, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0.2) 60%, rgba(0,0,0,0.4) 100%)', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center' }}>
+                <motion.div 
+                  whileHover={{ scale: 1.15 }}
+                  style={{ width: '80px', height: '80px', borderRadius: '50%', background: 'var(--accent-gold)', display: 'flex', justifyContent: 'center', alignItems: 'center', boxShadow: '0 0 30px var(--accent-gold)', color: '#000', cursor: 'pointer', marginBottom: '1.5rem' }}
+                >
+                  {user ? (
+                    <Play fill="#000" size={32} style={{ marginLeft: '6px' }} />
+                  ) : (
+                    <Lock size={32} />
+                  )}
+                </motion.div>
+                <span style={{ fontSize: '1rem', color: '#fff', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '2px', textShadow: '0 2px 4px rgba(0,0,0,0.5)' }}>
+                  {user ? "Begin Quest" : "Log In to Play"}
+                </span>
+              </div>
+            </div>
+            
+            <div style={{ marginTop: '2.5rem', textAlign: 'center' }}>
+              <p style={{ fontSize: isMobileLayout ? '0.95rem' : '1.1rem', color: 'var(--text-muted)', lineHeight: '1.7', maxWidth: '750px', margin: '0 auto' }}>
+                Embark on a transformative journey guided by Carissa. Align your intentions, activate your inner light, and manifest your highest potential. Click play to open the immersive video portal and begin your alignment.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+    );
+  };
+
+  const renderMeditationModal = () => {
+    return (
+      <div 
+        className="healing-portal-overlay fade-in" 
+        style={{ 
+          position: 'fixed', 
+          top: 0, left: 0, 
+          width: '100vw', height: '100vh', 
+          zIndex: 9999, 
+          background: 'rgba(5, 5, 10, 0.95)', 
+          backdropFilter: 'blur(20px)', 
+          display: 'flex', 
+          justifyContent: 'center', 
+          alignItems: 'center' 
+        }}
+      >
+        <div style={{ position: 'relative', width: '90%', maxWidth: '700px', borderRadius: '24px', overflow: 'hidden', border: '1px solid rgba(212, 175, 55, 0.3)', boxShadow: '0 0 50px rgba(212, 175, 55, 0.15)', background: '#0a0a0f', padding: '3rem' }}>
+          <div style={{ position: 'absolute', top: '1.5rem', right: '1.5rem', zIndex: 10 }}>
+            <button 
+              className="close-portal" 
+              style={{ 
+                position: 'static', 
+                width: '45px', height: '45px', 
+                fontSize: '2rem', 
+                background: 'rgba(0,0,0,0.5)', 
+                border: '1px solid rgba(255,255,255,0.1)', 
+                borderRadius: '50%', 
+                color: 'white', 
+                cursor: 'pointer',
+                display: 'flex',
+                justifyContent: 'center',
+                alignItems: 'center'
+              }} 
+              onClick={() => {
+                setShowMeditationModal(false);
+                setMeditationConsent(false);
+                setMeditationConsentPending(false);
+              }}
+            >
+              ×
+            </button>
+          </div>
+
+          {!meditationConsent ? (
+            <div style={{ textAlign: 'center' }}>
+              <h3 style={{ fontSize: '1.5rem', color: 'var(--accent-gold)', marginBottom: '1.5rem', fontFamily: "'Playfair Display', serif" }}>
+                Wellness Consent & Disclaimer
+              </h3>
+              <div style={{
+                background: 'rgba(231, 76, 60, 0.08)',
+                border: '1px solid rgba(231, 76, 60, 0.2)',
+                borderRadius: '12px',
+                padding: '1.5rem',
+                marginBottom: '2rem',
+                textAlign: 'left',
+                fontSize: '0.85rem',
+                lineHeight: '1.6',
+                color: 'rgba(255, 255, 255, 0.8)'
+              }}>
+                <p style={{ fontWeight: '700', color: '#e74c3c', marginBottom: '0.5rem' }}>
+                  ⚠️ Spiritual Wellness Notice
+                </p>
+                The Guided Meditation Journey is designed for relaxation, stress management, and personal spiritual growth. It is not a medical device, diagnosis, or clinical treatment, and it is not regulated or approved by the FDA. Reiki is a complementary therapy and is not a substitute for professional medical or mental health care.
+              </div>
+              <div style={{ display: 'flex', alignItems: 'flex-start', gap: '10px', textAlign: 'left', marginBottom: '2rem' }}>
+                <input 
+                  type="checkbox" 
+                  id="meditation-consent-checkbox" 
+                  checked={meditationConsentPending}
+                  onChange={(e) => setMeditationConsentPending(e.target.checked)}
+                  style={{ marginTop: '4px', cursor: 'pointer' }}
+                />
+                <label htmlFor="meditation-consent-checkbox" style={{ fontSize: '0.8rem', opacity: 0.8, cursor: 'pointer', userSelect: 'none', color: '#fff' }}>
+                  I understand and agree that this is a spiritual wellness practice, not a clinical treatment, and I wish to proceed.
+                </label>
+              </div>
+              <button 
+                onClick={() => setMeditationConsent(true)}
+                disabled={!meditationConsentPending}
+                className="btn btn-primary"
+                style={{ width: '100%', padding: '1rem', opacity: meditationConsentPending ? 1 : 0.5 }}
+              >
+                Proceed to Sanctuary Video
+              </button>
+            </div>
+          ) : (
+            <div style={{ width: '100%' }}>
+              <div style={{ aspectRatio: '16/9', width: '100%', background: '#000' }}>
+                <video 
+                  src="/assets/the_golden_horizon_quest.mp4" 
+                  controls 
+                  controlsList="nodownload"
+                  onContextMenu={(e) => e.preventDefault()}
+                  disablePictureInPicture
+                  autoPlay 
+                  preload="auto"
+                  style={{ width: '100%', height: '100%', objectFit: 'contain', display: 'block' }}
+                />
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
     );
   };
 
@@ -1828,7 +2023,11 @@ const [showCheckoutModal, setShowCheckoutModal] = useState(false);
               </p>
             </div>
  
-            <div className="glass" style={{ padding: '1.5rem', borderRadius: '20px', border: '1px solid var(--accent-gold)', background: 'linear-gradient(135deg, rgba(255,255,255,0.03) 0%, rgba(212, 175, 55, 0.05) 100%)', position: 'relative' }}>
+            <div 
+              className="glass" 
+              style={{ padding: '1.5rem', borderRadius: '20px', border: '1px solid var(--accent-gold)', background: 'linear-gradient(135deg, rgba(255,255,255,0.03) 0%, rgba(212, 175, 55, 0.05) 100%)', position: 'relative', cursor: 'pointer' }}
+              onClick={() => setShowMyStories(true)}
+            >
               <span style={{ position: 'absolute', top: '10px', right: '10px', background: 'var(--accent-gold)', color: '#000', fontSize: '0.6rem', fontWeight: 'bold', padding: '2px 6px', borderRadius: '4px', textTransform: 'uppercase' }}>Now Live!</span>
               <div style={{ fontSize: '1.8rem', marginBottom: '0.75rem' }}>🎙️</div>
               <h4 style={{ color: 'var(--accent-gold)', marginBottom: '0.5rem', fontSize: '1rem' }}>Voice Reflections</h4>
@@ -1868,10 +2067,11 @@ const [showCheckoutModal, setShowCheckoutModal] = useState(false);
             {showInstallBanner && renderInstallBanner()}
             {renderSchedulingSection(true)}
             {renderPhilosophySection(true)}
+            {renderGuidedMeditationSection(true)}
             {renderComingSoonSection(true)}
             
             {/* Mobile Footer */}
-            <footer style={{ padding: '2rem 1.5rem', textAlign: 'center', borderTop: '1px solid rgba(255,255,255,0.05)', marginTop: 'auto', background: 'rgba(0,0,0,0.1)' }}>
+            <footer style={{ padding: '2rem 1.5rem 8rem 1.5rem', textAlign: 'center', borderTop: '1px solid rgba(255,255,255,0.05)', marginTop: 'auto', background: 'rgba(0,0,0,0.1)' }}>
               {/* Mobile Wellness Disclaimer */}
               <div style={{
                 fontSize: '0.7rem', 
@@ -2148,34 +2348,69 @@ const [showCheckoutModal, setShowCheckoutModal] = useState(false);
               <div className="video-background" style={{ overflow: 'hidden' }}>
                 {Array.isArray(currentProtocol.video) ? (
                   <div style={{ width: '100%', height: '100%', position: 'relative' }}>
-                    {currentProtocol.video.map((src, idx) => (
-                      <img 
-                        key={src}
-                        src={`/assets/${src}`}
-                        alt="Healing Visual"
-                        className={idx === videoIndex ? 'active' : ''}
-                        style={{
-                          position: 'absolute',
-                          top: 0, left: 0,
-                          width: '100%', height: '100%', 
-                          objectFit: 'cover',
-                          opacity: idx === videoIndex ? 1 : 0,
-                          transform: idx === videoIndex 
-                            ? (isPaused ? 'scale(1.05) translate(-0.2%, -0.2%)' : 'scale(1.15) translate(-0.5%, -0.5%)') 
-                            : 'scale(1.02)',
-                          transition: isPaused 
-                            ? 'opacity 2.5s ease-in-out, transform 20s ease-out' 
-                            : 'opacity 2.5s ease-in-out, transform 8.5s ease-out',
-                          pointerEvents: 'none'
-                        }}
-                      />
-                    ))}
+                    {currentProtocol.video.map((src, idx) => {
+                      const isVideo = src.endsWith('.mp4') || src.endsWith('.webm');
+                      if (isVideo) {
+                        return (
+                          <video 
+                            key={src}
+                            src={`/assets/${src}`}
+                            autoPlay={idx === videoIndex && !isPaused}
+                            loop 
+                            muted 
+                            playsInline
+                            style={{
+                              position: 'absolute',
+                              top: 0, left: 0,
+                              width: '100%', height: '100%', 
+                              objectFit: 'cover',
+                              opacity: idx === videoIndex ? 1 : 0,
+                              transition: 'opacity 2.5s ease-in-out',
+                              pointerEvents: 'none'
+                            }}
+                          />
+                        );
+                      }
+                      return (
+                        <img 
+                          key={src}
+                          src={`/assets/${src}`}
+                          alt="Healing Visual"
+                          className={idx === videoIndex ? 'active' : ''}
+                          style={{
+                            position: 'absolute',
+                            top: 0, left: 0,
+                            width: '100%', height: '100%', 
+                            objectFit: 'cover',
+                            opacity: idx === videoIndex ? 1 : 0,
+                            transform: idx === videoIndex 
+                              ? (isPaused ? 'scale(1.05) translate(-0.2%, -0.2%)' : 'scale(1.15) translate(-0.5%, -0.5%)') 
+                              : 'scale(1.02)',
+                            transition: isPaused 
+                              ? 'opacity 2.5s ease-in-out, transform 20s ease-out' 
+                              : 'opacity 2.5s ease-in-out, transform 8.5s ease-out',
+                            pointerEvents: 'none'
+                          }}
+                        />
+                      );
+                    })}
                   </div>
+                ) : videoSrc?.endsWith('.mp4') ? (
+                  <video 
+                    autoPlay={!isPaused}
+                    loop 
+                    muted={true} 
+                    playsInline
+                    preload="auto"
+                    style={{width: '100%', height: '100%', objectFit: 'cover'}}
+                  >
+                    <source src={`/assets/${videoSrc}`} type="video/mp4" />
+                  </video>
                 ) : (
                   <iframe 
                     width="100%" 
                     height="100%" 
-                    src={currentProtocol.audio ? `https://www.youtube.com/embed/${currentProtocol.audio}?enablejsapi=1&autoplay=1&mute=1&controls=0&loop=1&playlist=${currentProtocol.audio}` : ""} 
+                    src={videoSrc ? `https://www.youtube.com/embed/${videoSrc}?autoplay=${isPaused ? 0 : 1}&mute=1&controls=0&loop=1&playlist=${videoSrc}` : ""} 
                     title="Healing Audio" 
                     frameBorder="0" 
                     id="healing-audio-iframe"
@@ -2408,6 +2643,7 @@ const [showCheckoutModal, setShowCheckoutModal] = useState(false);
             setShowJoinPortalModal(false);
           }} />}
           {showMyStories && <MyStoriesPortal onClose={() => setShowMyStories(false)} user={user} />}
+          {showMeditationModal && renderMeditationModal()}
         </Suspense>
 
         {/* Device Bezel Simulator Wrapper */}
@@ -2462,30 +2698,54 @@ const [showCheckoutModal, setShowCheckoutModal] = useState(false);
             </div>
             <div className="video-background" style={{overflow: 'hidden'}}>
               {Array.isArray(currentProtocol.video) ? (
-                /* Cinematic Image Sequence Player (Ken Burns Effect) */
+                /* Cinematic Image/Video Player */
                 <div style={{width: '100%', height: '100%', position: 'relative'}}>
-                   {currentProtocol.video.map((src, idx) => (
-                     <img 
-                      key={src}
-                       src={`/assets/${src}`}
-                       alt="Healing Visual"
-                       className={idx === videoIndex ? 'active' : ''}
-                       style={{
-                        position: 'absolute',
-                        top: 0, left: 0,
-                        width: '100%', height: '100%', 
-                        objectFit: 'cover',
-                        opacity: idx === videoIndex ? 1 : 0,
-                        transform: idx === videoIndex 
-                          ? (isPaused ? 'scale(1.05) translate(-0.2%, -0.2%)' : 'scale(1.15) translate(-0.5%, -0.5%)') 
-                          : 'scale(1.02)',
-                        transition: isPaused 
-                          ? 'opacity 2.5s ease-in-out, transform 20s ease-out' 
-                          : 'opacity 2.5s ease-in-out, transform 8.5s ease-out',
-                        pointerEvents: 'none'
-                      }}
-                    />
-                   ))}
+                   {currentProtocol.video.map((src, idx) => {
+                     const isVideo = src.endsWith('.mp4') || src.endsWith('.webm');
+                     if (isVideo) {
+                       return (
+                         <video 
+                           key={src}
+                           src={`/assets/${src}`}
+                           autoPlay={idx === videoIndex && !isPaused}
+                           loop 
+                           muted 
+                           playsInline
+                           style={{
+                             position: 'absolute',
+                             top: 0, left: 0,
+                             width: '100%', height: '100%', 
+                             objectFit: 'cover',
+                             opacity: idx === videoIndex ? 1 : 0,
+                             transition: 'opacity 2.5s ease-in-out',
+                             pointerEvents: 'none'
+                           }}
+                         />
+                       );
+                     }
+                     return (
+                       <img 
+                        key={src}
+                         src={`/assets/${src}`}
+                         alt="Healing Visual"
+                         className={idx === videoIndex ? 'active' : ''}
+                         style={{
+                          position: 'absolute',
+                          top: 0, left: 0,
+                          width: '100%', height: '100%', 
+                          objectFit: 'cover',
+                          opacity: idx === videoIndex ? 1 : 0,
+                          transform: idx === videoIndex 
+                            ? (isPaused ? 'scale(1.05) translate(-0.2%, -0.2%)' : 'scale(1.15) translate(-0.5%, -0.5%)') 
+                            : 'scale(1.02)',
+                          transition: isPaused 
+                            ? 'opacity 2.5s ease-in-out, transform 20s ease-out' 
+                            : 'opacity 2.5s ease-in-out, transform 8.5s ease-out',
+                          pointerEvents: 'none'
+                        }}
+                      />
+                     );
+                   })}
                   </div>
               ) : videoSrc?.endsWith('.mp4') ? (
                 <video 
@@ -2770,6 +3030,7 @@ const [showCheckoutModal, setShowCheckoutModal] = useState(false);
 
           <div className="nav-links">
             <a href="#about" style={{ marginLeft: '1.5rem' }}>{t('navPhilosophy')}</a>
+            <a href="#guided-meditation-section" style={{ marginLeft: '0.8rem', marginRight: '1rem' }}>{t('navMeditation')}</a>
             <a href="#mobile-service" style={{ marginLeft: '0.8rem', marginRight: '1rem' }}>{t('navScheduling')}</a>
             <a href="#protocols-section" style={{ marginLeft: '0.8rem', marginRight: '1rem' }}>{t('navProtocols')}</a>
             <a href="#learning-section" style={{ marginLeft: '0.8rem', marginRight: '1rem' }}>{t('navLearning')}</a>
@@ -2963,6 +3224,22 @@ const [showCheckoutModal, setShowCheckoutModal] = useState(false);
                   {t('heroCTAScience')}
                 </button>
               </div>
+              <p style={{ 
+                fontSize: '0.72rem', 
+                opacity: 0.65, 
+                marginTop: '1.25rem', 
+                color: 'var(--text-muted)', 
+                maxWidth: '520px', 
+                lineHeight: '1.4', 
+                textAlign: 'left' 
+              }}>
+                {language === 'es' ? 'Reiki & Sage ofrece servicios generales de bienestar espiritual, meditación y relajación. No ofrecemos tratamientos médicos, diagnósticos ni servicios clínicos.' :
+                 language === 'zh' ? 'Reiki & Sage 提供通用精神健康、冥想和放松服务。我们不提供任何医疗、诊断或临床治疗服务。' :
+                 language === 'pt' ? 'Reiki & Sage oferece serviços gerais de bem-estar espiritual, meditação e relaxamento. Não oferecemos tratamentos médicos, diagnósticos ou serviços clínicos.' :
+                 language === 'ja' ? 'Reiki & Sageは一般的なスピリチュアルウェルネス、瞑想、リラクゼーションサービスを提供しています。医療行為、診断、臨床サービスは提供していません。' :
+                 language === 'fr' ? 'Reiki & Sage propose des services généraux de bien-être spirituel, de méditation et de relaxation. Nous ne proposons pas de traitements médicaux, de diagnostics ou de services cliniques.' :
+                 'Reiki & Sage provides general spiritual wellness, meditation, and relaxation services. We do not offer medical treatments, diagnoses, or clinical services.'}
+              </p>
             </motion.div>
             <motion.div 
                initial={{ opacity: 0, scale: 0.8, rotate: -5 }}
@@ -3032,30 +3309,6 @@ const [showCheckoutModal, setShowCheckoutModal] = useState(false);
         onUpgrade={() => setShowSubscriptionPage(true)}
       />
 
-      <AnimatePresence>
-        {showUserFullDashboard && user && (
-          <Suspense fallback={null}>
-            <UserDashboard 
-              gamificationState={gamificationState}
-              user={user} 
-              onClose={() => setShowUserFullDashboard(false)} 
-              onUpdateUser={handleUpdateUser}
-              onNavigateToBooking={() => {
-                setShowUserFullDashboard(false);
-                document.getElementById('mobile-service')?.scrollIntoView({ behavior: 'smooth' });
-              }}
-              onNavigateToProtocols={() => {
-                setShowUserFullDashboard(false);
-                document.getElementById('protocols-section')?.scrollIntoView({ behavior: 'smooth' });
-              }}
-              onJoinLivePortal={(session) => {
-                setActiveSession(session);
-                setShowLivePortal(true);
-              }}
-            />
-          </Suspense>
-        )}
-      </AnimatePresence>
 
       <div className="container" style={{ marginTop: '-4rem', position: 'relative', zIndex: 10 }}>
         <DailyFrequency />
@@ -3064,6 +3317,8 @@ const [showCheckoutModal, setShowCheckoutModal] = useState(false);
       {showInstallBanner && renderInstallBanner()}
 
       {renderPhilosophySection(false)}
+      
+      {renderGuidedMeditationSection(false)}
 
       <section id="mobile-service" style={{background: 'var(--bg-section-alt)'}}>
         <div className="container">
@@ -3115,38 +3370,9 @@ const [showCheckoutModal, setShowCheckoutModal] = useState(false);
 
       {renderComingSoonSection(false)}
 
-      {/* Admin Login Modal */}
-      <Suspense fallback={null}>
-        {showAdminLogin && (
-          <AdminLogin 
-            onLogin={() => {
-              setShowAdminLogin(false);
-              setShowHealerDashboard(true);
-              toast.success("Welcome back, Healer.");
-            }} 
-            onClose={() => setShowAdminLogin(false)} 
-          />
-        )}
-      </Suspense>
-
       {/* Science Modal */}
       <Suspense fallback={<LoadingSpinner />}>
         {showScience && <ScienceModal onClose={() => setShowScience(false)} />}
-      </Suspense>
-
-      {/* Admin Dashboard */}
-      <Suspense fallback={<LoadingSpinner />}>
-        {showHealerDashboard && (
-          <HealerDashboard 
-            onClose={() => setShowHealerDashboard(false)} 
-            onJoinPortal={(session) => {
-              setActiveSession(session);
-              setShowLivePortal(true);
-            }}
-            protocols={protocolList}
-            onToggleProtocol={handleToggleProtocol}
-          />
-        )}
       </Suspense>
 
       {/* Dedicated Subscription Page */}
@@ -3167,6 +3393,8 @@ const [showCheckoutModal, setShowCheckoutModal] = useState(false);
             />
         )}
       </Suspense>
+
+      {showMeditationModal && renderMeditationModal()}
 
       {/* Sacred Energy Exchange Checkout Modal */}
       <AnimatePresence>
@@ -3271,7 +3499,7 @@ const [showCheckoutModal, setShowCheckoutModal] = useState(false);
 
       <SacredReflections />
       
-      <footer style={{padding: '4rem 0', textAlign: 'left', backgroundColor: 'var(--bg-section-alt)', color: 'var(--text-main)', borderTop: '1px solid rgba(255,255,255,0.05)'}}>
+      <footer style={{padding: '4rem 0 9rem 0', textAlign: 'left', backgroundColor: 'var(--bg-section-alt)', color: 'var(--text-main)', borderTop: '1px solid rgba(255,255,255,0.05)'}}>
         <div className="container" style={{maxWidth: '1200px', margin: '0 2rem'}}>
           <h2 style={{color: 'var(--accent-ethereal)', marginBottom: '0.5rem', letterSpacing: '2px'}}>Reiki & Sage</h2>
           <p style={{opacity: '0.8', marginBottom: '1rem', color: 'var(--text-main)', fontSize: '1rem'}}>
@@ -3503,7 +3731,7 @@ const [showCheckoutModal, setShowCheckoutModal] = useState(false);
       </Suspense>
       <Suspense fallback={null}>
         <AnimatePresence>
-          {showUserFullDashboard && (
+          {showUserFullDashboard && user && (
             <UserDashboard 
               gamificationState={gamificationState}
               user={user}
@@ -3512,6 +3740,9 @@ const [showCheckoutModal, setShowCheckoutModal] = useState(false);
               onNavigateToBooking={() => {
                 setShowUserFullDashboard(false);
                 setBookingType('portable');
+                setTimeout(() => {
+                  document.getElementById('mobile-service')?.scrollIntoView({ behavior: 'smooth' });
+                }, 100);
               }}
               onNavigateToProtocols={() => {
                 setShowUserFullDashboard(false);

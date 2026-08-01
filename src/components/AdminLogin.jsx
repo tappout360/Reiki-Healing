@@ -45,13 +45,26 @@ const AdminLogin = ({ onLogin, onClose }) => {
           }
         }
 
-        const profile = await db.getProfile(user.uid);
+        let profile = await db.getProfile(user.uid);
 
         if (!profile) {
-          setError('Profile not found. Please contact an administrator.');
-          await auth.signOut();
-          setLoading(false);
-          return;
+          if (isWhitelisted) {
+            const ownerName = normalizedEmail === 'carissabright@gmail.com' ? 'Carissa Bright' : 'Jason Mounts';
+            profile = await db.createProfile(user.uid, {
+              name: ownerName,
+              username: ownerName.toLowerCase().replace(/\s/g, ''),
+              email: normalizedEmail,
+              role: 'owner',
+              subscription: 'healing',
+              subscriptionStatus: 'active',
+              status: 'Active'
+            });
+          } else {
+            setError('Profile not found. Please contact an administrator.');
+            await auth.signOut();
+            setLoading(false);
+            return;
+          }
         }
 
         if (!isWhitelisted) {

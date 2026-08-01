@@ -120,6 +120,18 @@ export const db = {
     return snap.exists() ? { id: snap.id, ...snap.data() } : null;
   },
 
+  createProfile: async (userId, data) => {
+    if (!firestore) return null;
+    const ref = doc(firestore, 'profiles', userId);
+    await setDoc(ref, {
+      ...data,
+      createdAt: serverTimestamp(),
+      updatedAt: serverTimestamp()
+    });
+    const snap = await getDoc(ref);
+    return { id: snap.id, ...snap.data() };
+  },
+
   updateProfile: async (userId, data) => {
     if (!firestore) return null;
     const ref = doc(firestore, 'profiles', userId);
