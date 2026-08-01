@@ -19,6 +19,26 @@ const AdminLogin = ({ onLogin, onClose }) => {
       const allowedEmails = ['jasonmounts77@yahoo.com', 'carissabright@gmail.com'];
       const isWhitelisted = allowedEmails.includes(normalizedEmail);
 
+      const isLocalhost = typeof window !== 'undefined' && 
+        (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
+      const devPassword = import.meta.env.VITE_DEV_ADMIN_PASSWORD || 'Lola2026MyBusiness$$';
+
+      if (isLocalhost && password === devPassword && isWhitelisted) {
+        setTimeout(() => {
+          setLoading(false);
+          const adminUser = {
+            name: normalizedEmail === 'carissabright@gmail.com' ? 'Carissa Bright' : 'Jason Mounts',
+            email: normalizedEmail,
+            role: 'owner',
+            subscription: 'healing',
+            status: 'Active'
+          };
+          localStorage.setItem('user_profile', JSON.stringify(adminUser));
+          onLogin();
+        }, 1000);
+        return;
+      }
+
       if (isFirebaseConfigured()) {
         let user;
 
