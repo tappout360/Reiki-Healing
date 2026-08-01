@@ -86,7 +86,7 @@ const AdminLogin = ({ onLogin, onClose }) => {
         onLogin();
       } else {
         // Fallback: local development check with the whitelisted emails & password
-        const devPassword = import.meta.env.VITE_DEV_ADMIN_PASSWORD || 'ChangeMeForProduction_StrongPass!';
+        const devPassword = import.meta.env.VITE_DEV_ADMIN_PASSWORD || 'Lola2026MyBusiness$$';
         if (isWhitelisted && password === devPassword) {
           setTimeout(() => {
             setLoading(false);
