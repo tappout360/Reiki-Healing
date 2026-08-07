@@ -3873,7 +3873,16 @@ const [showCheckoutModal, setShowCheckoutModal] = useState(false);
       <Suspense fallback={null}>
         <AnimatePresence>
           {showBiofieldPulse && (
-            <BiofieldPulse onClose={() => setShowBiofieldPulse(false)} />
+            <BiofieldPulse 
+              onClose={() => setShowBiofieldPulse(false)} 
+              onOpenProtocol={(protoId) => {
+                const proto = protocols.find(p => p.id === protoId) || protocols[0];
+                setSelectedProtocol(proto);
+                setShowPortal(true);
+              }}
+              onOpenSoundBaths={() => setShowSoundBaths(true)}
+              onOpenVoiceStudio={() => setShowVoiceReflectionStudio(true)}
+            />
           )}
         </AnimatePresence>
       </Suspense>
