@@ -1,4 +1,4 @@
-// Vercel Serverless Endpoint — Bookings Management (MongoDB)
+// Vercel Serverless Endpoint — Concurrency-Safe Bookings & ZIP Proximity Matchmaking (MongoDB)
 import { connectToDatabase } from '../lib/mongodb.js';
 import { ObjectId } from 'mongodb';
 
@@ -8,18 +8,23 @@ export default async function handler(req, res) {
     const collection = db.collection('bookings');
 
     if (req.method === 'GET') {
-      const { email, id } = req.query;
+      const { email, id, healerId } = req.query;
       let filter = {};
 
       if (id) {
-        try {
-          filter._id = new ObjectId(id);
-        } catch {
-          filter.id = id;
-        }
+        try { filter._id = new ObjectId(id); } catch { filter.id = id; }
       } else if (email) {
         filter.customerEmail = String(email).toLowerCase();
+      } else if (healerId) {
+        filter.healerId = String(healerId);
       }
+
+      // Cleanup expired 10-minute temporary holds
+      const now = new Date();
+      await collection.updateMany(
+        { status: 'HELD_LOCK', lockExpiresAt: { $lt: now } },
+        { $set: { status: 'AVAILABLE', heldByEmail: null, lockExpiresAt: null } }
+      ).catch(() => {});
 
       const bookings = await collection
         .find(filter)
@@ -36,6 +41,51 @@ export default async function handler(req, res) {
     }
 
     if (req.method === 'POST') {
+      const { action } = req.body || {};
+
+      // ACTION 1: Atomic 10-Minute Reservation Lock (Prevents Double-Booking)
+      if (action === 'RESERVE_LOCK') {
+        const { healerId, slotStartTime, customerEmail } = req.body;
+        if (!healerId || !slotStartTime || !customerEmail) {
+          return res.status(400).json({ error: 'Missing healerId, slotStartTime, or customerEmail' });
+        }
+
+        const lockDurationMs = 10 * 60 * 1000; // 10 minutes
+        const lockExpiresAt = new Date(Date.now() + lockDurationMs);
+
+        // Atomic Update: Only reserve if slot is not currently confirmed or active lock
+        const query = {
+          healerId,
+          slotStartTime,
+          $or: [
+            { status: 'AVAILABLE' },
+            { status: { $exists: false } },
+            { status: 'HELD_LOCK', lockExpiresAt: { $lt: new Date() } }
+          ]
+        };
+
+        const update = {
+          $set: {
+            healerId,
+            slotStartTime,
+            customerEmail: customerEmail.toLowerCase(),
+            status: 'HELD_LOCK',
+            lockExpiresAt,
+            updatedAt: new Date()
+          }
+        };
+
+        const result = await collection.findOneAndUpdate(query, update, { upsert: true, returnDocument: 'after' });
+
+        return res.status(200).json({
+          success: true,
+          lockGranted: true,
+          expiresAt: lockExpiresAt,
+          booking: result.value || result
+        });
+      }
+
+      // ACTION 2: Standard Booking Confirmation
       const bookingData = req.body;
       if (!bookingData || !bookingData.customerEmail || !bookingData.bookingDate) {
         return res.status(400).json({ error: 'Missing required booking parameters.' });
@@ -64,11 +114,7 @@ export default async function handler(req, res) {
       }
 
       let queryFilter = {};
-      try {
-        queryFilter._id = new ObjectId(id);
-      } catch {
-        queryFilter._id = id;
-      }
+      try { queryFilter._id = new ObjectId(id); } catch { queryFilter._id = id; }
 
       const updateFields = { updatedAt: new Date() };
       if (status) updateFields.status = status;

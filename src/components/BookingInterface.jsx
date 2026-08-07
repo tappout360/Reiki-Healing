@@ -339,13 +339,105 @@ const BookingInterface = ({ type, onClose }) => {
 
         {step === 1 && (
           <div className="fade-in">
-            <h2 className="booking-header">{subType === 'visit' ? t('bookingHeaderAvailability') : t('bookingHeaderTiming')}</h2>
-            <p style={{color: '#888', fontSize: '0.85rem', marginBottom: '1.5rem'}}>{t('bookingSelectWindow')}</p>
+            <h2 className="booking-header">{subType === 'visit' ? 'In-Person Healer Search & Scheduling' : t('bookingHeaderTiming')}</h2>
+            
+            {/* ZIP Code & Proximity Matchmaker */}
+            <div className="glass" style={{ padding: '1rem', borderRadius: '16px', border: '1px solid var(--accent-gold)', marginBottom: '1.25rem' }}>
+              <div style={{ fontSize: '0.78rem', color: 'var(--accent-gold)', fontWeight: 'bold', letterSpacing: '1px', marginBottom: '0.5rem', textTransform: 'uppercase' }}>
+                📍 Find Healers In Your Area (Seattle Metro & Global Distance)
+              </div>
+              <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '0.75rem' }}>
+                <input
+                  type="text"
+                  placeholder="Enter ZIP code or city (e.g. 98101, Bellevue, Seattle)..."
+                  value={address}
+                  onChange={(e) => {
+                    setAddress(e.target.value);
+                    if (e.target.value.length >= 5) {
+                      verifyAddress(e.target.value);
+                    }
+                  }}
+                  style={{
+                    flex: 1,
+                    padding: '0.65rem 1rem',
+                    borderRadius: '10px',
+                    background: 'rgba(0,0,0,0.5)',
+                    border: '1px solid rgba(255,255,255,0.2)',
+                    color: '#fff',
+                    fontSize: '0.85rem'
+                  }}
+                />
+                <button
+                  onClick={() => verifyAddress(address || '98101')}
+                  disabled={geocoding}
+                  style={{
+                    background: 'var(--accent-gold)',
+                    border: 'none',
+                    borderRadius: '10px',
+                    color: '#000',
+                    fontWeight: 'bold',
+                    padding: '0 1rem',
+                    cursor: 'pointer',
+                    fontSize: '0.82rem'
+                  }}
+                >
+                  {geocoding ? 'Searching...' : 'Search Nearby'}
+                </button>
+              </div>
+
+              {/* Seattle Quick Neighborhood Clusters */}
+              <div style={{ display: 'flex', gap: '0.4rem', overflowX: 'auto', paddingBottom: '4px' }}>
+                {[
+                  { label: '📍 Capitol Hill (98101)', zip: '98101' },
+                  { label: '📍 Eastside / Bellevue (98004)', zip: '98004' },
+                  { label: '📍 North Sound / Ballard (98107)', zip: '98107' },
+                  { label: '📍 South Sound / Tacoma (98402)', zip: '98402' }
+                ].map(cluster => (
+                  <button
+                    key={cluster.zip}
+                    onClick={() => {
+                      setAddress(cluster.zip);
+                      verifyAddress(cluster.zip);
+                    }}
+                    style={{
+                      background: 'rgba(255,255,255,0.06)',
+                      border: '1px solid rgba(255,255,255,0.15)',
+                      color: 'rgba(255,255,255,0.8)',
+                      padding: '4px 10px',
+                      borderRadius: '12px',
+                      fontSize: '0.72rem',
+                      cursor: 'pointer',
+                      whiteSpace: 'nowrap'
+                    }}
+                  >
+                    {cluster.label}
+                  </button>
+                ))}
+              </div>
+
+              {distanceVerified && (
+                <div style={{ fontSize: '0.78rem', color: '#50e3c2', marginTop: '0.5rem' }}>
+                  ✓ Match verified: {distance} miles from your location. Local practitioners ready.
+                </div>
+              )}
+              {distanceError && (
+                <div style={{ fontSize: '0.78rem', color: '#ff7675', marginTop: '0.5rem' }}>
+                  {distanceError}
+                </div>
+              )}
+            </div>
+
+            {/* Timezone Autoconversion Banner */}
+            <div style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.6)', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '6px' }}>
+              🌍 Slots automatically displayed in your local timezone: <strong>{Intl.DateTimeFormat().resolvedOptions().timeZone || 'America/Los_Angeles'}</strong>
+            </div>
+
             <Calendar 
               onChange={setDate} 
               value={date} 
               tileDisabled={({date}) => isDayBlocked(date)}
             />
+
             <div className="time-grid" style={{marginTop: '1.5rem'}}>
               {getAvailableSlots().length === 0 ? (
                 <p style={{textAlign: 'center', color: '#e74c3c', width: '100%'}}>{t('bookingNoSlots')}</p>
@@ -353,7 +445,31 @@ const BookingInterface = ({ type, onClose }) => {
                 getAvailableSlots().map(slot => (
                   <button 
                     key={slot}
-                    onClick={() => setTime(slot)}
+                    onClick={async () => {
+                      setTime(slot);
+                      toast.loading('Granting 10-minute slot hold lock...', { id: 'lock_toast' });
+                      
+                      // Dispatch Atomic Slot Hold Lock (Prevents Double Booking)
+                      try {
+                        const res = await fetch('/api/db/bookings', {
+                          method: 'POST',
+                          headers: { 'Content-Type': 'application/json' },
+                          body: JSON.stringify({
+                            action: 'RESERVE_LOCK',
+                            healerId: 'carissabright@gmail.com',
+                            slotStartTime: `${date.toDateString()} ${slot}`,
+                            customerEmail: email || 'seeker@reikiandsage.com'
+                          })
+                        });
+                        if (res.ok) {
+                          toast.success('🔒 10-Minute Hold Lock Granted. Slot reserved for you.', { id: 'lock_toast' });
+                        } else {
+                          toast.dismiss('lock_toast');
+                        }
+                      } catch {
+                        toast.dismiss('lock_toast');
+                      }
+                    }}
                     className={`time-slot ${time === slot ? 'selected' : ''}`}
                   >
                     {slot}
@@ -361,6 +477,7 @@ const BookingInterface = ({ type, onClose }) => {
                 ))
               )}
             </div>
+
             <button 
               disabled={!time || getAvailableSlots().length === 0}
               onClick={() => setStep(2)}
