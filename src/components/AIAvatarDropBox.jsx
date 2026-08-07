@@ -2,10 +2,9 @@ import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   UploadCloud, Sparkles, RefreshCw, CheckCircle, ShieldCheck, 
-  Layers, Sliders, Image, X, Heart, Eye, ArrowRight, RotateCcw, AlertTriangle, Zap
+  Layers, Sliders, Image as ImageIcon, X, Heart, Eye, ArrowRight, RotateCcw, AlertTriangle, Zap, ChevronUp, ChevronDown
 } from 'lucide-react';
 import { toast } from 'react-hot-toast';
-import { db } from '../lib/firebase';
 
 const PRESETS = [
   { id: 'robe_gold', title: 'Golden Sanctuary Robes', desc: 'Sacred gold silk vestments with sun aura', icon: '✨' },
@@ -25,12 +24,12 @@ const AIAvatarDropBox = ({ user, onClose, onAvatarUpdated }) => {
   const [influenceStrength, setInfluenceStrength] = useState(0.75);
   const [auraPreset, setAuraPreset] = useState('gold'); // 'gold' | 'amethyst' | 'quartz' | 'none'
   const [userPrompt, setUserPrompt] = useState('');
+  const [showAdvancedSettings, setShowAdvancedSettings] = useState(false);
 
   // Generation & Results
   const [generating, setGenerating] = useState(false);
   const [variations, setVariations] = useState([]);
   const [selectedVariation, setSelectedVariation] = useState(null);
-  const [comparing, setComparing] = useState(false);
 
   // History Ledger
   const [history, setHistory] = useState([]);
@@ -38,7 +37,6 @@ const AIAvatarDropBox = ({ user, onClose, onAvatarUpdated }) => {
   const fileInputRef = useRef(null);
 
   useEffect(() => {
-    // Load local history
     const saved = localStorage.getItem('aura_avatar_history');
     if (saved) {
       try { setHistory(JSON.parse(saved)); } catch {}
@@ -77,7 +75,7 @@ const AIAvatarDropBox = ({ user, onClose, onAvatarUpdated }) => {
 
   const handleGenerate = async () => {
     if (!droppedImage && !userPrompt) {
-      toast.error('Please drop an image or enter a style description.');
+      toast.error('Please drop an image or select a preset style.');
       return;
     }
 
@@ -104,7 +102,6 @@ const AIAvatarDropBox = ({ user, onClose, onAvatarUpdated }) => {
         setSelectedVariation(data.variations[0]);
         toast.success('AI Avatar variations generated!');
       } else {
-        // Fallback demo variations
         const demoVars = [
           { id: 'v1', url: baseAvatar, prompt: userPrompt || 'Golden sanctuary robes' },
           { id: 'v2', url: '/assets/amethyst_macro_realistic_1769877807331.png', prompt: 'Amethyst crystal vestments' }
@@ -114,7 +111,7 @@ const AIAvatarDropBox = ({ user, onClose, onAvatarUpdated }) => {
         toast.success('Generated biofield avatar variations!');
       }
     } catch {
-      toast.error('Generation network notice. Using local preview.');
+      toast.error('Generation notice. Using local preview.');
     } finally {
       setGenerating(false);
     }
@@ -124,12 +121,11 @@ const AIAvatarDropBox = ({ user, onClose, onAvatarUpdated }) => {
     const updatedUser = { ...(user || {}), avatar: variationUrl };
     localStorage.setItem('user_profile', JSON.stringify(updatedUser));
 
-    // Save to history ledger
     const newEntry = {
       id: `av_${Date.now()}`,
       url: variationUrl,
       prompt: userPrompt || 'Custom Drop Box Avatar',
-      timestamp: new Date().toLocaleTimeString()
+      timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
     };
     const updatedHistory = [newEntry, ...history.slice(0, 9)];
     setHistory(updatedHistory);
@@ -141,29 +137,30 @@ const AIAvatarDropBox = ({ user, onClose, onAvatarUpdated }) => {
 
   return (
     <motion.div
-      initial={{ opacity: 0, scale: 0.95 }}
-      animate={{ opacity: 1, scale: 1 }}
-      exit={{ opacity: 0, scale: 0.95 }}
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
       style={{
         position: 'fixed',
         inset: 0,
         zIndex: 10020,
-        background: 'rgba(5, 5, 12, 0.95)',
+        background: 'rgba(5, 5, 12, 0.96)',
         backdropFilter: 'blur(25px)',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        padding: '1.5rem'
+        padding: '0.75rem',
+        overflowY: 'auto'
       }}
     >
       <div style={{
         width: '100%',
-        maxWidth: '850px',
-        maxHeight: '92vh',
-        background: 'rgba(15, 18, 30, 0.96)',
+        maxWidth: '1100px',
+        maxHeight: '94vh',
+        background: 'rgba(15, 18, 30, 0.98)',
         border: '1px solid rgba(212, 175, 55, 0.3)',
         borderRadius: '24px',
-        padding: '2rem',
+        padding: '1.25rem',
         overflowY: 'auto',
         color: '#fff',
         boxShadow: '0 20px 60px rgba(0,0,0,0.8)',
@@ -174,265 +171,340 @@ const AIAvatarDropBox = ({ user, onClose, onAvatarUpdated }) => {
           onClick={onClose}
           style={{
             position: 'absolute',
-            top: '1.25rem',
-            right: '1.25rem',
+            top: '1rem',
+            right: '1rem',
             background: 'rgba(255,255,255,0.08)',
             border: 'none',
             color: '#fff',
             borderRadius: '50%',
-            width: '36px',
-            height: '36px',
-            cursor: 'pointer',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center'
-          }}
-        >
-          <X size={20} />
-        </button>
-
-        {/* Header */}
-        <div style={{ textAlign: 'center', marginBottom: '1.5rem' }}>
-          <span style={{ fontSize: '0.75rem', color: 'var(--accent-gold)', letterSpacing: '2px', textTransform: 'uppercase', fontWeight: 'bold' }}>
-            ✦ InstantID + IP-Adapter Generative Engine ✦
-          </span>
-          <h2 style={{ fontFamily: 'Playfair Display, serif', fontSize: '2rem', margin: '0.25rem 0', color: 'var(--accent-gold)' }}>
-            AI Avatar Drop-Box Studio
-          </h2>
-          <p style={{ fontSize: '0.85rem', color: 'rgba(255,255,255,0.7)', maxWidth: '540px', margin: '0 auto' }}>
-            Drag and drop any clothing item, sacred robe, crystal, or scene reference to transform your avatar while maintaining 100% face identity consistency.
-          </p>
-        </div>
-
-        {/* Base Avatar & Drop Zone Grid */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '1.5rem', marginBottom: '1.5rem' }}>
-          {/* Base Master Avatar Card */}
-          <div style={{ background: 'rgba(0,0,0,0.4)', padding: '1.25rem', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.1)', textAlign: 'center' }}>
-            <span style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.6)', display: 'block', marginBottom: '0.75rem' }}>
-              👤 PERSISTENT MASTER AVATAR
-            </span>
-            <div style={{ width: '120px', height: '120px', borderRadius: '50%', overflow: 'hidden', border: '2px solid var(--accent-gold)', margin: '0 auto 1rem' }}>
-              <img src={baseAvatar} alt="Base Avatar" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-            </div>
-            <div style={{ fontSize: '0.8rem', color: '#50e3c2' }}>✓ InstantID Face Vector Locked</div>
-          </div>
-
-          {/* Reference Image Drop Zone */}
-          <div
-            onDragEnter={(e) => { e.preventDefault(); setIsDragging(true); }}
-            onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
-            onDragLeave={() => setIsDragging(false)}
-            onDrop={handleFileDrop}
-            onClick={() => fileInputRef.current?.click()}
-            style={{
-              background: isDragging ? 'rgba(212, 175, 55, 0.15)' : 'rgba(0,0,0,0.4)',
-              border: isDragging ? '2px dashed var(--accent-gold)' : '2px dashed rgba(255,255,255,0.2)',
-              borderRadius: '16px',
-              padding: '1.25rem',
-              textAlign: 'center',
-              cursor: 'pointer',
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              justifyContent: 'center',
-              transition: 'all 0.2s'
-            }}
-          >
-            <input ref={fileInputRef} type="file" accept="image/*" style={{ display: 'none' }} onChange={handleFileDrop} />
-            {droppedImagePreview ? (
-              <div>
-                <img src={droppedImagePreview} alt="Dropped Reference" style={{ width: '90px', height: '90px', borderRadius: '12px', objectFit: 'cover', marginBottom: '0.5rem', border: '1px solid var(--accent-gold)' }} />
-                <div style={{ fontSize: '0.8rem', color: 'var(--accent-gold)' }}>✓ Reference Image Dropped</div>
-                <div style={{ fontSize: '0.7rem', opacity: 0.6 }}>Click or drop new file to replace</div>
-              </div>
-            ) : (
-              <div>
-                <UploadCloud size={40} color="var(--accent-gold)" style={{ marginBottom: '0.5rem' }} />
-                <strong style={{ display: 'block', fontSize: '0.9rem', color: 'var(--accent-gold)' }}>Drop Clothing, Robe or Object Here</strong>
-                <span style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.6)' }}>or click to browse reference file</span>
-              </div>
-            )}
-          </div>
-        </div>
-
-        {/* Quick Presets Carousel */}
-        <div style={{ marginBottom: '1.5rem' }}>
-          <label style={{ fontSize: '0.8rem', color: 'var(--accent-gold)', fontWeight: 'bold', display: 'block', marginBottom: '0.5rem' }}>
-            ✦ Instant Sacred Attire Presets
-          </label>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(170px, 1fr))', gap: '0.75rem' }}>
-            {PRESETS.map(p => (
-              <div
-                key={p.id}
-                onClick={() => handleSelectPreset(p)}
-                style={{
-                  background: 'rgba(255,255,255,0.03)',
-                  border: '1px solid rgba(255,255,255,0.12)',
-                  borderRadius: '12px',
-                  padding: '0.75rem',
-                  cursor: 'pointer',
-                  fontSize: '0.78rem'
-                }}
-              >
-                <div style={{ fontSize: '1.2rem', marginBottom: '2px' }}>{p.icon}</div>
-                <strong style={{ color: '#fff', display: 'block' }}>{p.title}</strong>
-                <span style={{ color: 'rgba(255,255,255,0.6)', fontSize: '0.7rem' }}>{p.desc}</span>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Advanced AI Settings */}
-        <div style={{ background: 'rgba(0,0,0,0.3)', padding: '1rem', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.08)', marginBottom: '1.5rem' }}>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem', marginBottom: '1rem' }}>
-            {/* Mode Selector */}
-            <div>
-              <label style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.7)', display: 'block', marginBottom: '4px' }}>Generation Mode</label>
-              <select
-                value={mode}
-                onChange={(e) => setMode(e.target.value)}
-                style={{ width: '100%', padding: '0.5rem', borderRadius: '8px', background: '#0a0a14', border: '1px solid rgba(255,255,255,0.2)', color: '#fff', fontSize: '0.82rem' }}
-              >
-                <option value="clothing_swap">👔 Clothing Swap (Torso Focus)</option>
-                <option value="full_scene">🌌 Full Scene & Aura Transformation</option>
-              </select>
-            </div>
-
-            {/* Influence Strength Slider */}
-            <div>
-              <label style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.7)', display: 'block', marginBottom: '4px' }}>IP-Adapter Reference Scale: {influenceStrength}</label>
-              <input
-                type="range" min="0.3" max="1.0" step="0.05"
-                value={influenceStrength}
-                onChange={(e) => setInfluenceStrength(parseFloat(e.target.value))}
-                style={{ width: '100%', accentColor: 'var(--accent-gold)' }}
-              />
-            </div>
-
-            {/* Aura Energy Glow */}
-            <div>
-              <label style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.7)', display: 'block', marginBottom: '4px' }}>Sacred Aura Overlay</label>
-              <select
-                value={auraPreset}
-                onChange={(e) => setAuraPreset(e.target.value)}
-                style={{ width: '100%', padding: '0.5rem', borderRadius: '8px', background: '#0a0a14', border: '1px solid rgba(255,255,255,0.2)', color: '#fff', fontSize: '0.82rem' }}
-              >
-                <option value="gold">☀️ Golden Sun (528Hz)</option>
-                <option value="amethyst">🔮 Amethyst Core (432Hz)</option>
-                <option value="quartz">🌸 Rose Quartz (639Hz)</option>
-                <option value="none">✨ Pure Natural</option>
-              </select>
-            </div>
-          </div>
-
-          {/* Optional Prompt Input */}
-          <input
-            type="text"
-            placeholder="Optional prompt (e.g. wearing this while meditating in golden crystal light)"
-            value={userPrompt}
-            onChange={(e) => setUserPrompt(e.target.value)}
-            style={{ width: '100%', padding: '0.65rem', borderRadius: '8px', background: '#0a0a14', border: '1px solid rgba(255,255,255,0.2)', color: '#fff', fontSize: '0.85rem' }}
-          />
-        </div>
-
-        {/* Generate Action Button */}
-        <button
-          onClick={handleGenerate}
-          disabled={generating}
-          className="btn-primary"
-          style={{
-            width: '100%',
-            padding: '0.9rem',
-            borderRadius: '30px',
-            background: 'linear-gradient(135deg, var(--accent-gold), #b8860b)',
-            border: 'none',
-            color: '#000',
-            fontWeight: 'bold',
-            fontSize: '1rem',
+            width: '44px',
+            height: '44px',
             cursor: 'pointer',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            gap: '8px',
-            marginBottom: '1.5rem'
+            zIndex: 10
           }}
         >
-          <Sparkles size={20} /> {generating ? 'Synthesizing Avatar Variations...' : 'Generate AI Avatar Transformations'}
+          <X size={22} />
         </button>
 
-        {/* Generation Results Gallery */}
-        {variations.length > 0 && (
-          <div style={{ background: 'rgba(0,0,0,0.4)', padding: '1.25rem', borderRadius: '16px', border: '1px solid var(--accent-gold)', marginBottom: '1.5rem' }}>
-            <h4 style={{ color: 'var(--accent-gold)', fontSize: '1rem', margin: '0 0 1rem 0' }}>Generated Variations</h4>
+        {/* Header */}
+        <div style={{ textAlign: 'center', marginBottom: '1.25rem', paddingRight: '2rem' }}>
+          <span style={{ fontSize: '0.7rem', color: 'var(--accent-gold)', letterSpacing: '2px', textTransform: 'uppercase', fontWeight: 'bold' }}>
+            ✦ InstantID + IP-Adapter Generative Engine ✦
+          </span>
+          <h2 style={{ fontFamily: 'Playfair Display, serif', fontSize: '1.6rem', margin: '0.25rem 0', color: 'var(--accent-gold)' }}>
+            AI Avatar Drop-Box Studio
+          </h2>
+          <p style={{ fontSize: '0.8rem', color: 'rgba(255,255,255,0.7)', maxWidth: '520px', margin: '0 auto' }}>
+            Transform your avatar while keeping 100% face identity consistency. Drop an image or pick a preset attire below.
+          </p>
+        </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '1rem', marginBottom: '1rem' }}>
-              {variations.map((v, i) => (
-                <div
-                  key={v.id || i}
-                  onClick={() => setSelectedVariation(v)}
-                  style={{
-                    borderRadius: '12px',
-                    overflow: 'hidden',
-                    border: selectedVariation?.id === v.id ? '2px solid var(--accent-gold)' : '1px solid rgba(255,255,255,0.1)',
-                    cursor: 'pointer',
-                    position: 'relative'
-                  }}
-                >
-                  <img src={v.url} alt={`Variation ${i + 1}`} style={{ width: '100%', height: '160px', objectFit: 'cover' }} />
-                  <div style={{ padding: '6px', background: 'rgba(0,0,0,0.6)', fontSize: '0.75rem', textAlign: 'center' }}>
-                    Variation #{i + 1}
-                  </div>
-                </div>
-              ))}
+        {/* Responsive Layout Grid (Mobile Vertical Stack -> Desktop 3-Zone) */}
+        <div className="avatar-grid-layout" style={{ display: 'grid', gap: '1.25rem', marginBottom: '1.25rem' }}>
+          
+          {/* ZONE 1: Persistent Master Avatar & History */}
+          <div style={{ background: 'rgba(0,0,0,0.4)', padding: '1rem', borderRadius: '18px', border: '1px solid rgba(255,255,255,0.08)', textAlign: 'center' }}>
+            <span style={{ fontSize: '0.7rem', color: 'var(--accent-gold)', fontWeight: 'bold', display: 'block', marginBottom: '0.5rem' }}>
+              👤 MASTER AVATAR
+            </span>
+            <div style={{ width: '110px', height: '110px', borderRadius: '50%', overflow: 'hidden', border: '2px solid var(--accent-gold)', margin: '0 auto 0.75rem' }}>
+              <img src={baseAvatar} alt="Base Avatar" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
             </div>
+            <div style={{ fontSize: '0.75rem', color: '#50e3c2', marginBottom: '0.75rem' }}>✓ Face Vector Locked</div>
 
-            {selectedVariation && (
-              <div style={{ display: 'flex', gap: '1rem' }}>
-                <button
-                  onClick={() => handleApplyAvatar(selectedVariation.url)}
-                  style={{
-                    flex: 1,
-                    padding: '0.75rem',
-                    borderRadius: '20px',
-                    background: '#50e3c2',
-                    border: 'none',
-                    color: '#000',
-                    fontWeight: 'bold',
-                    cursor: 'pointer',
-                    fontSize: '0.85rem',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    gap: '6px'
-                  }}
-                >
-                  <CheckCircle size={16} /> Set as Active Sanctuary Avatar
-                </button>
+            {/* Version History Thumbnails */}
+            {history.length > 0 && (
+              <div style={{ borderTop: '1px solid rgba(255,255,255,0.08)', paddingTop: '0.75rem' }}>
+                <span style={{ fontSize: '0.7rem', color: 'rgba(255,255,255,0.6)', display: 'block', marginBottom: '0.4rem' }}>Avatar History</span>
+                <div style={{ display: 'flex', gap: '0.4rem', justifyContent: 'center', overflowX: 'auto', paddingBottom: '4px' }}>
+                  {history.slice(0, 5).map(h => (
+                    <img
+                      key={h.id}
+                      src={h.url}
+                      alt="History avatar"
+                      onClick={() => handleApplyAvatar(h.url)}
+                      style={{ width: '40px', height: '40px', borderRadius: '50%', objectFit: 'cover', cursor: 'pointer', border: '1px solid rgba(255,255,255,0.2)' }}
+                    />
+                  ))}
+                </div>
               </div>
             )}
           </div>
-        )}
 
-        {/* History Ledger */}
-        {history.length > 0 && (
-          <div>
-            <h4 style={{ color: 'rgba(255,255,255,0.7)', fontSize: '0.85rem', marginBottom: '0.5rem' }}>Avatar Version History</h4>
-            <div style={{ display: 'flex', gap: '0.5rem', overflowX: 'auto', paddingBottom: '0.5rem' }}>
-              {history.map(h => (
-                <div key={h.id} style={{ minWidth: '70px', textAlign: 'center' }}>
-                  <img
-                    src={h.url}
-                    alt="History Avatar"
-                    onClick={() => handleApplyAvatar(h.url)}
-                    style={{ width: '60px', height: '60px', borderRadius: '50%', objectFit: 'cover', cursor: 'pointer', border: '1px solid rgba(255,255,255,0.2)' }}
-                  />
-                  <div style={{ fontSize: '0.65rem', color: 'rgba(255,255,255,0.5)', marginTop: '2px' }}>{h.timestamp}</div>
+          {/* ZONE 2: Drop Zone & Presets (Center Main Area) */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+            {/* Interactive Drop Zone (Min height 200px on mobile, 280px on desktop) */}
+            <div
+              onDragEnter={(e) => { e.preventDefault(); setIsDragging(true); }}
+              onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
+              onDragLeave={() => setIsDragging(false)}
+              onDrop={handleFileDrop}
+              onClick={() => fileInputRef.current?.click()}
+              style={{
+                minHeight: '200px',
+                background: isDragging ? 'rgba(212, 175, 55, 0.15)' : 'rgba(0,0,0,0.4)',
+                border: isDragging ? '2px dashed var(--accent-gold)' : '2px dashed rgba(255,255,255,0.2)',
+                borderRadius: '18px',
+                padding: '1.25rem',
+                textAlign: 'center',
+                cursor: 'pointer',
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                justifyContent: 'center',
+                transition: 'all 0.2s'
+              }}
+            >
+              <input ref={fileInputRef} type="file" accept="image/*" style={{ display: 'none' }} onChange={handleFileDrop} />
+              {droppedImagePreview ? (
+                <div>
+                  <img src={droppedImagePreview} alt="Dropped Reference" style={{ width: '90px', height: '90px', borderRadius: '12px', objectFit: 'cover', marginBottom: '0.5rem', border: '1px solid var(--accent-gold)' }} />
+                  <div style={{ fontSize: '0.8rem', color: 'var(--accent-gold)', fontWeight: 'bold' }}>✓ Reference Image Dropped</div>
+                  <div style={{ fontSize: '0.7rem', opacity: 0.6 }}>Tap or drop new image to replace</div>
                 </div>
-              ))}
+              ) : (
+                <div>
+                  <UploadCloud size={44} color="var(--accent-gold)" style={{ marginBottom: '0.5rem' }} />
+                  <strong style={{ display: 'block', fontSize: '0.95rem', color: 'var(--accent-gold)' }}>Tap to Upload or Drop Image Here</strong>
+                  <span style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.6)' }}>Drop clothing, sacred robe, crystal or scene item</span>
+                </div>
+              )}
             </div>
+
+            {/* Presets Carousel */}
+            <div>
+              <span style={{ fontSize: '0.75rem', color: 'var(--accent-gold)', fontWeight: 'bold', display: 'block', marginBottom: '0.4rem' }}>
+                ✦ Quick Sacred Attire Presets
+              </span>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '0.5rem' }}>
+                {PRESETS.map(p => (
+                  <div
+                    key={p.id}
+                    onClick={() => handleSelectPreset(p)}
+                    style={{
+                      background: 'rgba(255,255,255,0.03)',
+                      border: '1px solid rgba(255,255,255,0.12)',
+                      borderRadius: '12px',
+                      padding: '0.6rem 0.75rem',
+                      cursor: 'pointer',
+                      fontSize: '0.78rem',
+                      minHeight: '44px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '8px'
+                    }}
+                  >
+                    <span style={{ fontSize: '1.1rem' }}>{p.icon}</span>
+                    <div>
+                      <strong style={{ color: '#fff', display: 'block', fontSize: '0.78rem' }}>{p.title}</strong>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Optional Text Prompt */}
+            <input
+              type="text"
+              placeholder="Optional prompt (e.g. wearing this while meditating in golden light)"
+              value={userPrompt}
+              onChange={(e) => setUserPrompt(e.target.value)}
+              style={{
+                width: '100%',
+                padding: '0.75rem',
+                borderRadius: '12px',
+                background: '#0a0a14',
+                border: '1px solid rgba(255,255,255,0.2)',
+                color: '#fff',
+                fontSize: '0.85rem',
+                minHeight: '44px'
+              }}
+            />
+
+            {/* Toggle Advanced Settings (Collapsible on Mobile) */}
+            <button
+              onClick={() => setShowAdvancedSettings(!showAdvancedSettings)}
+              style={{
+                background: 'none',
+                border: 'none',
+                color: 'rgba(255,255,255,0.6)',
+                fontSize: '0.8rem',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '4px',
+                minHeight: '36px'
+              }}
+            >
+              <Sliders size={14} /> Advanced AI Settings {showAdvancedSettings ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
+            </button>
+
+            {/* Collapsible Advanced Settings */}
+            <AnimatePresence>
+              {showAdvancedSettings && (
+                <motion.div
+                  initial={{ height: 0, opacity: 0 }}
+                  animate={{ height: 'auto', opacity: 1 }}
+                  exit={{ height: 0, opacity: 0 }}
+                  style={{ overflow: 'hidden', background: 'rgba(0,0,0,0.3)', padding: '1rem', borderRadius: '14px', border: '1px solid rgba(255,255,255,0.08)' }}
+                >
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '0.75rem' }}>
+                    <div>
+                      <label style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.7)', display: 'block', marginBottom: '4px' }}>Generation Mode</label>
+                      <select
+                        value={mode}
+                        onChange={(e) => setMode(e.target.value)}
+                        style={{ width: '100%', padding: '0.6rem', borderRadius: '8px', background: '#0a0a14', border: '1px solid rgba(255,255,255,0.2)', color: '#fff', fontSize: '0.82rem', minHeight: '44px' }}
+                      >
+                        <option value="clothing_swap">👔 Clothing Swap (Torso Focus)</option>
+                        <option value="full_scene">🌌 Full Scene & Aura Transformation</option>
+                      </select>
+                    </div>
+
+                    <div>
+                      <label style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.7)', display: 'block', marginBottom: '4px' }}>IP-Adapter Reference Scale: {influenceStrength}</label>
+                      <input
+                        type="range" min="0.3" max="1.0" step="0.05"
+                        value={influenceStrength}
+                        onChange={(e) => setInfluenceStrength(parseFloat(e.target.value))}
+                        style={{ width: '100%', accentColor: 'var(--accent-gold)', minHeight: '36px' }}
+                      />
+                    </div>
+
+                    <div>
+                      <label style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.7)', display: 'block', marginBottom: '4px' }}>Sacred Aura Overlay</label>
+                      <select
+                        value={auraPreset}
+                        onChange={(e) => setAuraPreset(e.target.value)}
+                        style={{ width: '100%', padding: '0.6rem', borderRadius: '8px', background: '#0a0a14', border: '1px solid rgba(255,255,255,0.2)', color: '#fff', fontSize: '0.82rem', minHeight: '44px' }}
+                      >
+                        <option value="gold">☀️ Golden Sun (528Hz)</option>
+                        <option value="amethyst">🔮 Amethyst Core (432Hz)</option>
+                        <option value="quartz">🌸 Rose Quartz (639Hz)</option>
+                        <option value="none">✨ Pure Natural</option>
+                      </select>
+                    </div>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+
+            {/* Prominent Full-Width Generate Button */}
+            <button
+              onClick={handleGenerate}
+              disabled={generating}
+              className="btn-primary"
+              style={{
+                width: '100%',
+                padding: '0.9rem',
+                borderRadius: '30px',
+                background: 'linear-gradient(135deg, var(--accent-gold), #b8860b)',
+                border: 'none',
+                color: '#000',
+                fontWeight: 'bold',
+                fontSize: '1rem',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '8px',
+                minHeight: '48px'
+              }}
+            >
+              <Sparkles size={20} /> {generating ? 'Synthesizing AI Avatar...' : 'Generate AI Avatar Transformations'}
+            </button>
           </div>
-        )}
+
+          {/* ZONE 3: Results Gallery & Selected Avatar Activation */}
+          <div>
+            <span style={{ fontSize: '0.75rem', color: 'var(--accent-gold)', fontWeight: 'bold', display: 'block', marginBottom: '0.5rem' }}>
+              ✦ Generated Variations Gallery
+            </span>
+
+            {variations.length === 0 ? (
+              <div style={{ background: 'rgba(0,0,0,0.3)', padding: '2rem 1rem', borderRadius: '18px', border: '1px dashed rgba(255,255,255,0.15)', textAlign: 'center' }}>
+                <ImageIcon size={32} color="rgba(255,255,255,0.3)" style={{ marginBottom: '0.5rem' }} />
+                <p style={{ fontSize: '0.8rem', color: 'rgba(255,255,255,0.6)', margin: 0 }}>
+                  Generated variations will appear here in high fidelity.
+                </p>
+              </div>
+            ) : (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                {/* 2-Column Mobile Grid */}
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '0.75rem' }}>
+                  {variations.map((v, i) => (
+                    <div
+                      key={v.id || i}
+                      onClick={() => setSelectedVariation(v)}
+                      style={{
+                        borderRadius: '14px',
+                        overflow: 'hidden',
+                        border: selectedVariation?.id === v.id ? '2px solid var(--accent-gold)' : '1px solid rgba(255,255,255,0.1)',
+                        cursor: 'pointer',
+                        position: 'relative'
+                      }}
+                    >
+                      <img src={v.url} alt={`Variation ${i + 1}`} style={{ width: '100%', height: '140px', objectFit: 'cover' }} />
+                      <div style={{ padding: '4px', background: 'rgba(0,0,0,0.6)', fontSize: '0.72rem', textAlign: 'center', color: '#fff' }}>
+                        Variation #{i + 1}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Selected Result Action */}
+                {selectedVariation && (
+                  <button
+                    onClick={() => handleApplyAvatar(selectedVariation.url)}
+                    className="btn-primary"
+                    style={{
+                      width: '100%',
+                      padding: '0.85rem',
+                      borderRadius: '30px',
+                      background: '#50e3c2',
+                      border: 'none',
+                      color: '#000',
+                      fontWeight: 'bold',
+                      cursor: 'pointer',
+                      fontSize: '0.9rem',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: '6px',
+                      minHeight: '48px'
+                    }}
+                  >
+                    <CheckCircle size={18} /> Set as Active Sanctuary Avatar
+                  </button>
+                )}
+              </div>
+            )}
+          </div>
+        </div>
       </div>
+
+      {/* Responsive Breakpoint Styles */}
+      <style>{`
+        @media (min-width: 1024px) {
+          .avatar-grid-layout {
+            grid-template-columns: 240px 1fr 280px !important;
+          }
+        }
+        @media (min-width: 640px) and (max-width: 1023px) {
+          .avatar-grid-layout {
+            grid-template-columns: 1fr 1fr !important;
+          }
+        }
+        @media (max-width: 639px) {
+          .avatar-grid-layout {
+            grid-template-columns: 1fr !important;
+          }
+        }
+      `}</style>
     </motion.div>
   );
 };
