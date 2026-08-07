@@ -44,16 +44,33 @@ const LiveResonancePortal = ({ user, session, onClose, onOpenVoiceStudio }) => {
         iframeStyle: {
           width: '100%',
           height: '100%',
-          border: '0',
-          borderRadius: '24px'
+          border: '1px solid rgba(212, 175, 55, 0.3)',
+          borderRadius: '24px',
+          boxShadow: '0 20px 60px rgba(0,0,0,0.8)'
         },
-        showLeaveButton: false,
-        showFullscreenButton: true
+        showLeaveButton: true,
+        showFullscreenButton: true,
+        theme: {
+          colors: {
+            accent: '#D4AF37',           // Soft gold
+            accentText: '#0A0A0A',       // Dark text on gold
+            background: '#0B0B0F',
+            backgroundAccent: '#16161D',
+            baseText: '#F5F0E8',         // Soft cream
+            border: '#2A2A32',
+            mainAreaBg: '#050508',
+            mainAreaBgAccent: '#121218',
+            mainAreaText: '#F5F0E8',
+            supportiveText: '#A89F8E'
+          }
+        }
       });
       const roomName = session?.sessionCode || session?.stripeSessionId || 'test-resonance-field';
-      frame.join({ url: `https://reikiandsage.daily.co/${roomName}` })
+      const targetUrl = session?.roomUrl || `https://reikiandsage.daily.co/${roomName}`;
+
+      frame.join({ url: targetUrl })
         .catch(err => {
-          console.warn("Daily join failed (using mock feed fallback):", err);
+          console.warn("Daily join status notice:", err.message);
         });
       setDailyCallFrame(frame);
     }
