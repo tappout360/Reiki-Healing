@@ -1,0 +1,70 @@
+/* AAA Sacred Realm Engine & Daily Spin Wheel Styling */
+
+@keyframes pulseGlow {
+  0% { box-shadow: 0 0 15px rgba(212, 175, 55, 0.4); }
+  50% { box-shadow: 0 0 35px rgba(212, 175, 55, 0.9); }
+  100% { box-shadow: 0 0 15px rgba(212, 175, 55, 0.4); }
+}
+
+@keyframes spinWheel {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(1440deg); }
+}
+
+.spin-wheel-container {
+  width: 220px;
+  height: 220px;
+  border-radius: 50%;
+  border: 4px solid var(--accent-gold);
+  position: relative;
+  overflow: hidden;
+  margin: 0 auto;
+  box-shadow: 0 0 30px rgba(212, 175, 55, 0.5);
+  transition: transform 3s cubic-bezier(0.15, 0.85, 0.35, 1.0);
+}
+
+.wheel-slice {
+  position: absolute;
+  width: 50%;
+  height: 50%;
+  transform-origin: 100% 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.75rem;
+  font-weight: bold;
+  color: #fff;
+}
+
+.gacha-card {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 16px;
+  padding: 1.25rem;
+  text-align: center;
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
+
+.gacha-card:hover {
+  transform: translateY(-4px);
+  border-color: var(--accent-gold);
+  box-shadow: 0 10px 30px rgba(212, 175, 55, 0.3);
+}
+
+.chakra-node {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  cursor: pointer;
+  transition: transform 0.2s ease;
+  position: relative;
+}
+
+.chakra-node:hover {
+  transform: scale(1.15);
+}

@@ -4,15 +4,17 @@ import { Toaster, toast } from 'react-hot-toast';
 import {
   Activity, Calendar, CheckCircle, ChevronRight, Key, Send, Settings, Shield, Sparkles, Star, X, Zap,
   Compass, TrendingUp, Clock, Flame, Award, Mic, Square, Trash2, Play, Pause,
-  Upload, Lock, Camera, Volume2, RefreshCw, FileText, AlertTriangle
+  Upload, Lock, Camera, Volume2, RefreshCw, FileText, AlertTriangle, Gamepad2
 } from 'lucide-react';
 import { ResponsiveContainer, AreaChart, Area, XAxis, YAxis, Tooltip, CartesianGrid } from 'recharts';
 import { getZodiacSign, getAdvancedHoroscope } from '../utils/horoscopes';
 import { auth, db, isFirebaseConfigured, firestore } from '../lib/firebase';
 import { collection, doc, setDoc, onSnapshot, deleteDoc } from 'firebase/firestore';
 import { BADGES, BADGE_CATEGORIES, getLevel, getLevelProgress, getNextLevel, getStats, getBadgesByCategory } from '../utils/gamification';
+import SacredRealmEngine from './SacredRealmEngine';
 
 const UserDashboard = ({ user, onClose, onUpdateUser, onNavigateToBooking, onNavigateToProtocols, onJoinLivePortal, gamificationState }) => {
+  const [showRealmEngine, setShowRealmEngine] = useState(false);
   const [activeTab, setActiveTab] = useState('overview');
   const [bookings, setBookings] = useState([]);
   const [showCalibrationModal, setShowCalibrationModal] = useState(false);
@@ -1088,6 +1090,47 @@ const UserDashboard = ({ user, onClose, onUpdateUser, onNavigateToBooking, onNav
                 />
               </div>
               <span style={{ fontSize: '0.7rem', color: 'rgba(255,255,255,0.3)' }}>{auraPurity.toFixed(0)}% Purity</span>
+            </div>
+
+            {/* AAA Sacred Realm Engine Banner */}
+            <div
+              className="glass"
+              onClick={() => setShowRealmEngine(true)}
+              style={{
+                padding: '1.25rem',
+                borderRadius: '16px',
+                background: 'linear-gradient(135deg, rgba(212, 175, 55, 0.2), rgba(80, 227, 194, 0.1), rgba(12, 14, 28, 0.95))',
+                border: '1px solid var(--accent-gold)',
+                cursor: 'pointer',
+                transition: 'all 0.3s ease',
+                boxShadow: '0 8px 25px rgba(212, 175, 55, 0.25)'
+              }}
+            >
+              <div style={{ fontSize: '0.72rem', color: '#00F5D4', fontWeight: 'bold', letterSpacing: '1px', textTransform: 'uppercase', marginBottom: '4px' }}>
+                ✦ AAA Sacred Realm Engine Active ✦
+              </div>
+              <div style={{ fontSize: '1.1rem', fontWeight: 'bold', color: 'var(--accent-gold)', marginBottom: '4px' }}>
+                7-Chakra Realm &amp; Arcade Minigame
+              </div>
+              <div style={{ fontSize: '0.78rem', color: 'rgba(255,255,255,0.7)', marginBottom: '0.75rem' }}>
+                Play Chakra Energy Runner, spin daily alignment wheel, &amp; unlock spirit pet companions!
+              </div>
+              <button
+                className="btn-primary"
+                style={{
+                  width: '100%',
+                  padding: '0.55rem',
+                  borderRadius: '12px',
+                  fontSize: '0.82rem',
+                  fontWeight: 'bold',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '6px'
+                }}
+              >
+                <Gamepad2 size={16} /> Enter Sacred Energy Hub
+              </button>
             </div>
 
             {/* Healing Streak Card */}
@@ -3453,6 +3496,13 @@ const UserDashboard = ({ user, onClose, onUpdateUser, onNavigateToBooking, onNav
               )}
             </motion.div>
           </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* AAA Sacred Realm Engine Modal */}
+      <AnimatePresence>
+        {showRealmEngine && (
+          <SacredRealmEngine onClose={() => setShowRealmEngine(false)} />
         )}
       </AnimatePresence>
     </motion.div>
