@@ -13,24 +13,35 @@ import { loadGamificationState, saveGamificationState, processSessionComplete, s
 import './App.css'
 import './components/AuraGuide.css'
 
-// Lazy Load Heavy Components for Performance
-const HealingActionBar = lazy(() => import('./components/HealingActionBar'));
-const AIHealerInterface = lazy(() => import('./components/AIHealerInterface'));
-const BookingInterface = lazy(() => import('./components/BookingInterface'));
-const HealerDashboard = lazy(() => import('./components/HealerDashboard'));
-const AdminLogin = lazy(() => import('./components/AdminLogin'));
-const ScienceModal = lazy(() => import('./components/ScienceModal'));
-const AuraGuide = lazy(() => import('./components/AuraGuide'));
-const SignupFlow = lazy(() => import('./components/SignupFlow')); // NEW: Single-page signup
-const Login = lazy(() => import('./components/Login'));
-const HealerApplicationModal = lazy(() => import('./components/HealerApplicationModal'));
-const UserDashboard = lazy(() => import('./components/UserDashboard'));
-const LiveResonancePortal = lazy(() => import('./components/LiveResonancePortal'));
-const JoinPortalModal = lazy(() => import('./components/JoinPortalModal'));
-const MyStoriesPortal = lazy(() => import('./components/MyStoriesPortal'));
-const SubscriptionPage = lazy(() => import('./components/SubscriptionPage'));
-const LegalModal = lazy(() => import('./components/LegalModal'));
-const LearnSection = lazy(() => import('./components/LearnSection'));
+// Robust Lazy Load Helper (Auto-reloads if bundle hash changes across Vercel deployments)
+const safeLazy = (importFn) =>
+  lazy(async () => {
+    try {
+      return await importFn();
+    } catch (error) {
+      console.warn('Dynamic import failed, reloading to fetch latest deployment bundle:', error);
+      window.location.reload();
+      return { default: () => null };
+    }
+  });
+
+const HealingActionBar = safeLazy(() => import('./components/HealingActionBar'));
+const AIHealerInterface = safeLazy(() => import('./components/AIHealerInterface'));
+const BookingInterface = safeLazy(() => import('./components/BookingInterface'));
+const HealerDashboard = safeLazy(() => import('./components/HealerDashboard'));
+const AdminLogin = safeLazy(() => import('./components/AdminLogin'));
+const ScienceModal = safeLazy(() => import('./components/ScienceModal'));
+const AuraGuide = safeLazy(() => import('./components/AuraGuide'));
+const SignupFlow = safeLazy(() => import('./components/SignupFlow'));
+const Login = safeLazy(() => import('./components/Login'));
+const HealerApplicationModal = safeLazy(() => import('./components/HealerApplicationModal'));
+const UserDashboard = safeLazy(() => import('./components/UserDashboard'));
+const LiveResonancePortal = safeLazy(() => import('./components/LiveResonancePortal'));
+const JoinPortalModal = safeLazy(() => import('./components/JoinPortalModal'));
+const MyStoriesPortal = safeLazy(() => import('./components/MyStoriesPortal'));
+const SubscriptionPage = safeLazy(() => import('./components/SubscriptionPage'));
+const LegalModal = safeLazy(() => import('./components/LegalModal'));
+const LearnSection = safeLazy(() => import('./components/LearnSection'));
 import DuckingAudioPlayer from './components/DuckingAudioPlayer';
 import BillingForm from './components/BillingForm';
 import { LanguageProvider, useLanguage } from './contexts/LanguageContext';

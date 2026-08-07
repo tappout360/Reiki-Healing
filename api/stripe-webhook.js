@@ -1,10 +1,10 @@
 // Vercel Serverless Function — Stripe Webhook Handler
 // Receives events from Stripe when payments succeed, subscriptions change, etc.
-// Configure webhook URL in Stripe Dashboard: https://your-domain.com/api/stripe-webhook
+// Supports MongoDB (primary) and Firebase (fallback) for persistence
 import Stripe from 'stripe';
+import { connectToDatabase } from './lib/mongodb.js';
 
-// Firebase Admin SDK for server-side Firestore updates
-// Install: npm install firebase-admin (only needed server-side)
+// Optional Firebase Admin SDK fallback
 let admin;
 try {
   admin = await import('firebase-admin');
@@ -14,8 +14,6 @@ try {
       admin.initializeApp({
         credential: admin.credential.cert(JSON.parse(serviceAccountVar))
       });
-    } else {
-      console.warn('FIREBASE_SERVICE_ACCOUNT environment variable is missing.');
     }
   }
 } catch (e) {
@@ -36,7 +34,7 @@ async function buffer(readable) {
   return Buffer.concat(chunks);
 }
 
-async function logTransactionToLedger(db, stripe, session, type) {
+async function logTransactionToLedger(mongoDb, firestoreDb, stripe, session, type) {
   const totalCents = session.amount_total || 0;
   const taxCents = session.total_details?.amount_tax || 0;
   
@@ -84,8 +82,8 @@ async function logTransactionToLedger(db, stripe, session, type) {
     entries[0].amount += difference; 
   }
 
-  await db.collection('ledger').doc(session.id).set({
-    timestamp: admin.firestore.FieldValue.serverTimestamp(),
+  const ledgerRecord = {
+    timestamp: new Date(),
     stripeSessionId: session.id,
     stripePaymentIntentId: session.payment_intent || null,
     stripeCustomerId: session.customer || null,
@@ -94,8 +92,26 @@ async function logTransactionToLedger(db, stripe, session, type) {
       : `Subscription payment for plan: ${session.metadata?.planId || 'healing_tier'}`,
     entries,
     metadata: session.metadata || {}
-  });
-  console.log(`Immutable ledger transaction written for Stripe Session ${session.id}`);
+  };
+
+  // Write to MongoDB if available
+  if (mongoDb) {
+    await mongoDb.collection('ledger').updateOne(
+      { stripeSessionId: session.id },
+      { $set: ledgerRecord },
+      { upsert: true }
+    );
+    console.log(`Immutable ledger transaction written to MongoDB for Stripe Session ${session.id}`);
+  }
+
+  // Write to Firestore if available
+  if (firestoreDb && admin) {
+    await firestoreDb.collection('ledger').doc(session.id).set({
+      ...ledgerRecord,
+      timestamp: admin.firestore.FieldValue.serverTimestamp()
+    });
+    console.log(`Immutable ledger transaction written to Firestore for Stripe Session ${session.id}`);
+  }
 }
 
 export default async function handler(req, res) {
@@ -112,7 +128,6 @@ export default async function handler(req, res) {
   }
 
   const stripe = new Stripe(secretKey);
-
   const buf = await buffer(req);
   const sig = req.headers['stripe-signature'];
 
@@ -124,6 +139,22 @@ export default async function handler(req, res) {
     return res.status(400).json({ error: `Webhook Error: ${err.message}` });
   }
 
+  // Connect to DBs
+  let mongoDb = null;
+  try {
+    if (process.env.MONGODB_URI) {
+      const conn = await connectToDatabase();
+      mongoDb = conn.db;
+    }
+  } catch (err) {
+    console.warn('MongoDB connection unavailable in webhook:', err.message);
+  }
+
+  let firestoreDb = null;
+  if (admin && admin.apps?.length) {
+    firestoreDb = admin.firestore();
+  }
+
   try {
     switch (event.type) {
       case 'checkout.session.completed': {
@@ -131,8 +162,6 @@ export default async function handler(req, res) {
         const metadataType = session.metadata?.type;
 
         if (metadataType === 'booking') {
-          // ─── BOOKING PAYMENT ─────────────────────────────────
-          // Create a booking record in Firestore and send confirmation emails
           const {
             serviceType,
             fullPrice,
@@ -145,35 +174,47 @@ export default async function handler(req, res) {
             notes
           } = session.metadata;
 
-          if (admin) {
-            const db = admin.firestore();
-            await db.collection('bookings').add({
-              customerName,
-              customerEmail,
-              serviceType,
-              price: Number(fullPrice),
-              chargeAmount: Number(chargeAmount),
-              depositAmount: depositAmount ? Number(depositAmount) : null,
-              bookingDate,
-              bookingTime,
-              notes: notes || '',
-              paymentStatus: 'paid',
-              status: 'confirmed',
-              stripeSessionId: session.id,
-              stripePaymentIntent: session.payment_intent || null,
+          const bookingDoc = {
+            customerName,
+            customerEmail: customerEmail.toLowerCase(),
+            serviceType,
+            price: Number(fullPrice),
+            chargeAmount: Number(chargeAmount),
+            depositAmount: depositAmount ? Number(depositAmount) : null,
+            bookingDate,
+            bookingTime,
+            notes: notes || '',
+            paymentStatus: 'paid',
+            status: 'confirmed',
+            stripeSessionId: session.id,
+            stripePaymentIntent: session.payment_intent || null,
+            paidAt: new Date(),
+            createdAt: new Date()
+          };
+
+          // Save in MongoDB
+          if (mongoDb) {
+            await mongoDb.collection('bookings').insertOne(bookingDoc);
+            console.log(`[MongoDB] Booking created for ${customerName} (${serviceType}) on ${bookingDate}`);
+          }
+
+          // Save in Firestore fallback
+          if (firestoreDb) {
+            await firestoreDb.collection('bookings').add({
+              ...bookingDoc,
               paidAt: admin.firestore.FieldValue.serverTimestamp(),
               createdAt: admin.firestore.FieldValue.serverTimestamp()
             });
-            console.log(`Booking created for ${customerName} (${serviceType}) on ${bookingDate}`);
-            
-            try {
-              await logTransactionToLedger(db, stripe, session, 'booking');
-            } catch (ledgerErr) {
-              console.error('Failed to log booking to ledger:', ledgerErr.message);
-            }
+            console.log(`[Firestore] Booking created for ${customerName}`);
           }
 
-          // Send confirmation emails (fire-and-forget; don't block webhook response)
+          try {
+            await logTransactionToLedger(mongoDb, firestoreDb, stripe, session, 'booking');
+          } catch (ledgerErr) {
+            console.error('Failed to log booking to ledger:', ledgerErr.message);
+          }
+
+          // Send confirmation emails
           try {
             const origin = process.env.NEXT_PUBLIC_SITE_URL || 'https://reikiandsage.com';
             await fetch(`${origin}/api/send-booking-email`, {
@@ -192,26 +233,41 @@ export default async function handler(req, res) {
             });
             console.log('Booking confirmation emails triggered');
           } catch (emailErr) {
-            // Log but don't fail the webhook — payment is already captured
             console.error('Failed to send booking emails:', emailErr.message);
           }
 
         } else {
-          // ─── SUBSCRIPTION PAYMENT (existing logic) ───────────
+          // SUBSCRIPTION PAYMENT
           const userId = session.metadata?.userId;
 
-          if (userId && admin) {
-            const db = admin.firestore();
-            await db.collection('profiles').doc(userId).update({
-              subscription: 'healing',
-              subscriptionStatus: 'active',
-              stripeCustomerId: session.customer || null,
-              updatedAt: admin.firestore.FieldValue.serverTimestamp()
-            });
-            console.log(`Subscription activated for user ${userId}`);
-            
+          if (userId) {
+            if (mongoDb) {
+              await mongoDb.collection('profiles').updateOne(
+                { userId },
+                {
+                  $set: {
+                    subscription: 'healing',
+                    subscriptionStatus: 'active',
+                    stripeCustomerId: session.customer || null,
+                    updatedAt: new Date()
+                  }
+                }
+              );
+              console.log(`[MongoDB] Subscription activated for user ${userId}`);
+            }
+
+            if (firestoreDb) {
+              await firestoreDb.collection('profiles').doc(userId).update({
+                subscription: 'healing',
+                subscriptionStatus: 'active',
+                stripeCustomerId: session.customer || null,
+                updatedAt: admin.firestore.FieldValue.serverTimestamp()
+              });
+              console.log(`[Firestore] Subscription activated for user ${userId}`);
+            }
+
             try {
-              await logTransactionToLedger(db, stripe, session, 'subscription');
+              await logTransactionToLedger(mongoDb, firestoreDb, stripe, session, 'subscription');
             } catch (ledgerErr) {
               console.error('Failed to log subscription to ledger:', ledgerErr.message);
             }
@@ -225,25 +281,36 @@ export default async function handler(req, res) {
         const subscription = event.data.object;
         const customerId = subscription.customer;
 
-        if (customerId && admin) {
-          const db = admin.firestore();
-          // Find user by Stripe customer ID
-          const snapshot = await db.collection('profiles')
-            .where('stripeCustomerId', '==', customerId)
-            .limit(1)
-            .get();
+        if (customerId) {
+          const newStatus = subscription.status === 'active' ? 'active' :
+            subscription.status === 'past_due' ? 'past_due' : 'cancelled';
 
-          if (!snapshot.empty) {
-            const userDoc = snapshot.docs[0];
-            const newStatus = subscription.status === 'active' ? 'active' :
-              subscription.status === 'past_due' ? 'past_due' : 'cancelled';
+          if (mongoDb) {
+            await mongoDb.collection('profiles').updateMany(
+              { stripeCustomerId: customerId },
+              {
+                $set: {
+                  subscriptionStatus: newStatus,
+                  subscription: newStatus === 'active' ? 'healing' : 'seeker',
+                  updatedAt: new Date()
+                }
+              }
+            );
+          }
 
-            await userDoc.ref.update({
-              subscriptionStatus: newStatus,
-              subscription: newStatus === 'active' ? 'healing' : 'seeker',
-              updatedAt: admin.firestore.FieldValue.serverTimestamp()
-            });
-            console.log(`Subscription ${newStatus} for customer ${customerId}`);
+          if (firestoreDb) {
+            const snapshot = await firestoreDb.collection('profiles')
+              .where('stripeCustomerId', '==', customerId)
+              .limit(1)
+              .get();
+
+            if (!snapshot.empty) {
+              await snapshot.docs[0].ref.update({
+                subscriptionStatus: newStatus,
+                subscription: newStatus === 'active' ? 'healing' : 'seeker',
+                updatedAt: admin.firestore.FieldValue.serverTimestamp()
+              });
+            }
           }
         }
         break;
