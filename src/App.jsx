@@ -42,6 +42,9 @@ const MyStoriesPortal = safeLazy(() => import('./components/MyStoriesPortal'));
 const SubscriptionPage = safeLazy(() => import('./components/SubscriptionPage'));
 const LegalModal = safeLazy(() => import('./components/LegalModal'));
 const LearnSection = safeLazy(() => import('./components/LearnSection'));
+const SonicSoundBaths = safeLazy(() => import('./components/SonicSoundBaths'));
+const BiofieldPulse = safeLazy(() => import('./components/BiofieldPulse'));
+const VoiceReflectionStudio = safeLazy(() => import('./components/VoiceReflectionStudio'));
 import DuckingAudioPlayer from './components/DuckingAudioPlayer';
 import BillingForm from './components/BillingForm';
 import { LanguageProvider, useLanguage } from './contexts/LanguageContext';
@@ -501,6 +504,9 @@ function AppContent() {
   const [showHealerDashboard, setShowHealerDashboard] = useState(false); // Admin access
   const [showAdminLogin, setShowAdminLogin] = useState(false); // NEW: Staff/Admin login
   const [showLegalModal, setShowLegalModal] = useState(null); // 'terms' | 'privacy' | 'disclaimer' | null
+  const [showSoundBaths, setShowSoundBaths] = useState(false);
+  const [showBiofieldPulse, setShowBiofieldPulse] = useState(false);
+  const [showVoiceReflectionStudio, setShowVoiceReflectionStudio] = useState(false);
   const [showLayoutDropdown, setShowLayoutDropdown] = useState(false); // Dropdown for viewport mode
   const [bookingType, setBookingType] = useState(null); 
   const [videoIndex, setVideoIndex] = useState(0);
@@ -2016,28 +2022,49 @@ const [showCheckoutModal, setShowCheckoutModal] = useState(false);
   };
 
   const renderComingSoonSection = (isMobileLayout = false) => {
+    const handlePwaInstall = () => {
+      if (window.deferredPrompt) {
+        window.deferredPrompt.prompt();
+        window.deferredPrompt.userChoice.then((choiceResult) => {
+          if (choiceResult.outcome === 'accepted') {
+            toast.success('App installed to home screen!');
+          }
+          window.deferredPrompt = null;
+        });
+      } else {
+        toast('To install, tap Share (iOS) or Menu (Android) and select "Add to Home Screen".', { icon: '📱' });
+      }
+    };
+
     return (
       <section id="coming-soon" style={{ backgroundColor: 'var(--bg-section-alt)', padding: isMobileLayout ? '3rem 1rem' : '6rem 0', borderTop: '1px solid rgba(255,255,255,0.05)' }}>
         <div className="container" style={{ textAlign: 'center', maxWidth: '1000px', margin: '0 auto' }}>
-          <span style={{ fontSize: '0.75rem', color: 'var(--accent-gold)', fontWeight: 'bold', letterSpacing: '2px', textTransform: 'uppercase', display: 'block', marginBottom: '1rem' }}>✦ Cosmic Expansion Teaser ✦</span>
-          <h2 style={{ fontSize: isMobileLayout ? '1.8rem' : '2.5rem', fontFamily: 'Playfair Display', color: 'var(--text-main)', marginBottom: '1.25rem' }}>Coming Soon to the Sanctuary</h2>
+          <span style={{ fontSize: '0.75rem', color: 'var(--accent-gold)', fontWeight: 'bold', letterSpacing: '2px', textTransform: 'uppercase', display: 'block', marginBottom: '1rem' }}>✦ Live Sanctuary Expansion Suite ✦</span>
+          <h2 style={{ fontSize: isMobileLayout ? '1.8rem' : '2.5rem', fontFamily: 'Playfair Display', color: 'var(--text-main)', marginBottom: '1.25rem' }}>Sanctuary Interactive Experience</h2>
           <p style={{ color: 'var(--text-muted)', marginBottom: '2.5rem', fontSize: '0.9rem', lineHeight: '1.6' }}>
-            We are hard at work engineering new dimensions of energetic connection. Soon, you will be able to unlock the full potential of your spiritual journey through:
+            Unlock the full dimension of your spiritual journey through our live interactive healing tools:
           </p>
- 
+
           <div style={{ display: 'grid', gridTemplateColumns: isMobileLayout ? '1fr' : 'repeat(4, 1fr)', gap: '1.5rem', textAlign: 'left' }}>
-            <div className="glass" style={{ padding: '1.5rem', borderRadius: '20px', border: '1px solid rgba(255,255,255,0.05)' }}>
-              <div style={{ fontSize: '1.8rem', marginBottom: '0.75rem' }}>📱</div>
-              <h4 style={{ color: 'var(--accent-gold)', marginBottom: '0.5rem', fontSize: '1rem' }}>Mobile App</h4>
-              <p style={{ fontSize: '0.78rem', color: 'var(--text-muted)', lineHeight: '1.5', margin: 0 }}>
-                A standalone native iOS and Android experience to carry the healing sanctuary in your pocket.
-              </p>
-            </div>
- 
+            {/* Mobile PWA Card */}
             <div 
               className="glass" 
               style={{ padding: '1.5rem', borderRadius: '20px', border: '1px solid var(--accent-gold)', background: 'linear-gradient(135deg, rgba(255,255,255,0.03) 0%, rgba(212, 175, 55, 0.05) 100%)', position: 'relative', cursor: 'pointer' }}
-              onClick={() => setShowMyStories(true)}
+              onClick={handlePwaInstall}
+            >
+              <span style={{ position: 'absolute', top: '10px', right: '10px', background: 'var(--accent-gold)', color: '#000', fontSize: '0.6rem', fontWeight: 'bold', padding: '2px 6px', borderRadius: '4px', textTransform: 'uppercase' }}>Now Live!</span>
+              <div style={{ fontSize: '1.8rem', marginBottom: '0.75rem' }}>📱</div>
+              <h4 style={{ color: 'var(--accent-gold)', marginBottom: '0.5rem', fontSize: '1rem' }}>Mobile PWA App</h4>
+              <p style={{ fontSize: '0.78rem', color: 'var(--text-muted)', lineHeight: '1.5', margin: 0 }}>
+                Install our standalone mobile sanctuary app on iOS & Android for one-tap offline access.
+              </p>
+            </div>
+
+            {/* Voice Reflections Studio Card */}
+            <div 
+              className="glass" 
+              style={{ padding: '1.5rem', borderRadius: '20px', border: '1px solid var(--accent-gold)', background: 'linear-gradient(135deg, rgba(255,255,255,0.03) 0%, rgba(212, 175, 55, 0.05) 100%)', position: 'relative', cursor: 'pointer' }}
+              onClick={() => setShowVoiceReflectionStudio(true)}
             >
               <span style={{ position: 'absolute', top: '10px', right: '10px', background: 'var(--accent-gold)', color: '#000', fontSize: '0.6rem', fontWeight: 'bold', padding: '2px 6px', borderRadius: '4px', textTransform: 'uppercase' }}>Now Live!</span>
               <div style={{ fontSize: '1.8rem', marginBottom: '0.75rem' }}>🎙️</div>
@@ -2047,19 +2074,31 @@ const [showCheckoutModal, setShowCheckoutModal] = useState(false);
               </p>
             </div>
             
-            <div className="glass" style={{ padding: '1.5rem', borderRadius: '20px', border: '1px solid rgba(255,255,255,0.05)' }}>
+            {/* Biofield Pulse Card */}
+            <div 
+              className="glass" 
+              style={{ padding: '1.5rem', borderRadius: '20px', border: '1px solid #50e3c2', background: 'linear-gradient(135deg, rgba(255,255,255,0.03) 0%, rgba(80, 227, 194, 0.05) 100%)', position: 'relative', cursor: 'pointer' }}
+              onClick={() => setShowBiofieldPulse(true)}
+            >
+              <span style={{ position: 'absolute', top: '10px', right: '10px', background: '#50e3c2', color: '#000', fontSize: '0.6rem', fontWeight: 'bold', padding: '2px 6px', borderRadius: '4px', textTransform: 'uppercase' }}>Now Live!</span>
               <div style={{ fontSize: '1.8rem', marginBottom: '0.75rem' }}>⌚</div>
-              <h4 style={{ color: 'var(--accent-gold)', marginBottom: '0.5rem', fontSize: '1rem' }}>Biofield Pulse</h4>
+              <h4 style={{ color: '#50e3c2', marginBottom: '0.5rem', fontSize: '1rem' }}>Biofield Pulse</h4>
               <p style={{ fontSize: '0.78rem', color: 'var(--text-muted)', lineHeight: '1.5', margin: 0 }}>
-                Direct integration with wearable sensors to map heart-rate resonance during daily meditations.
+                Optical heart-rate variability (HRV) sensor & aura resonance scanner to map your energy field.
               </p>
             </div>
- 
-            <div className="glass" style={{ padding: '1.5rem', borderRadius: '20px', border: '1px solid rgba(255,255,255,0.05)' }}>
+
+            {/* Sonic Sound Baths Card */}
+            <div 
+              className="glass" 
+              style={{ padding: '1.5rem', borderRadius: '20px', border: '1px solid #4a90e2', background: 'linear-gradient(135deg, rgba(255,255,255,0.03) 0%, rgba(74, 144, 226, 0.05) 100%)', position: 'relative', cursor: 'pointer' }}
+              onClick={() => setShowSoundBaths(true)}
+            >
+              <span style={{ position: 'absolute', top: '10px', right: '10px', background: '#4a90e2', color: '#fff', fontSize: '0.6rem', fontWeight: 'bold', padding: '2px 6px', borderRadius: '4px', textTransform: 'uppercase' }}>Now Live!</span>
               <div style={{ fontSize: '1.8rem', marginBottom: '0.75rem' }}>🌀</div>
-              <h4 style={{ color: 'var(--accent-gold)', marginBottom: '0.5rem', fontSize: '1rem' }}>Sonic Sound Baths</h4>
+              <h4 style={{ color: '#4a90e2', marginBottom: '0.5rem', fontSize: '1rem' }}>Sonic Sound Baths</h4>
               <p style={{ fontSize: '0.78rem', color: 'var(--text-muted)', lineHeight: '1.5', margin: 0 }}>
-                Infinite interactive Solfeggio frequency generators featuring customizable binaural beat sliders.
+                Interactive 432Hz & 528Hz Solfeggio frequency generator with crystal singing bowls & rain.
               </p>
             </div>
           </div>
@@ -3816,6 +3855,36 @@ const [showCheckoutModal, setShowCheckoutModal] = useState(false);
             <LegalModal
               initialTab={showLegalModal}
               onClose={() => setShowLegalModal(null)}
+            />
+          )}
+        </AnimatePresence>
+      </Suspense>
+
+      {/* Sonic Sound Baths Modal */}
+      <Suspense fallback={null}>
+        <AnimatePresence>
+          {showSoundBaths && (
+            <SonicSoundBaths onClose={() => setShowSoundBaths(false)} />
+          )}
+        </AnimatePresence>
+      </Suspense>
+
+      {/* Biofield Pulse Modal */}
+      <Suspense fallback={null}>
+        <AnimatePresence>
+          {showBiofieldPulse && (
+            <BiofieldPulse onClose={() => setShowBiofieldPulse(false)} />
+          )}
+        </AnimatePresence>
+      </Suspense>
+
+      {/* Voice Reflection Studio Modal */}
+      <Suspense fallback={null}>
+        <AnimatePresence>
+          {showVoiceReflectionStudio && (
+            <VoiceReflectionStudio 
+              onClose={() => setShowVoiceReflectionStudio(false)}
+              onSubmitted={() => setShowMyStories(true)}
             />
           )}
         </AnimatePresence>
