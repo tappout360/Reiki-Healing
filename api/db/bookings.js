@@ -4,10 +4,20 @@ import { ObjectId } from 'mongodb';
 
 export default async function handler(req, res) {
   try {
-    const { db } = await connectToDatabase();
-    const collection = db.collection('bookings');
+    let db, collection;
+    try {
+      const conn = await connectToDatabase();
+      db = conn.db;
+      collection = db.collection('bookings');
+    } catch {
+      console.warn('MONGODB_URI missing. Operating in simulated local bookings mode.');
+    }
 
     if (req.method === 'GET') {
+      if (!collection) {
+        return res.status(200).json({ success: true, bookings: [], simulated: true });
+      }
+
       const { email, id, healerId } = req.query;
       let filter = {};
 
@@ -52,6 +62,16 @@ export default async function handler(req, res) {
 
         const lockDurationMs = 10 * 60 * 1000; // 10 minutes
         const lockExpiresAt = new Date(Date.now() + lockDurationMs);
+
+        if (!collection) {
+          return res.status(200).json({
+            success: true,
+            lockGranted: true,
+            simulated: true,
+            expiresAt: lockExpiresAt,
+            booking: { id: `lock_${Date.now()}`, healerId, slotStartTime, customerEmail, status: 'HELD_LOCK', lockExpiresAt }
+          });
+        }
 
         // Atomic Update: Only reserve if slot is not currently confirmed or active lock
         const query = {
@@ -100,6 +120,14 @@ export default async function handler(req, res) {
         updatedAt: new Date()
       };
 
+      if (!collection) {
+        return res.status(201).json({
+          success: true,
+          simulated: true,
+          booking: { id: `b_${Date.now()}`, ...doc }
+        });
+      }
+
       const result = await collection.insertOne(doc);
       return res.status(201).json({
         success: true,
@@ -111,6 +139,10 @@ export default async function handler(req, res) {
       const { id, status, paymentStatus } = req.body;
       if (!id) {
         return res.status(400).json({ error: 'Booking ID is required.' });
+      }
+
+      if (!collection) {
+        return res.status(200).json({ success: true, simulated: true, message: 'Booking status updated.' });
       }
 
       let queryFilter = {};

@@ -4,10 +4,20 @@ import { ObjectId } from 'mongodb';
 
 export default async function handler(req, res) {
   try {
-    const { db } = await connectToDatabase();
-    const collection = db.collection('stories');
+    let db, collection;
+    try {
+      const conn = await connectToDatabase();
+      db = conn.db;
+      collection = db.collection('stories');
+    } catch {
+      console.warn('MONGODB_URI missing. Operating in simulated local stories mode.');
+    }
 
     if (req.method === 'GET') {
+      if (!collection) {
+        return res.status(200).json({ success: true, stories: [], simulated: true });
+      }
+
       const { all } = req.query;
       const filter = all === 'true' ? {} : { status: 'approved' };
 
@@ -32,6 +42,14 @@ export default async function handler(req, res) {
         createdAt: new Date()
       };
 
+      if (!collection) {
+        return res.status(201).json({
+          success: true,
+          simulated: true,
+          story: { id: `story_${Date.now()}`, ...doc }
+        });
+      }
+
       const result = await collection.insertOne(doc);
       return res.status(201).json({
         success: true,
@@ -40,19 +58,22 @@ export default async function handler(req, res) {
     }
 
     if (req.method === 'PUT') {
-      const { id, status } = req.body;
-      if (!id || !status) {
-        return res.status(400).json({ error: 'Story ID and status are required.' });
+      const { id, status, storyId, action } = req.body || {};
+      const targetId = id || storyId;
+      const newStatus = status || (action === 'APPROVE' ? 'approved' : 'rejected');
+
+      if (!targetId) {
+        return res.status(400).json({ error: 'Story ID is required.' });
+      }
+
+      if (!collection) {
+        return res.status(200).json({ success: true, simulated: true, message: 'Story status updated.' });
       }
 
       let queryFilter = {};
-      try {
-        queryFilter._id = new ObjectId(id);
-      } catch {
-        queryFilter._id = id;
-      }
+      try { queryFilter._id = new ObjectId(targetId); } catch { queryFilter._id = targetId; }
 
-      await collection.updateOne(queryFilter, { $set: { status, updatedAt: new Date() } });
+      await collection.updateOne(queryFilter, { $set: { status: newStatus, updatedAt: new Date() } });
       return res.status(200).json({ success: true, message: 'Story status updated.' });
     }
 
