@@ -96,6 +96,29 @@ const HealerDashboard = ({ onClose, onJoinPortal, healerAppsEnabled = false, onT
     localStorage.setItem('aura_launch_checklist', JSON.stringify(checklist));
   }, [checklist]);
 
+  const [mongoAuditLogs, setMongoAuditLogs] = useState([]);
+  const [auditCategory, setAuditCategory] = useState('ALL');
+  const [auditSearch, setAuditSearch] = useState('');
+
+  useEffect(() => {
+    if (activeTab === 'logs') {
+      fetchAuditLogs();
+    }
+  }, [activeTab, auditCategory, auditSearch]);
+
+  const fetchAuditLogs = async () => {
+    try {
+      const url = `/api/db/audit-logs?category=${encodeURIComponent(auditCategory)}&search=${encodeURIComponent(auditSearch)}`;
+      const res = await fetch(url).catch(() => null);
+      if (res && res.ok) {
+        const data = await res.json();
+        setMongoAuditLogs(data.logs || []);
+      }
+    } catch {
+      console.warn('Failed to load MongoDB audit logs.');
+    }
+  };
+
   const toggleChecklistItem = (key) => {
     setChecklist(prev => ({ ...prev, [key]: !prev[key] }));
   };
@@ -808,8 +831,13 @@ const HealerDashboard = ({ onClose, onJoinPortal, healerAppsEnabled = false, onT
         <div className="dashboard-content">
             {activeTab === 'logs' && (
               <div className="promo-panel fade-in">
-                <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center'}}>
-                    <h2>Healing Logs (Transaction History)</h2>
+                <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem', flexWrap: 'wrap', gap: '1rem'}}>
+                    <div>
+                      <h2>Master Action Audit Log (Jason & Carissa Security)</h2>
+                      <p style={{ fontSize: '0.82rem', color: 'rgba(255,255,255,0.7)', margin: 0 }}>
+                        Immutable audit logs tracking all user access toggles, role changes, pricing adjustments, application approvals, and financial payouts.
+                      </p>
+                    </div>
                     <button 
                         onClick={handleExportLogs}
                         className="btn"
@@ -821,58 +849,99 @@ const HealerDashboard = ({ onClose, onJoinPortal, healerAppsEnabled = false, onT
                             fontSize: '0.85rem'
                         }}
                     >
-                        Export CSV
+                        Export CSV Audit Log
                     </button>
                 </div>
-                <div className="glass" style={{ padding: '1.5rem', borderRadius: '16px', border: '1px solid rgba(212, 175, 55, 0.2)' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--accent-gold)', marginBottom: '0.5rem', fontSize: '0.8rem' }}>
-                    <Sparkles size={14} /> COMMUNITY RESONANCE
+
+                {/* Filters & Search Controls */}
+                <div className="glass" style={{ padding: '1rem', borderRadius: '16px', border: '1px solid rgba(212, 175, 55, 0.2)', marginBottom: '1.25rem', display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                  <input
+                    type="text"
+                    placeholder="🔍 Search audit logs by actor, email, action, or details..."
+                    value={auditSearch}
+                    onChange={(e) => setAuditSearch(e.target.value)}
+                    style={{
+                      width: '100%',
+                      padding: '0.65rem 1rem',
+                      borderRadius: '10px',
+                      background: 'rgba(0,0,0,0.4)',
+                      border: '1px solid rgba(255,255,255,0.15)',
+                      color: '#fff',
+                      fontSize: '0.85rem'
+                    }}
+                  />
+
+                  <div style={{ display: 'flex', gap: '0.5rem', overflowX: 'auto', paddingBottom: '4px' }}>
+                    {[
+                      { id: 'ALL', label: 'All Actions' },
+                      { id: 'ACCOUNT_STATUS', label: 'User Account Access' },
+                      { id: 'ROLE_UPGRADE', label: 'Role Changes' },
+                      { id: 'PRICING_CHANGE', label: 'Pricing & Services' },
+                      { id: 'APPLICATION_REVIEW', label: 'Healer Applications' },
+                      { id: 'PAYOUT_REQUEST', label: 'Payout Requests' },
+                      { id: 'MODERATION', label: 'Community Stories' }
+                    ].map(cat => (
+                      <button
+                        key={cat.id}
+                        onClick={() => setAuditCategory(cat.id)}
+                        style={{
+                          background: auditCategory === cat.id ? 'rgba(212, 175, 55, 0.25)' : 'rgba(255,255,255,0.05)',
+                          border: auditCategory === cat.id ? '1px solid var(--accent-gold)' : '1px solid rgba(255,255,255,0.1)',
+                          color: auditCategory === cat.id ? 'var(--accent-gold)' : 'rgba(255,255,255,0.7)',
+                          padding: '4px 12px',
+                          borderRadius: '15px',
+                          cursor: 'pointer',
+                          fontSize: '0.75rem',
+                          whiteSpace: 'nowrap'
+                        }}
+                      >
+                        {cat.label}
+                      </button>
+                    ))}
                   </div>
-                  <div style={{ fontSize: '2rem', fontWeight: 'bold' }}>{averageRating}<span style={{ fontSize: '1rem', opacity: 0.5 }}>/5.0</span></div>
                 </div>
-                 <div className="glass" style={{marginTop: '1rem', padding: '0'}}>
+
+                 <div className="glass" style={{marginTop: '1rem', padding: '0', borderRadius: '16px', overflow: 'hidden'}}>
                     {(() => {
-                        const logs = JSON.parse(localStorage.getItem('healing_logs') || '[]');
-                        if (logs.length === 0) return <div style={{padding: '2rem', textAlign: 'center', color: 'var(--text-muted)'}}>No transactions recorded yet.</div>;
-                        
-                        return [...logs].reverse().map((log, i) => {
-                            // Safe render to prevent crashes if log data is corrupt
-                            const safeUser = log.user || 'Unknown Spirit';
-                            const safeEmail = log.email || 'No Contact';
-                            const safeAction = log.action || 'System Event';
-                            
+                        const localLogs = JSON.parse(localStorage.getItem('healing_logs') || '[]');
+                        const displayLogs = mongoAuditLogs.length > 0 ? mongoAuditLogs : localLogs;
+
+                        if (displayLogs.length === 0) {
+                          return <div style={{padding: '2rem', textAlign: 'center', color: 'var(--text-muted)'}}>No audit transactions recorded yet.</div>;
+                        }
+
+                        return displayLogs.map((log, i) => {
+                            const actor = log.actorName || log.user || 'Master Owner';
+                            const actorEmail = log.actorEmail || log.email || 'jasonmounts77@yahoo.com';
+                            const target = log.targetEmail ? `Target: ${log.targetEmail}` : log.email ? `User: ${log.email}` : '';
+                            const isOwnerActor = actorEmail === 'jasonmounts77@yahoo.com' || actorEmail === 'carissabright@gmail.com';
+
                             return (
-                                <div key={i} style={{
-                                    padding: '1rem', borderBottom: '1px solid rgba(255,255,255,0.05)',
-                                    display: 'flex', justifyContent: 'space-between', alignItems: 'center'
+                                <div key={log.logId || i} style={{
+                                    padding: '1rem 1.25rem', borderBottom: '1px solid rgba(255,255,255,0.05)',
+                                    display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+                                    background: isOwnerActor ? 'rgba(212, 175, 55, 0.02)' : 'transparent'
                                 }}>
                                     <div>
-                                        <div style={{color: 'var(--accent-gold)', fontWeight: 'bold'}}>{safeAction}</div>
-                                        {(() => {
-                                            // Check if this user exists in our clients archive
-                                            const matchedClient = clients.find(c => c.email === (log.email || ''));
-                                            return (
-                                                <div 
-                                                    style={{
-                                                        fontSize: '0.85rem', 
-                                                        color: matchedClient ? 'var(--accent-gold)' : 'var(--text-muted)',
-                                                        textDecoration: matchedClient ? 'underline' : 'none',
-                                                        cursor: matchedClient ? 'pointer' : 'default',
-                                                        display: 'flex', alignItems: 'center', gap: '5px'
-                                                    }}
-                                                    onClick={() => matchedClient && setSelectedClient(matchedClient)}
-                                                    title={matchedClient ? "View Client Archive Record" : "External/Unlinked User"}
-                                                >
-                                                    {safeUser} ({safeEmail})
-                                                    {matchedClient && <span style={{fontSize: '0.6rem', border:'1px solid var(--accent-gold)', borderRadius:'4px', padding:'0 3px'}}>LINKED</span>}
-                                                </div>
-                                            );
-                                        })()}
-                                         {log.details && <div style={{fontSize: '0.8rem', opacity: 0.7}}>{log.details}</div>}
+                                        <div style={{display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '2px'}}>
+                                          <span style={{color: 'var(--accent-gold)', fontWeight: 'bold', fontSize: '0.9rem'}}>{log.action || 'System Event'}</span>
+                                          <span style={{
+                                            fontSize: '0.65rem',
+                                            background: isOwnerActor ? 'rgba(212, 175, 55, 0.2)' : 'rgba(80, 227, 194, 0.2)',
+                                            color: isOwnerActor ? 'var(--accent-gold)' : '#50e3c2',
+                                            padding: '2px 8px',
+                                            borderRadius: '10px',
+                                            fontWeight: 'bold'
+                                          }}>
+                                            {actor} ({actorEmail})
+                                          </span>
+                                        </div>
+                                        {target && <div style={{fontSize: '0.8rem', color: 'rgba(255,255,255,0.8)'}}>{target}</div>}
+                                        {log.details && <div style={{fontSize: '0.78rem', color: 'rgba(255,255,255,0.6)', marginTop: '2px'}}>{log.details}</div>}
                                     </div>
                                     <div style={{textAlign: 'right'}}>
-                                        <div style={{fontSize: '0.85rem'}}>{new Date(log.timestamp || Date.now()).toLocaleDateString()}</div>
-                                        <div style={{fontSize: '0.8rem', color: 'var(--text-muted)'}}>{new Date(log.timestamp || Date.now()).toLocaleTimeString()}</div>
+                                        <div style={{fontSize: '0.85rem', color: '#fff'}}>{new Date(log.timestamp || Date.now()).toLocaleDateString()}</div>
+                                        <div style={{fontSize: '0.75rem', color: 'var(--text-muted)'}}>{new Date(log.timestamp || Date.now()).toLocaleTimeString()}</div>
                                     </div>
                                 </div>
                             );

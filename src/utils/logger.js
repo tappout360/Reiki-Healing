@@ -24,6 +24,22 @@ export const logTransaction = (action, user, email, details = null) => {
 
         localStorage.setItem('healing_logs', JSON.stringify(logs));
         console.log(`[SYSTEM LOG] ${action}:`, newLog);
+
+        // Sync Audit Log to MongoDB Serverless Backend
+        const profile = JSON.parse(localStorage.getItem('user_profile') || '{}');
+        fetch('/api/db/audit-logs', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                actorName: profile.name || 'Master Owner',
+                actorEmail: profile.email || 'jasonmounts77@yahoo.com',
+                category: action.includes('Status') ? 'ACCOUNT_STATUS' : action.includes('Role') ? 'ROLE_UPGRADE' : action.includes('Price') ? 'PRICING_CHANGE' : 'MODERATION',
+                action,
+                targetEmail: email || '',
+                details: details || `${action} for ${user || email}`
+            })
+        }).catch(err => console.warn('Audit log serverless sync notice:', err.message));
+
         return true;
     } catch (error) {
         console.error("Failed to log transaction:", error);

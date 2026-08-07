@@ -26,14 +26,29 @@ const AdminLogin = ({ onLogin, onClose }) => {
       if (isLocalhost && password === devPassword && isWhitelisted) {
         setTimeout(() => {
           setLoading(false);
+          const ownerName = normalizedEmail === 'carissabright@gmail.com' ? 'Carissa Bright' : 'Jason Mounts';
           const adminUser = {
-            name: normalizedEmail === 'carissabright@gmail.com' ? 'Carissa Bright' : 'Jason Mounts',
+            name: ownerName,
             email: normalizedEmail,
-            role: 'owner',
+            role: isWhitelisted ? 'owner' : 'healer',
             subscription: 'healing',
             status: 'Active'
           };
           localStorage.setItem('user_profile', JSON.stringify(adminUser));
+
+          // Log Audit Entry
+          fetch('/api/db/audit-logs', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              actorName: ownerName,
+              actorEmail: normalizedEmail,
+              category: 'LOGIN',
+              action: 'Master Owner Login',
+              details: `Master Owner signed in from ${window.location.hostname}`
+            })
+          }).catch(() => {});
+
           onLogin();
         }, 1000);
         return;
