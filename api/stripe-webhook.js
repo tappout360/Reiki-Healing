@@ -174,10 +174,16 @@ export default async function handler(req, res) {
             notes
           } = session.metadata;
 
+          const bookingId = session.id;
+          const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://reikiandsage.com';
+          const videoJoinLink = `${siteUrl}/?portal=live&bookingId=${bookingId}`;
+
           const bookingDoc = {
+            id: bookingId,
             customerName,
             customerEmail: customerEmail.toLowerCase(),
             serviceType,
+            videoJoinLink: serviceType === 'live' ? videoJoinLink : null,
             price: Number(fullPrice),
             chargeAmount: Number(chargeAmount),
             depositAmount: depositAmount ? Number(depositAmount) : null,

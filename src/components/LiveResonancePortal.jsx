@@ -12,10 +12,14 @@ import { toast } from 'react-hot-toast';
 import { isFirebaseConfigured, db } from '../lib/firebase';
 import DailyIframe from '@daily-co/daily-js';
 
-const LiveResonancePortal = ({ user, session, onClose }) => {
+import SacredWaitingRoom from './SacredWaitingRoom';
+import PostSessionReflection from './PostSessionReflection';
+
+const LiveResonancePortal = ({ user, session, onClose, onOpenVoiceStudio }) => {
   const [isMuted, setIsMuted] = useState(false);
   const [isVideoOff, setIsVideoOff] = useState(false);
   const [showChat, setShowChat] = useState(false);
+  const [sessionEnded, setSessionEnded] = useState(false);
   const [resonanceLevel, setResonanceLevel] = useState(88);
   const [vibrationalStatus, setVibrationalStatus] = useState('Synchronizing...');
   const [messages, setMessages] = useState([
@@ -26,9 +30,9 @@ const LiveResonancePortal = ({ user, session, onClose }) => {
   
   // Healer Specific States
   const isHealer = user?.role === 'healer' || user?.role === 'owner';
-  const [isLive, setIsLive] = useState(false);
+  const [isLive, setIsLive] = useState(true);
   const [seekerWaiting, setSeekerWaiting] = useState(true);
-  const [seekerAdmitted, setSeekerAdmitted] = useState(false);
+  const [seekerAdmitted, setSeekerAdmitted] = useState(true);
 
   // Gating & WebRTC States
   const [waitingRoomConsent, setWaitingRoomConsent] = useState(false);
@@ -189,6 +193,38 @@ const LiveResonancePortal = ({ user, session, onClose }) => {
     setMessages([...messages, newMessage]);
     setInputText('');
   };
+
+  if (sessionEnded) {
+    return (
+      <PostSessionReflection
+        session={session}
+        user={user}
+        onOpenVoiceStudio={onOpenVoiceStudio}
+        onClose={onClose}
+      />
+    );
+  }
+
+  if (!waitingRoomConsent) {
+    return (
+      <div style={{
+        position: 'fixed',
+        inset: 0,
+        zIndex: 20000,
+        background: '#05050a',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        padding: '1.5rem'
+      }}>
+        <SacredWaitingRoom
+          session={session}
+          user={user}
+          onConsentAcknowledged={() => setWaitingRoomConsent(true)}
+        />
+      </div>
+    );
+  }
 
   return (
     <motion.div 
@@ -556,15 +592,12 @@ const LiveResonancePortal = ({ user, session, onClose }) => {
 
                      <div style={{ display: 'flex', gap: '1rem' }}>
                           <ControlCircle icon={MessageSquare} onClick={() => setShowChat(!showChat)} status={showChat ? 'active' : 'idle'} />
-                          {isHealer && (
-                             <ControlCircle 
-                                icon={X} 
-                                onClick={onClose} 
-                                status="danger" 
-                                title="End Session"
-                             />
-                          )}
-                          {!isHealer && <ControlCircle icon={Maximize} />}
+                          <ControlCircle 
+                             icon={X} 
+                             onClick={() => setSessionEnded(true)} 
+                             status="danger" 
+                             title="End Session & Reflect"
+                          />
                      </div>
                 </div>
             </div>
