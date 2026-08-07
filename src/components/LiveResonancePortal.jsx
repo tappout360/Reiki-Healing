@@ -201,6 +201,54 @@ const LiveResonancePortal = ({ user, session, onClose, onOpenVoiceStudio }) => {
   const handleSendMessage = (e) => {
     e.preventDefault();
     if (!inputText.trim()) return;
+
+    const lowerText = inputText.toLowerCase();
+    const hasProfanity = PROFANITY_LIST.some(word => lowerText.includes(word));
+
+    if (hasProfanity) {
+      const nextOffense = offenseCount + 1;
+      setOffenseCount(nextOffense);
+
+      if (nextOffense === 1) {
+        setModerationWarning('⚠️ Warning 1/2: Sacred Space Policy. Profanity detected. Please maintain harmonic group alignment. A 2nd offense will remove you from this session.');
+        toast.error('Warning 1/2: Sacred Space Policy. Profanity detected.');
+        
+        // Log Audit Warning
+        fetch('/api/db/audit-logs', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            actorName: user?.name || 'Participant',
+            actorEmail: user?.email || 'seeker@reikiandsage.com',
+            category: 'MODERATION',
+            action: 'Profanity Warning (1st Offense)',
+            details: `Triggered profanity warning in Group Session: "${inputText}"`
+          })
+        }).catch(() => {});
+      } else {
+        toast.error('2nd Offense: You have been removed from the session for violating group space standards.');
+        
+        // Log Audit Kick
+        fetch('/api/db/audit-logs', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            actorName: user?.name || 'Participant',
+            actorEmail: user?.email || 'seeker@reikiandsage.com',
+            category: 'MODERATION',
+            action: 'Removed from Group Session (2nd Offense)',
+            details: `Auto-removed from group video call due to repeated profanity.`
+          })
+        }).catch(() => {});
+
+        // Close session for offender without disrupting room for remaining participants
+        onClose();
+        return;
+      }
+      setInputText('');
+      return;
+    }
+
     const newMessage = {
       id: Date.now(),
       sender: user.name || 'Seeker',

@@ -76,79 +76,88 @@ const SubscriptionPage = ({ onClose, onUpgrade }) => {
           <div className="container" style={{maxWidth: '1000px'}}>
               <h2 style={{textAlign: 'center', fontSize: '2.5rem', marginBottom: '4rem', color: 'var(--accent-gold)'}}>Choose Your Path</h2>
               
-              <div style={{display: 'flex', gap: '2rem', justifyContent: 'center', flexWrap: 'wrap'}}>
-                  {/* Seeker Plan */}
-                  <div className="glass" style={{padding: '3rem', border: '1px solid rgba(255,255,255,0.1)', display: 'flex', flexDirection: 'column', width: '400px'}}>
-                      <h3 style={{fontSize: '2rem', marginBottom: '0.5rem'}}>Seeker</h3>
-                      <div style={{fontSize: '3rem', fontWeight: 'bold', marginBottom: '2rem'}}>Free</div>
-                      <ul style={{listStyle: 'none', padding: 0, marginBottom: 'auto'}}>
-                          {['Access to Daily Affirmations', 'Limited Healing Protocols (Visuals)', 'Community Insights', 'Basic Aura Guidelines'].map(feature => (
-                              <li key={feature} style={{display: 'flex', gap: '10px', marginBottom: '1rem', color: 'var(--text-muted)'}}>
-                                  <Check size={20} color="var(--text-muted)" /> {feature}
+              <div style={{display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '1.5rem', justifyContent: 'center'}}>
+                  {/* Free Plan */}
+                  <div className="glass" style={{padding: '2rem', border: '1px solid rgba(255,255,255,0.1)', display: 'flex', flexDirection: 'column'}}>
+                      <h3 style={{fontSize: '1.5rem', marginBottom: '0.25rem'}}>Free</h3>
+                      <div style={{fontSize: '2.5rem', fontWeight: 'bold', marginBottom: '1.5rem'}}>
+                          $0<span style={{fontSize: '0.85rem', opacity: 0.6}}>/mo</span>
+                      </div>
+                      <ul style={{listStyle: 'none', padding: 0, marginBottom: 'auto', fontSize: '0.82rem'}}>
+                          {['Basic Profile', 'Introductory Video Lessons', 'Soft Upgrade Prompts', 'No Group Sessions', 'No Gamification'].map(feature => (
+                              <li key={feature} style={{display: 'flex', gap: '8px', marginBottom: '0.75rem', color: 'var(--text-muted)'}}>
+                                  <Check size={16} color="var(--text-muted)" /> {feature}
                               </li>
                           ))}
                       </ul>
-                      <button className="btn" style={{marginTop: '2rem', background: 'rgba(255,255,255,0.1)', color: 'white'}} onClick={onClose}>
-                          Continue as Seeker
+                      <button className="btn" style={{marginTop: '1.5rem', background: 'rgba(255,255,255,0.1)', color: 'white', fontSize: '0.85rem'}} onClick={onClose}>
+                          Current Plan
                       </button>
                   </div>
 
-                  {/* Dynamic Healing Plans */}
-                  {(() => {
-                      const advancedPlans = JSON.parse(localStorage.getItem('aura_plans_advanced') || '{}');
-                      const simplePricing = JSON.parse(localStorage.getItem('aura_pricing') || '{"1_month": 22, "3_month": 55, "1_year": 188}');
-                      const labels = { '1_month': 'Monthly', '3_month': 'Quarterly', '6_month': 'Biannual', '1_year': 'Annual' };
+                  {/* Seeker Plan */}
+                  <div className="glass" style={{padding: '2rem', border: '1px solid rgba(255,255,255,0.2)', display: 'flex', flexDirection: 'column'}}>
+                      <h3 style={{fontSize: '1.5rem', marginBottom: '0.25rem', color: '#50e3c2'}}>Seeker</h3>
+                      <div style={{fontSize: '2.5rem', fontWeight: 'bold', marginBottom: '1.5rem'}}>
+                          $11<span style={{fontSize: '0.85rem', opacity: 0.6}}>/mo</span>
+                      </div>
+                      <ul style={{listStyle: 'none', padding: 0, marginBottom: 'auto', fontSize: '0.82rem'}}>
+                          {['Full Profile Customization', 'In-App Gamification (Streaks & Badges)', 'Energetic Avatar Progression', 'Expanded Video & Lesson Library', 'Basic Community Access'].map(feature => (
+                              <li key={feature} style={{display: 'flex', gap: '8px', marginBottom: '0.75rem'}}>
+                                  <Check size={16} color="#50e3c2" /> {feature}
+                              </li>
+                          ))}
+                      </ul>
+                      <button className="btn btn-primary" style={{marginTop: '1.5rem', background: '#50e3c2', color: '#000', fontSize: '0.85rem'}} onClick={() => onUpgrade('seeker')}>
+                          Upgrade to Seeker
+                      </button>
+                  </div>
 
-                      // Filter enabled plans
-                      const activeEntries = Object.entries(simplePricing).filter(([id]) => {
-                          // If enabled is not explicitly set to false, it's enabled
-                          return advancedPlans[id]?.enabled !== false;
-                      });
+                  {/* Resonant Plan (Highest Consumer Tier) */}
+                  <div className="glass" style={{
+                      padding: '2rem', 
+                      border: '2px solid var(--accent-gold)', 
+                      position: 'relative', 
+                      display: 'flex', 
+                      flexDirection: 'column', 
+                      background: 'rgba(212, 175, 55, 0.08)'
+                  }}>
+                      <div style={{position: 'absolute', top: 0, right: 0, background: 'var(--accent-gold)', color: 'black', padding: '0.3rem 0.8rem', fontSize: '0.7rem', fontWeight: 'bold', borderRadius: '0 0 0 8px'}}>
+                          HIGHEST CONSUMER TIER
+                      </div>
+                      <h3 style={{fontSize: '1.5rem', marginBottom: '0.25rem', color: 'var(--accent-gold)'}}>Resonant</h3>
+                      <div style={{fontSize: '2.5rem', fontWeight: 'bold', marginBottom: '1.5rem', color: 'var(--accent-gold)'}}>
+                          $22<span style={{fontSize: '0.85rem', opacity: 0.6}}>/mo</span>
+                      </div>
+                      <ul style={{listStyle: 'none', padding: 0, marginBottom: 'auto', fontSize: '0.82rem'}}>
+                          {['Full Access to ALL Videos & Lessons', 'Create Group Calendar Invites', 'Host Group Video Healing Sessions', 'Max Gamification & Priority Access', 'Unlimited Scalar Wave Audio'].map(feature => (
+                              <li key={feature} style={{display: 'flex', gap: '8px', marginBottom: '0.75rem', color: '#fff'}}>
+                                  <Check size={16} color="var(--accent-gold)" /> {feature}
+                              </li>
+                          ))}
+                      </ul>
+                      <button className="btn btn-primary" style={{marginTop: '1.5rem', width: '100%', fontSize: '0.85rem'}} onClick={() => onUpgrade('1_month')}>
+                          Become Resonant
+                      </button>
+                  </div>
 
-                      // Fallback: Always show at least 1 month if nothing else is enabled
-                      if (activeEntries.length === 0) {
-                          activeEntries.push(['1_month', simplePricing['1_month'] || 22]);
-                      }
-
-                      const resonantPlan = activeEntries.find(e => e[0] === '6_month')?.[0] || 
-                                           activeEntries.find(e => e[0] === '3_month')?.[0] || 
-                                           activeEntries[0][0];
-
-                      return activeEntries.map(([duration, price]) => (
-                        <div key={duration} className="glass" style={{
-                            padding: '3rem', 
-                            border: duration === resonantPlan ? '2px solid var(--accent-gold)' : '1px solid rgba(255,255,255,0.1)', 
-                            position: 'relative', 
-                            display: 'flex', 
-                            flexDirection: 'column', 
-                            background: duration === resonantPlan ? 'rgba(212, 175, 55, 0.05)' : 'transparent',
-                            width: '400px'
-                        }}>
-                            {duration === resonantPlan && (
-                                <div style={{position: 'absolute', top: 0, right: 0, background: 'var(--accent-gold)', color: 'black', padding: '0.5rem 1rem', fontSize: '0.8rem', fontWeight: 'bold', borderRadius: '0 0 0 10px'}}>
-                                    MOST RESONANT
-                                </div>
-                            )}
-                            <h3 style={{fontSize: '2rem', marginBottom: '0.5rem', color: duration === resonantPlan ? 'var(--accent-gold)' : 'inherit'}}>
-                                Healing ({labels[duration]})
-                            </h3>
-                            <div style={{fontSize: '3rem', fontWeight: 'bold', marginBottom: '2rem'}}>
-                                ${price}
-                                <span style={{fontSize: '1rem', opacity: 0.6}}>/{duration.includes('month') ? duration.replace('_month', ' mo') : 'yr'}</span>
-                            </div>
-                            <ul style={{listStyle: 'none', padding: 0, marginBottom: 'auto'}}>
-                                {['Everything in Seeker', 'Unlimited Audio Resonance (528Hz+)', 'Priority Healer Chat', 'Personalized Energy Wave Tracking', 'Cancel Anytime'].map(feature => (
-                                    <li key={feature} style={{display: 'flex', gap: '10px', marginBottom: '1rem'}}>
-                                        <Check size={20} color={duration === resonantPlan ? "var(--accent-gold)" : "var(--text-muted)"} /> {feature}
-                                    </li>
-                                ))}
-                            </ul>
-                            <button className={duration === resonantPlan ? "btn btn-primary" : "btn"} style={{marginTop: '2rem', width: '100%'}} onClick={() => onUpgrade(duration)}>
-                                Upgrade Now
-                            </button>
-                        </div>
-                      ));
-                  })()}
+                  {/* Healing Tier (Professional Role) */}
+                  <div className="glass" style={{padding: '2rem', border: '1px solid #9b59b6', display: 'flex', flexDirection: 'column'}}>
+                      <h3 style={{fontSize: '1.5rem', marginBottom: '0.25rem', color: '#9b59b6'}}>Healing Tier</h3>
+                      <div style={{fontSize: '1.1rem', fontWeight: 'bold', marginBottom: '1.5rem', color: '#9b59b6'}}>
+                          Professional Practitioner
+                      </div>
+                      <ul style={{listStyle: 'none', padding: 0, marginBottom: 'auto', fontSize: '0.82rem'}}>
+                          {['Accept 1:1 & Group Client Bookings', 'Direct Stripe Connect Payouts', '100% Tips Retained ($0 App Fee)', 'Personalized Schedule Manager', 'Requires Application Approval'].map(feature => (
+                              <li key={feature} style={{display: 'flex', gap: '8px', marginBottom: '0.75rem'}}>
+                                  <Check size={16} color="#9b59b6" /> {feature}
+                              </li>
+                          ))}
+                      </ul>
+                      <button className="btn" style={{marginTop: '1.5rem', background: 'rgba(155, 89, 182, 0.15)', border: '1px solid #9b59b6', color: '#9b59b6', fontSize: '0.85rem'}} onClick={onClose}>
+                          Apply to Join Team
+                      </button>
+                  </div>
               </div>
           </div>
       </section>
