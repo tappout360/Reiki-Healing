@@ -54,6 +54,7 @@ const HealerApplicationModal = ({ user, onClose }) => {
         birthDate: formData.birthDate,
         motivation: formData.motivation,
         experience: formData.experience,
+        requiresTopTierSubscription: true,
         userId: isFirebaseConfigured() ? auth.getUser()?.uid || null : null,
         status: 'Pending',
         date: new Date().toISOString().split('T')[0]

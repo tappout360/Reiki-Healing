@@ -83,8 +83,25 @@ const CHAKRA_VIDEOS = [
   }
 ];
 
-const ChakraVideoVisualizer = ({ onClose }) => {
-  const [currentIndex, setCurrentIndex] = useState(2); // Default to Solar Plexus (528Hz)
+const getISOWeek = (d = new Date()) => {
+  const date = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
+  date.setUTCDate(date.getUTCDate() + 4 - (date.getUTCDay() || 7));
+  const yearStart = new Date(Date.UTC(date.getUTCFullYear(), 0, 1));
+  return Math.ceil((((date - yearStart) / 86400000) + 1) / 7);
+};
+
+const ChakraVideoVisualizer = ({ onClose, user, onOpenSubscription }) => {
+  const weekNum = getISOWeek();
+  const freeIdx1 = (weekNum * 2) % 7;
+  const freeIdx2 = (weekNum * 2 + 1) % 7;
+  const freeWeeklyIndices = [freeIdx1, freeIdx2];
+
+  const userTier = (user?.tier || user?.subscriptionTier || 'free').toLowerCase();
+  const isPaidSubscriber = ['seeker', 'resonant', 'healing', 'healer', 'admin', 'owner'].includes(userTier);
+
+  // Initial index defaults to first free weekly chakra for free tier, or 2 for paid
+  const initialIdx = isPaidSubscriber ? 2 : freeIdx1;
+  const [currentIndex, setCurrentIndex] = useState(initialIdx);
   const [isPlaying, setIsPlaying] = useState(false);
   const [volume, setVolume] = useState(0.75);
   const [binauralTheta, setBinauralTheta] = useState(true);
@@ -92,6 +109,15 @@ const ChakraVideoVisualizer = ({ onClose }) => {
   const [controlsMinimized, setControlsMinimized] = useState(false);
 
   const activeChakra = CHAKRA_VIDEOS[currentIndex];
+
+  const handleSelectChakra = (idx) => {
+    if (isPaidSubscriber || freeWeeklyIndices.includes(idx)) {
+      setCurrentIndex(idx);
+    } else {
+      toast.error('🔒 Free Tier is limited to 2 weekly rotated Chakra videos. Upgrade to Seeker ($11/mo) to unlock all 7!');
+      if (onOpenSubscription) onOpenSubscription();
+    }
+  };
 
   const audioCtxRef = useRef(null);
   const oscRef = useRef(null);
@@ -448,27 +474,35 @@ const ChakraVideoVisualizer = ({ onClose }) => {
               </button>
 
           <div style={{ flex: 1, display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: '0.4rem' }}>
-            {CHAKRA_VIDEOS.map((c, i) => (
-              <button
-                key={c.id}
-                onClick={() => setCurrentIndex(i)}
-                style={{
-                  padding: '0.65rem 0.25rem',
-                  borderRadius: '12px',
-                  border: currentIndex === i ? `2px solid ${c.color}` : '1px solid rgba(255,255,255,0.1)',
-                  background: currentIndex === i ? 'rgba(255,255,255,0.12)' : 'rgba(0,0,0,0.3)',
-                  color: '#fff',
-                  cursor: 'pointer',
-                  textAlign: 'center',
-                  transition: 'all 0.2s'
-                }}
-              >
-                <div style={{ fontSize: '0.9rem', fontWeight: 'bold', color: c.color }}>{c.freqLabel}</div>
-                <div style={{ fontSize: '0.65rem', opacity: 0.7, marginTop: '2px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                  {c.name.split(' ')[0]}
-                </div>
-              </button>
-            ))}
+            {CHAKRA_VIDEOS.map((c, i) => {
+              const isFreeThisWeek = freeWeeklyIndices.includes(i);
+              const isLocked = !isPaidSubscriber && !isFreeThisWeek;
+              return (
+                <button
+                  key={c.id}
+                  onClick={() => handleSelectChakra(i)}
+                  style={{
+                    padding: '0.65rem 0.25rem',
+                    borderRadius: '12px',
+                    border: currentIndex === i ? `2px solid ${c.color}` : '1px solid rgba(255,255,255,0.1)',
+                    background: currentIndex === i ? 'rgba(255,255,255,0.12)' : 'rgba(0,0,0,0.3)',
+                    color: '#fff',
+                    cursor: 'pointer',
+                    textAlign: 'center',
+                    transition: 'all 0.2s',
+                    position: 'relative',
+                    opacity: isLocked ? 0.6 : 1.0
+                  }}
+                >
+                  <div style={{ fontSize: '0.9rem', fontWeight: 'bold', color: c.color }}>
+                    {isLocked ? '🔒' : c.freqLabel}
+                  </div>
+                  <div style={{ fontSize: '0.65rem', opacity: 0.7, marginTop: '2px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                    {c.name.split(' ')[0]}
+                  </div>
+                </button>
+              );
+            })}
           </div>
 
           <button

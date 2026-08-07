@@ -47,6 +47,7 @@ const SonicSoundBaths = safeLazy(() => import('./components/SonicSoundBaths'));
 const BiofieldPulse = safeLazy(() => import('./components/BiofieldPulse'));
 const VoiceReflectionStudio = safeLazy(() => import('./components/VoiceReflectionStudio'));
 const AIAvatarDropBox = safeLazy(() => import('./components/AIAvatarDropBox'));
+const FreeCarissaMeditation = safeLazy(() => import('./components/FreeCarissaMeditation'));
 import DuckingAudioPlayer from './components/DuckingAudioPlayer';
 import BillingForm from './components/BillingForm';
 import { LanguageProvider, useLanguage } from './contexts/LanguageContext';
@@ -3563,6 +3564,10 @@ const [showCheckoutModal, setShowCheckoutModal] = useState(false);
           </button>
         </div>
       )}
+
+      <Suspense fallback={null}>
+        <FreeCarissaMeditation onOpenSubscription={() => setShowSubscriptionModal(true)} />
+      </Suspense>
 
       <SacredReflections />
       

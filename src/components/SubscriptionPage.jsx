@@ -148,14 +148,14 @@ const SubscriptionPage = ({ onClose, onUpgrade }) => {
                           Professional Practitioner
                       </div>
                       <ul style={{listStyle: 'none', padding: 0, marginBottom: 'auto', fontSize: '0.82rem'}}>
-                          {['Accept 1:1 & Group Client Bookings', 'Direct Stripe Connect Payouts', '100% Tips Retained ($0 App Fee)', 'Personalized Schedule Manager', 'Requires Application Approval'].map(feature => (
+                          {['Mandatory Top-Tier Subscription Required', 'Accept 1:1 & Group Client Bookings', 'Direct Stripe Connect Payouts', '100% Tips Retained ($0 App Fee)', 'Personalized Schedule Manager', 'Requires Master Approval'].map(feature => (
                               <li key={feature} style={{display: 'flex', gap: '8px', marginBottom: '0.75rem'}}>
                                   <Check size={16} color="#9b59b6" /> {feature}
                               </li>
                           ))}
                       </ul>
                       <button className="btn" style={{marginTop: '1.5rem', background: 'rgba(155, 89, 182, 0.15)', border: '1px solid #9b59b6', color: '#9b59b6', fontSize: '0.85rem'}} onClick={onClose}>
-                          Apply to Join Team
+                          Apply to Join Team (Top Tier)
                       </button>
                   </div>
               </div>
