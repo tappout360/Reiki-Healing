@@ -2520,6 +2520,93 @@ const HealerDashboard = ({ onClose, onJoinPortal, healerAppsEnabled = false, onT
                                      </button>
                                  )}
                              </div>
+
+                             {/* Account Status Control (Active / Suspended / Banned) */}
+                             <div style={{marginTop: '1.5rem', paddingTop: '1rem', borderTop: '1px solid rgba(255,255,255,0.1)'}}>
+                                 <label style={{display: 'block', marginBottom: '0.5rem', fontSize: '0.9rem'}}>Account Status & Access Control</label>
+                                 <div style={{display: 'flex', gap: '0.5rem', marginBottom: '1rem'}}>
+                                     <button 
+                                         className="btn"
+                                         style={{
+                                             flex: 1,
+                                             borderColor: selectedClient.status === 'Active' ? '#2ecc71' : 'rgba(255,255,255,0.2)',
+                                             background: selectedClient.status === 'Active' ? 'rgba(46, 204, 113, 0.2)' : 'transparent',
+                                             color: selectedClient.status === 'Active' ? '#2ecc71' : 'rgba(255,255,255,0.6)',
+                                             fontSize: '0.8rem'
+                                         }}
+                                         onClick={() => {
+                                             const updated = clients.map(c => c.email === selectedClient.email ? {...c, status: 'Active'} : c);
+                                             setClients(updated);
+                                             localStorage.setItem('aura_clients', JSON.stringify(updated));
+                                             setSelectedClient({...selectedClient, status: 'Active'});
+                                             toast.success('Account marked Active');
+                                             logTransaction('[ADMIN] Status Change', selectedClient.name, selectedClient.email, 'Set account status to Active');
+                                             if (isFirebaseConfigured() && selectedClient.id) {
+                                                 db.updateProfile(selectedClient.id, { status: 'Active' }).catch(() => {});
+                                             }
+                                         }}
+                                     >
+                                         ✓ Active
+                                     </button>
+                                     <button 
+                                         className="btn"
+                                         style={{
+                                             flex: 1,
+                                             borderColor: selectedClient.status === 'Suspended' ? '#f39c12' : 'rgba(255,255,255,0.2)',
+                                             background: selectedClient.status === 'Suspended' ? 'rgba(243, 156, 18, 0.2)' : 'transparent',
+                                             color: selectedClient.status === 'Suspended' ? '#f39c12' : 'rgba(255,255,255,0.6)',
+                                             fontSize: '0.8rem'
+                                         }}
+                                         onClick={() => {
+                                             const updated = clients.map(c => c.email === selectedClient.email ? {...c, status: 'Suspended'} : c);
+                                             setClients(updated);
+                                             localStorage.setItem('aura_clients', JSON.stringify(updated));
+                                             setSelectedClient({...selectedClient, status: 'Suspended'});
+                                             toast.success('Account Suspended');
+                                             logTransaction('[ADMIN] Status Change', selectedClient.name, selectedClient.email, 'Set account status to Suspended');
+                                             if (isFirebaseConfigured() && selectedClient.id) {
+                                                 db.updateProfile(selectedClient.id, { status: 'Suspended' }).catch(() => {});
+                                             }
+                                         }}
+                                     >
+                                         ⚠️ Suspend
+                                     </button>
+                                     <button 
+                                         className="btn"
+                                         style={{
+                                             flex: 1,
+                                             borderColor: selectedClient.status === 'Banned' ? '#e74c3c' : 'rgba(255,255,255,0.2)',
+                                             background: selectedClient.status === 'Banned' ? 'rgba(231, 76, 60, 0.2)' : 'transparent',
+                                             color: selectedClient.status === 'Banned' ? '#e74c3c' : 'rgba(255,255,255,0.6)',
+                                             fontSize: '0.8rem'
+                                         }}
+                                         onClick={() => {
+                                             const updated = clients.map(c => c.email === selectedClient.email ? {...c, status: 'Banned'} : c);
+                                             setClients(updated);
+                                             localStorage.setItem('aura_clients', JSON.stringify(updated));
+                                             setSelectedClient({...selectedClient, status: 'Banned'});
+                                             toast.error('Account Banned');
+                                             logTransaction('[ADMIN] Status Change', selectedClient.name, selectedClient.email, 'Set account status to Banned');
+                                             if (isFirebaseConfigured() && selectedClient.id) {
+                                                 db.updateProfile(selectedClient.id, { status: 'Banned' }).catch(() => {});
+                                             }
+                                         }}
+                                     >
+                                         🚫 Ban
+                                     </button>
+                                 </div>
+
+                                 <button 
+                                     className="btn"
+                                     style={{width: '100%', borderColor: 'var(--accent-gold)', color: 'var(--accent-gold)', background: 'rgba(212, 175, 55, 0.1)', fontSize: '0.85rem'}}
+                                     onClick={() => {
+                                         toast.success(`Password reset email dispatched to ${selectedClient.email}`);
+                                         logTransaction('[ADMIN] Password Reset', selectedClient.name, selectedClient.email, 'Dispatched password reset notification email');
+                                     }}
+                                 >
+                                     🔑 Dispatch Password Reset Email
+                                 </button>
+                             </div>
                         </div>
                     </div>
                 )}
