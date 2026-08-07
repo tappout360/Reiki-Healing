@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { motion } from 'framer-motion';
-import { Play, Pause, Volume2, VolumeX, Sparkles, X, Clock, Disc } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Play, Pause, Volume2, VolumeX, Sparkles, X, Clock, Disc, Video } from 'lucide-react';
 import { toast } from 'react-hot-toast';
+import ChakraVideoVisualizer from './ChakraVideoVisualizer';
 
 const SOLFEGGIO_FREQUENCIES = [
   { freq: 432, name: '432 Hz', title: 'Universal Harmony & Calm', color: '#4a90e2', desc: 'Encodes natural acoustic resonance, soothing anxiety and aligning the physical biofield.' },
@@ -12,6 +13,7 @@ const SOLFEGGIO_FREQUENCIES = [
 ];
 
 const SonicSoundBaths = ({ onClose }) => {
+  const [showChakraVideo, setShowChakraVideo] = useState(false);
   const [selectedFreq, setSelectedFreq] = useState(SOLFEGGIO_FREQUENCIES[1]); // 528Hz default
   const [isPlaying, setIsPlaying] = useState(false);
   const [volume, setVolume] = useState(0.7);
@@ -340,6 +342,26 @@ const SonicSoundBaths = ({ onClose }) => {
           </button>
 
           <button
+            onClick={() => setShowChakraVideo(true)}
+            style={{
+              padding: '0.75rem',
+              borderRadius: '12px',
+              border: '1px solid #00F5D4',
+              background: 'rgba(0, 245, 212, 0.15)',
+              color: '#00F5D4',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '8px',
+              fontSize: '0.85rem',
+              fontWeight: 'bold'
+            }}
+          >
+            <Video size={16} /> 🎬 8K Chakra Video Studio
+          </button>
+
+          <button
             onClick={strikeSingingBowl}
             style={{
               padding: '0.75rem',
@@ -391,6 +413,12 @@ const SonicSoundBaths = ({ onClose }) => {
           </button>
         </div>
       </div>
+
+      <AnimatePresence>
+        {showChakraVideo && (
+          <ChakraVideoVisualizer onClose={() => setShowChakraVideo(false)} />
+        )}
+      </AnimatePresence>
     </motion.div>
   );
 };
