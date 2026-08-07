@@ -29,6 +29,7 @@ const HealingActionBar = safeLazy(() => import('./components/HealingActionBar'))
 const AIHealerInterface = safeLazy(() => import('./components/AIHealerInterface'));
 const BookingInterface = safeLazy(() => import('./components/BookingInterface'));
 const HealerDashboard = safeLazy(() => import('./components/HealerDashboard'));
+const StaffHealerDashboard = safeLazy(() => import('./components/StaffHealerDashboard'));
 const AdminLogin = safeLazy(() => import('./components/AdminLogin'));
 const ScienceModal = safeLazy(() => import('./components/ScienceModal'));
 const AuraGuide = safeLazy(() => import('./components/AuraGuide'));
@@ -3808,10 +3809,26 @@ const [showCheckoutModal, setShowCheckoutModal] = useState(false);
         </AnimatePresence>
       </Suspense>
 
-      {/* Healer Dashboard (Immersive Management) */}
+      {/* Healer Dashboard (Master Owner vs Staff Healer) */}
       <Suspense fallback={<LoadingSpinner />}>
         <AnimatePresence>
-          {showHealerDashboard && (
+          {showHealerDashboard && user?.role === 'healer' && (
+            <StaffHealerDashboard
+              user={user}
+              onLogout={() => {
+                setShowHealerDashboard(false);
+                setUser(null);
+                localStorage.removeItem('user_profile');
+                toast.success('Signed out of Staff Dashboard');
+              }}
+              onLaunchVideoRoom={(bookingSession) => {
+                setShowHealerDashboard(false);
+                setActiveSession(bookingSession);
+                setShowLivePortal(true);
+              }}
+            />
+          )}
+          {showHealerDashboard && user?.role !== 'healer' && (
             <HealerDashboard 
               onClose={() => setShowHealerDashboard(false)} 
               healerAppsEnabled={healerAppsEnabled}

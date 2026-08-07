@@ -2350,7 +2350,7 @@ const HealerDashboard = ({ onClose, onJoinPortal, healerAppsEnabled = false, onT
                           <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Print physical intake forms containing the FDA and medical consent disclaimer for in-person clients.</span>
                         </div>
                       </div>
-                      
+
                       {/* Print Generator Button */}
                       <button
                         onClick={handlePrintIntake}
@@ -2368,6 +2368,35 @@ const HealerDashboard = ({ onClose, onJoinPortal, healerAppsEnabled = false, onT
                       >
                         <FileText size={16} /> Print Client Intake Form & Waiver
                       </button>
+                    </div>
+                  </div>
+                </div>
+
+                {/* 4. Sanctuary Core Features & System Upgrades */}
+                <div className="glass" style={{ padding: '1.5rem', gridColumn: 'span 2' }}>
+                  <h3 style={{ color: '#50e3c2', marginBottom: '1.2rem', display: 'flex', alignItems: 'center', gap: '10px' }}>
+                    <Activity size={18} /> 4. Sanctuary Core Features & System Upgrades (100% Completed)
+                  </h3>
+
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '1rem', fontSize: '0.85rem' }}>
+                    <div style={{ background: 'rgba(80,227,194,0.08)', border: '1px solid rgba(80,227,194,0.3)', padding: '1rem', borderRadius: '12px' }}>
+                      <strong style={{ color: '#50e3c2', display: 'block' }}>✓ Daily.co Live Video Sanctuary</strong>
+                      <span style={{ fontSize: '0.78rem', color: 'rgba(255,255,255,0.7)' }}>Custom Sacred Waiting Room, 528Hz drone audio, zero-PHI compliance gate & post-session reflection flow.</span>
+                    </div>
+
+                    <div style={{ background: 'rgba(80,227,194,0.08)', border: '1px solid rgba(80,227,194,0.3)', padding: '1rem', borderRadius: '12px' }}>
+                      <strong style={{ color: '#50e3c2', display: 'block' }}>✓ Biofield Pulse Web Bluetooth Scanner</strong>
+                      <span style={{ fontSize: '0.78rem', color: 'rgba(255,255,255,0.7)' }}>Pairs with BLE Heart Rate Monitors (0x180D), calculates RMSSD/SDNN live, with visual camera fallback.</span>
+                    </div>
+
+                    <div style={{ background: 'rgba(80,227,194,0.08)', border: '1px solid rgba(80,227,194,0.3)', padding: '1rem', borderRadius: '12px' }}>
+                      <strong style={{ color: '#50e3c2', display: 'block' }}>✓ Remote Staff Healer Dashboard</strong>
+                      <span style={{ fontSize: '0.78rem', color: 'rgba(255,255,255,0.7)' }}>Staff scheduling grid, timezone selector, app fee analytics (15%), Stripe Connect Express fast payouts, and 1099 compliance.</span>
+                    </div>
+
+                    <div style={{ background: 'rgba(80,227,194,0.08)', border: '1px solid rgba(80,227,194,0.3)', padding: '1rem', borderRadius: '12px' }}>
+                      <strong style={{ color: '#50e3c2', display: 'block' }}>✓ MongoDB Serverless Backend Suite</strong>
+                      <span style={{ fontSize: '0.78rem', color: 'rgba(255,255,255,0.7)' }}>Full API endpoints for bookings, profiles, stories, applications, session logs, consents, and payouts.</span>
                     </div>
                   </div>
                 </div>
