@@ -23,9 +23,9 @@ export const translations = {
     name_sage: "Sage Purification Protocol",
     desc_sage: "Advanced 10-minute immersive meditation. Clears deep-seated stress and resets vibrational baseline through sacred smoke and ocean resonance.",
     name_reiki: "Reiki Sacred Alignment",
-    desc_reiki: "Immersive 15-minute guided Reiki healing journey. Carissa's gentle voice leads you through universal life force energy alignment and deep restoration.",
+    desc_reiki: "Immersive 15-minute guided Reiki healing journey. Master Healer Carissa Bright's gentle voice leads you through universal life force energy alignment and deep restoration.",
     name_celestial: "Celestial Fantasia",
-    desc_celestial: "15-minute cinematic \"Zodiac Awakening\" — Carissa guides you through a Fantasia-inspired orchestra of gemstones, constellations, and healing aura.",
+    desc_celestial: "15-minute cinematic \"Zodiac Awakening\" — Master Healer Carissa Bright guides you through a Fantasia-inspired orchestra of gemstones, constellations, and healing aura.",
     
     // Navigation
     navPhilosophy: "Philosophy",

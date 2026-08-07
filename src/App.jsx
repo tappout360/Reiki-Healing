@@ -324,7 +324,7 @@ const protocols = [
     ],
     audio: '', // Ambient 528Hz background music
     voice: '/assets/reiki_meditation_voice.mp3',
-    desc: 'Immersive 15-minute guided Reiki healing journey. Carissa\'s gentle voice leads you through universal life force energy alignment and deep restoration.',
+    desc: 'Immersive 15-minute guided Reiki healing journey. Master Healer Carissa Bright\'s gentle voice leads you through universal life force energy alignment and deep restoration.',
     tier: 'advanced'
   },
   {
@@ -349,7 +349,7 @@ const protocols = [
     ],
     audio: '', // Ambient orchestral/ethereal background music
     voice: '/assets/celestial_meditation_voice.mp3',
-    desc: '15-minute cinematic "Zodiac Awakening" — Carissa guides you through a Fantasia-inspired orchestra of gemstones, constellations, and healing aura.',
+    desc: '15-minute cinematic "Zodiac Awakening" — Master Healer Carissa Bright guides you through a Fantasia-inspired orchestra of gemstones, constellations, and healing aura.',
     tier: 'advanced'
   }
 ];
@@ -1424,7 +1424,7 @@ const [showCheckoutModal, setShowCheckoutModal] = useState(false);
             
             <div style={{ marginTop: '2.5rem', textAlign: 'center' }}>
               <p style={{ fontSize: isMobileLayout ? '0.95rem' : '1.1rem', color: 'var(--text-muted)', lineHeight: '1.7', maxWidth: '750px', margin: '0 auto' }}>
-                Embark on a transformative journey guided by Carissa. Align your intentions, activate your inner light, and manifest your highest potential. Click play to open the immersive video portal and begin your alignment.
+                Embark on a transformative journey guided by Master Healer Carissa Bright. Align your intentions, activate your inner light, and manifest your highest potential. Click play to open the immersive video portal and begin your alignment.
               </p>
             </div>
           </div>
@@ -2186,7 +2186,7 @@ const [showCheckoutModal, setShowCheckoutModal] = useState(false);
                 <Shield size={48} color="var(--accent-gold)" style={{ marginBottom: '1.5rem', filter: 'drop-shadow(0 0 10px rgba(212,175,55,0.4))' }} />
                 <h2 style={{ fontSize: '1.8rem', marginBottom: '1rem', fontFamily: "'Playfair Display', serif" }}>AI Aura & Biofield Guide</h2>
                 <p style={{ color: 'rgba(255,255,255,0.7)', fontSize: '0.95rem', lineHeight: '1.6', marginBottom: '2rem' }}>
-                  Unlock Carissa's digital twin to analyze your chakra alignment, log energy shifts, and receive personalized spiritual remedies.
+                  Unlock Master Healer Carissa Bright's digital twin to analyze your chakra alignment, log energy shifts, and receive personalized spiritual remedies.
                 </p>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
                   <button 
@@ -3676,7 +3676,7 @@ const [showCheckoutModal, setShowCheckoutModal] = useState(false);
                 <Shield size={48} color="var(--accent-gold)" style={{ marginBottom: '1.5rem', filter: 'drop-shadow(0 0 10px rgba(212,175,55,0.4))' }} />
                 <h2 style={{ fontSize: '2rem', marginBottom: '1rem', fontFamily: "'Playfair Display', serif" }}>Guardian Tier Required</h2>
                 <p style={{ color: 'rgba(255,255,255,0.7)', fontSize: '0.95rem', lineHeight: '1.6', marginBottom: '2.5rem' }}>
-                  The AI Aura & Biofield Guide is reserved for members of our Guardian Tier. Upgrade to access Carissa's digital twin and receive advanced metaphysical alignments.
+                  The AI Aura & Biofield Guide is reserved for members of our Guardian Tier. Upgrade to access Master Healer Carissa Bright's digital twin and receive advanced metaphysical alignments.
                 </p>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
                   <button 

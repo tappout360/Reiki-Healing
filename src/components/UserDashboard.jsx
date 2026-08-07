@@ -2717,7 +2717,7 @@ const UserDashboard = ({ user, onClose, onUpdateUser, onNavigateToBooking, onNav
                                  style={{ cursor: 'pointer', width: '18px', height: '18px', accentColor: 'var(--accent-gold)' }}
                               />
                               <label htmlFor="sharePubliclyDashboard" style={{ fontSize: '0.85rem', color: 'rgba(255,255,255,0.7)', cursor: 'pointer' }}>
-                                 Share publicly on homepage (Requires Carissa's approval)
+                                 Share publicly on homepage (Requires Master Healer Carissa Bright's approval)
                               </label>
                            </div>
                            <button 

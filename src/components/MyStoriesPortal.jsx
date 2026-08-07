@@ -403,7 +403,7 @@ const MyStoriesPortal = ({ onClose }) => {
               style={{ cursor: 'pointer', width: '18px', height: '18px', accentColor: 'var(--accent-gold)' }}
             />
             <label htmlFor="sharePublicly" style={{ fontSize: '0.9rem', color: 'white', cursor: 'pointer' }}>
-              Share publicly on homepage (Requires Carissa's approval)
+              Share publicly on homepage (Requires Master Healer Carissa Bright's approval)
             </label>
           </div>
           
