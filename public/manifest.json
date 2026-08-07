@@ -1,21 +1,23 @@
 {
   "short_name": "Reiki & Sage",
-  "name": "Reiki & Sage — Healing Sanctuary",
+  "name": "Reiki & Sage — Biofield & Energy Healing Sanctuary",
   "icons": [
     {
-      "src": "/assets/icon-192.png",
+      "src": "/assets/amethyst_macro_realistic_1769877807331.png",
       "type": "image/png",
       "sizes": "192x192"
     },
     {
-      "src": "/assets/icon-512.png",
+      "src": "/assets/amethyst_macro_realistic_1769877807331.png",
       "type": "image/png",
       "sizes": "512x512"
     }
   ],
   "start_url": "/",
-  "background_color": "#050508",
-  "theme_color": "#0d0d12",
+  "background_color": "#0b0b0f",
+  "theme_color": "#0b0b0f",
   "display": "standalone",
-  "orientation": "portrait"
+  "orientation": "portrait",
+  "description": "Premium spiritual energy wellness app featuring Solfeggio sound baths, distance Reiki healing, Biofield HRV pulse tracking, and AI avatar transformations.",
+  "categories": ["lifestyle", "health", "wellness"]
 }
