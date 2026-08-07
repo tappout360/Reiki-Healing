@@ -46,6 +46,7 @@ const LearnSection = safeLazy(() => import('./components/LearnSection'));
 const SonicSoundBaths = safeLazy(() => import('./components/SonicSoundBaths'));
 const BiofieldPulse = safeLazy(() => import('./components/BiofieldPulse'));
 const VoiceReflectionStudio = safeLazy(() => import('./components/VoiceReflectionStudio'));
+const AIAvatarDropBox = safeLazy(() => import('./components/AIAvatarDropBox'));
 import DuckingAudioPlayer from './components/DuckingAudioPlayer';
 import BillingForm from './components/BillingForm';
 import { LanguageProvider, useLanguage } from './contexts/LanguageContext';
@@ -508,6 +509,7 @@ function AppContent() {
   const [showSoundBaths, setShowSoundBaths] = useState(false);
   const [showBiofieldPulse, setShowBiofieldPulse] = useState(false);
   const [showVoiceReflectionStudio, setShowVoiceReflectionStudio] = useState(false);
+  const [showAvatarDropBox, setShowAvatarDropBox] = useState(false);
   const [showLayoutDropdown, setShowLayoutDropdown] = useState(false); // Dropdown for viewport mode
   const [bookingType, setBookingType] = useState(null); 
   const [videoIndex, setVideoIndex] = useState(0);
@@ -2100,6 +2102,20 @@ const [showCheckoutModal, setShowCheckoutModal] = useState(false);
               <h4 style={{ color: '#4a90e2', marginBottom: '0.5rem', fontSize: '1rem' }}>Sonic Sound Baths</h4>
               <p style={{ fontSize: '0.78rem', color: 'var(--text-muted)', lineHeight: '1.5', margin: 0 }}>
                 Interactive 432Hz & 528Hz Solfeggio frequency generator with crystal singing bowls & rain.
+              </p>
+            </div>
+
+            {/* AI Avatar Drop-Box Card */}
+            <div 
+              className="glass" 
+              style={{ padding: '1.5rem', borderRadius: '20px', border: '1px solid #9b59b6', background: 'linear-gradient(135deg, rgba(255,255,255,0.03) 0%, rgba(155, 89, 182, 0.05) 100%)', position: 'relative', cursor: 'pointer' }}
+              onClick={() => setShowAvatarDropBox(true)}
+            >
+              <span style={{ position: 'absolute', top: '10px', right: '10px', background: '#9b59b6', color: '#fff', fontSize: '0.6rem', fontWeight: 'bold', padding: '2px 6px', borderRadius: '4px', textTransform: 'uppercase' }}>Now Live!</span>
+              <div style={{ fontSize: '1.8rem', marginBottom: '0.75rem' }}>✨</div>
+              <h4 style={{ color: '#9b59b6', marginBottom: '0.5rem', fontSize: '1rem' }}>AI Avatar Drop-Box</h4>
+              <p style={{ fontSize: '0.78rem', color: 'var(--text-muted)', lineHeight: '1.5', margin: 0 }}>
+                Drag and drop robes, crystals or attire to generate high-fidelity InstantID avatar transformations.
               </p>
             </div>
           </div>
@@ -3911,6 +3927,22 @@ const [showCheckoutModal, setShowCheckoutModal] = useState(false);
             <VoiceReflectionStudio 
               onClose={() => setShowVoiceReflectionStudio(false)}
               onSubmitted={() => setShowMyStories(true)}
+            />
+          )}
+        </AnimatePresence>
+      </Suspense>
+
+      {/* AI Avatar Drop-Box Studio Modal */}
+      <Suspense fallback={null}>
+        <AnimatePresence>
+          {showAvatarDropBox && (
+            <AIAvatarDropBox
+              user={user}
+              onClose={() => setShowAvatarDropBox(false)}
+              onAvatarUpdated={(newAvatarUrl) => {
+                setUser(prev => ({ ...(prev || {}), avatar: newAvatarUrl }));
+                toast.success('Avatar updated across Sanctuary!');
+              }}
             />
           )}
         </AnimatePresence>
