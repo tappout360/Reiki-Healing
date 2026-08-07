@@ -3,10 +3,20 @@ import { connectToDatabase } from '../lib/mongodb.js';
 
 export default async function handler(req, res) {
   try {
-    const { db } = await connectToDatabase();
-    const collection = db.collection('master_audit_logs');
+    let db, collection;
+    try {
+      const conn = await connectToDatabase();
+      db = conn.db;
+      collection = db.collection('master_audit_logs');
+    } catch {
+      console.warn('MONGODB_URI missing. Operating in simulated local audit log mode.');
+    }
 
     if (req.method === 'GET') {
+      if (!collection) {
+        return res.status(200).json({ success: true, logs: [], simulated: true });
+      }
+
       const { category, search, actorEmail } = req.query;
       const query = {};
 
@@ -34,7 +44,7 @@ export default async function handler(req, res) {
       const {
         actorName = 'System Admin',
         actorEmail = 'jasonmounts77@yahoo.com',
-        category = 'ACCOUNT_STATUS', // ACCOUNT_STATUS | ROLE_UPGRADE | PRICING_CHANGE | APPLICATION_REVIEW | PAYOUT_REQUEST | MODERATION
+        category = 'ACCOUNT_STATUS',
         action,
         targetEmail = '',
         details = ''
@@ -55,6 +65,14 @@ export default async function handler(req, res) {
         timestamp: new Date().toISOString(),
         createdAt: new Date()
       };
+
+      if (!collection) {
+        return res.status(201).json({
+          success: true,
+          simulated: true,
+          log: auditDoc
+        });
+      }
 
       const result = await collection.insertOne(auditDoc);
       return res.status(201).json({

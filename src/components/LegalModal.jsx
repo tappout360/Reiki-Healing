@@ -209,21 +209,18 @@ const TermsOfService = () => (
       immediately of any unauthorized use of your account.
     </P>
 
-    <SectionTitle>4. Subscription Plans &amp; Payments</SectionTitle>
+    <SectionTitle>4. Subscription Plans, Marketplace &amp; Payments</SectionTitle>
     <P>
-      <strong>Free Tier (Seeker):</strong> Access to basic protocols, community features, and 
-      energy tracking at no cost.
+      <strong>Free Tier:</strong> Basic profile, limited introductory content, soft upgrade prompts, no group sessions.
     </P>
     <P>
-      <strong>Healing Tier:</strong> Paid subscription providing access to advanced protocols, 
-      AI Aura Guide consultation, gamification features, and all premium content. Subscription 
-      pricing is as displayed at the time of purchase (1 Month: $22, 3 Months: $55, 6 Months: $99, 
-      1 Year: $188).
+      <strong>Seeker Tier ($11/mo):</strong> Full profile customization, in-app gamification (streaks &amp; badges), avatar progression, expanded video &amp; lesson library.
     </P>
     <P>
-      Subscriptions automatically renew at the end of each billing period unless cancelled prior 
-      to the renewal date. You may cancel at any time through your account settings. Refunds are 
-      not provided for partial billing periods, except where required by applicable law.
+      <strong>Resonant Tier ($22/mo - Highest Consumer Tier):</strong> Full access to all video lessons, creation of Group Calendar Invites, hosting group video healing sessions, and maximum gamification features.
+    </P>
+    <P>
+      <strong>Healing Tier (1099 Independent Practitioner Role):</strong> Professional practitioner role allowing healers to manage schedules and accept client bookings. Reiki &amp; Sage charges a 15% platform commission on session booking fees. <strong>Healers retain 100% of all client tips with $0 platform fee.</strong> Healers operate as independent 1099 contractors responsible for their own local business licenses, taxes, and liability insurance.
     </P>
 
     <SectionTitle>5. User Conduct</SectionTitle>
