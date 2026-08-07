@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Play, Pause, Volume2, VolumeX, Sparkles, X, Maximize2, Shield, Disc, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Play, Pause, Volume2, VolumeX, Sparkles, X, Maximize2, Minimize2, ChevronUp, ChevronDown, Disc, ChevronLeft, ChevronRight, Sliders } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 
 const CHAKRA_VIDEOS = [
@@ -89,6 +89,7 @@ const ChakraVideoVisualizer = ({ onClose }) => {
   const [volume, setVolume] = useState(0.75);
   const [binauralTheta, setBinauralTheta] = useState(true);
   const [isFullscreen, setIsFullscreen] = useState(false);
+  const [controlsMinimized, setControlsMinimized] = useState(false);
 
   const activeChakra = CHAKRA_VIDEOS[currentIndex];
 
@@ -359,7 +360,7 @@ const ChakraVideoVisualizer = ({ onClose }) => {
             background: 'rgba(5, 5, 15, 0.85)',
             backdropFilter: 'blur(15px)',
             borderRadius: '14px',
-            padding: '1rem',
+            padding: '0.85rem 1rem',
             border: '1px solid rgba(255,255,255,0.15)',
             display: 'flex',
             justifyContent: 'space-between',
@@ -374,47 +375,77 @@ const ChakraVideoVisualizer = ({ onClose }) => {
               </div>
             </div>
 
-            <button
-              onClick={isPlaying ? stopAudioResonance : startAudioResonance}
-              className="btn-primary"
-              style={{
-                padding: '0.7rem 1.75rem',
-                borderRadius: '30px',
-                background: isPlaying ? '#ff4757' : `linear-gradient(135deg, ${activeChakra.color}, #000)`,
-                border: 'none',
-                color: '#fff',
-                fontWeight: 'bold',
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '8px'
-              }}
-            >
-              {isPlaying ? <Pause size={18} /> : <Play size={18} />}
-              {isPlaying ? 'Pause Audio' : 'Play 8K Resonance'}
-            </button>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              <button
+                onClick={() => setControlsMinimized(!controlsMinimized)}
+                title={controlsMinimized ? "Restore Controls" : "Minimize Controls"}
+                style={{
+                  background: 'rgba(255,255,255,0.1)',
+                  border: '1px solid rgba(255,255,255,0.2)',
+                  color: '#fff',
+                  borderRadius: '10px',
+                  padding: '0.55rem 0.85rem',
+                  cursor: 'pointer',
+                  fontSize: '0.78rem',
+                  fontWeight: 'bold',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '6px'
+                }}
+              >
+                {controlsMinimized ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+                {controlsMinimized ? 'Restore Controls' : 'Hide Controls'}
+              </button>
+
+              <button
+                onClick={isPlaying ? stopAudioResonance : startAudioResonance}
+                className="btn-primary"
+                style={{
+                  padding: '0.65rem 1.5rem',
+                  borderRadius: '30px',
+                  background: isPlaying ? '#ff4757' : `linear-gradient(135deg, ${activeChakra.color}, #000)`,
+                  border: 'none',
+                  color: '#fff',
+                  fontWeight: 'bold',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '6px'
+                }}
+              >
+                {isPlaying ? <Pause size={16} /> : <Play size={16} />}
+                {isPlaying ? 'Pause Audio' : 'Play 8K Resonance'}
+              </button>
+            </div>
           </div>
         </div>
 
-        {/* 7-Chakra Navigation Carousel Selector */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1.25rem' }}>
-          <button
-            onClick={() => setCurrentIndex((currentIndex - 1 + CHAKRA_VIDEOS.length) % CHAKRA_VIDEOS.length)}
-            style={{
-              background: 'rgba(255,255,255,0.06)',
-              border: 'none',
-              color: '#fff',
-              borderRadius: '50%',
-              width: '36px',
-              height: '36px',
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center'
-            }}
+        {/* Minimizable Bottom Controls (Carousel & Volume Sliders) */}
+        {!controlsMinimized ? (
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: 'auto' }}
+            exit={{ opacity: 0, height: 0 }}
           >
-            <ChevronLeft size={20} />
-          </button>
+            {/* 7-Chakra Navigation Carousel Selector */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1.25rem' }}>
+              <button
+                onClick={() => setCurrentIndex((currentIndex - 1 + CHAKRA_VIDEOS.length) % CHAKRA_VIDEOS.length)}
+                style={{
+                  background: 'rgba(255,255,255,0.06)',
+                  border: 'none',
+                  color: '#fff',
+                  borderRadius: '50%',
+                  width: '36px',
+                  height: '36px',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center'
+                }}
+              >
+                <ChevronLeft size={20} />
+              </button>
 
           <div style={{ flex: 1, display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: '0.4rem' }}>
             {CHAKRA_VIDEOS.map((c, i) => (
@@ -491,9 +522,10 @@ const ChakraVideoVisualizer = ({ onClose }) => {
               onChange={(e) => setVolume(parseFloat(e.target.value))}
               style={{ flex: 1, accentColor: activeChakra.color, cursor: 'pointer' }}
             />
-            <Volume2 size={16} color={activeChakra.color} />
           </div>
         </div>
+        </motion.div>
+        ) : null}
       </div>
     </motion.div>
   );
