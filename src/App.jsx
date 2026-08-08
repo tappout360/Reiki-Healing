@@ -49,6 +49,7 @@ const VoiceReflectionStudio = safeLazy(() => import('./components/VoiceReflectio
 const AIAvatarDropBox = safeLazy(() => import('./components/AIAvatarDropBox'));
 const FreeCarissaMeditation = safeLazy(() => import('./components/FreeCarissaMeditation'));
 import DuckingAudioPlayer from './components/DuckingAudioPlayer';
+import { protocolSoundEngine } from './utils/ProtocolSoundEngine';
 import BillingForm from './components/BillingForm';
 import { LanguageProvider, useLanguage } from './contexts/LanguageContext';
 
@@ -939,24 +940,36 @@ const [showCheckoutModal, setShowCheckoutModal] = useState(false);
     });
   }, [showPortal, isPaused, videoIndex]);
 
-  // Set default carrier/beat frequencies for protocols
+  // Set default carrier/beat frequencies and start multi-layered sound bath
   useEffect(() => {
     if (selectedProtocol) {
       const protocolFreqs = {
-        amethyst: { carrier: 528, beat: 6 },
-        quartz: { carrier: 432, beat: 6 },
-        rose: { carrier: 432, beat: 10 },
-        lapis: { carrier: 528, beat: 10 },
-        citrine: { carrier: 528, beat: 15 },
-        sage: { carrier: 432, beat: 6 },
-        reiki: { carrier: 528, beat: 6 },
-        celestial: { carrier: 432, beat: 10 }
+        amethyst: { carrier: 417, beat: 6 },  // 417Hz Subconscious Cleansing
+        quartz: { carrier: 852, beat: 6 },    // 852Hz Third Eye & Crystal Lattice
+        rose: { carrier: 639, beat: 10 },     // 639Hz Heart Sync & Unconditional Love
+        lapis: { carrier: 741, beat: 10 },    // 741Hz Intuition & Truth Awakening
+        citrine: { carrier: 528, beat: 15 },  // 528Hz Transformation & Abundance
+        sage: { carrier: 396, beat: 6 },      // 396Hz Fear Clearing & Grounding
+        reiki: { carrier: 528, beat: 6 },     // 528Hz Universal Life Force Alignment
+        celestial: { carrier: 963, beat: 10 } // 963Hz Crown & Cosmic Consciousness
       };
-      const settings = protocolFreqs[selectedProtocol] || { carrier: 432, beat: 6 };
+      const settings = protocolFreqs[selectedProtocol] || { carrier: 528, beat: 6 };
       setBinauralCarrier(settings.carrier);
       setBinauralBeat(settings.beat);
+
+      if (showPortal) {
+        protocolSoundEngine.startProtocolSound(settings.carrier);
+      } else {
+        protocolSoundEngine.stopProtocolSound();
+      }
+    } else if (!showPortal) {
+      protocolSoundEngine.stopProtocolSound();
     }
-  }, [selectedProtocol]);
+
+    return () => {
+      protocolSoundEngine.stopProtocolSound();
+    };
+  }, [selectedProtocol, showPortal]);
 
   const handleUpdateUser = (updatedProfile) => {
     setUser(updatedProfile);
@@ -1470,6 +1483,7 @@ const [showCheckoutModal, setShowCheckoutModal] = useState(false);
                 setShowMeditationModal(false);
                 setMeditationConsent(false);
                 setMeditationConsentPending(false);
+                protocolSoundEngine.stopProtocolSound();
               }}
             >
               ×
@@ -1510,7 +1524,10 @@ const [showCheckoutModal, setShowCheckoutModal] = useState(false);
                 </label>
               </div>
               <button 
-                onClick={() => setMeditationConsent(true)}
+                onClick={() => {
+                  setMeditationConsent(true);
+                  protocolSoundEngine.startProtocolSound(528);
+                }}
                 disabled={!meditationConsentPending}
                 className="btn btn-primary"
                 style={{ width: '100%', padding: '1rem', opacity: meditationConsentPending ? 1 : 0.5 }}
