@@ -152,6 +152,25 @@ export const db = {
     }
   },
 
+  // --- Settings ---
+  getSettings: async (key) => {
+    try {
+      const saved = localStorage.getItem(`aura_settings_${key}`);
+      return saved ? JSON.parse(saved) : null;
+    } catch {
+      return null;
+    }
+  },
+
+  updateSettings: async (key, value) => {
+    try {
+      localStorage.setItem(`aura_settings_${key}`, JSON.stringify(value));
+      return { success: true };
+    } catch {
+      return { success: false };
+    }
+  },
+
   // --- Applications ---
   submitApplication: async (application) => {
     try {
