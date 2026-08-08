@@ -1403,34 +1403,28 @@ const [showCheckoutModal, setShowCheckoutModal] = useState(false);
           
           <div className="glass" style={{ padding: isMobileLayout ? '1rem' : '2.5rem', borderRadius: '24px', border: '1px solid rgba(212, 175, 55, 0.25)', background: 'radial-gradient(circle at center, rgba(212, 175, 55, 0.05) 0%, transparent 80%)', backdropFilter: 'blur(10px)', boxShadow: '0 0 40px rgba(212, 175, 55, 0.05)', position: 'relative', overflow: 'hidden' }}>
             <div 
-              style={{ position: 'relative', width: '100%', borderRadius: '16px', overflow: 'hidden', boxShadow: '0 15px 35px rgba(0,0,0,0.6)', aspectRatio: '16/9', background: '#000', cursor: 'pointer', border: '1px solid rgba(255,255,255,0.05)' }}
+              style={{ position: 'relative', width: '100%', borderRadius: '16px', overflow: 'hidden', boxShadow: '0 15px 35px rgba(0,0,0,0.6)', aspectRatio: '16/9', background: '#000', cursor: 'pointer', border: '1px solid rgba(212, 175, 55, 0.3)' }}
               onClick={() => {
-                if (!user) {
-                  toast.error("Please log in or create an account to start the Guided Meditation.");
-                  setShowLoginModal(true);
-                } else {
-                  setShowMeditationModal(true);
-                }
+                setShowMeditationModal(true);
               }}
             >
               <img 
-                src="/assets/hero-energy.png" 
-                alt="Meditation Poster"
-                style={{ width: '100%', height: '100%', objectFit: 'cover', opacity: 0.65, display: 'block', transition: 'transform 0.5s ease' }}
+                src="/assets/guided_meditation_sanctuary.jpg" 
+                alt="Guided Meditation Sanctuary"
+                style={{ width: '100%', height: '100%', objectFit: 'cover', opacity: 0.85, display: 'block', transition: 'transform 0.5s ease' }}
               />
-              <div style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', background: 'linear-gradient(to top, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0.2) 60%, rgba(0,0,0,0.4) 100%)', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center' }}>
+              <div style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', background: 'linear-gradient(to top, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.15) 60%, rgba(0,0,0,0.4) 100%)', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center' }}>
+                <div style={{ position: 'absolute', top: '16px', left: '16px', background: 'rgba(0,0,0,0.75)', padding: '6px 14px', borderRadius: '20px', border: '1px solid var(--accent-gold)', fontSize: '0.75rem', color: 'var(--accent-gold)', fontWeight: 'bold', letterSpacing: '1px' }}>
+                  ✦ FREE FOR ALL SEEKERS ✦
+                </div>
                 <motion.div 
                   whileHover={{ scale: 1.15 }}
-                  style={{ width: '80px', height: '80px', borderRadius: '50%', background: 'var(--accent-gold)', display: 'flex', justifyContent: 'center', alignItems: 'center', boxShadow: '0 0 30px var(--accent-gold)', color: '#000', cursor: 'pointer', marginBottom: '1.5rem' }}
+                  style={{ width: '80px', height: '80px', borderRadius: '50%', background: 'var(--accent-gold)', display: 'flex', justifyContent: 'center', alignItems: 'center', boxShadow: '0 0 35px var(--accent-gold)', color: '#000', cursor: 'pointer', marginBottom: '1.5rem' }}
                 >
-                  {user ? (
-                    <Play fill="#000" size={32} style={{ marginLeft: '6px' }} />
-                  ) : (
-                    <Lock size={32} />
-                  )}
+                  <Play fill="#000" size={32} style={{ marginLeft: '6px' }} />
                 </motion.div>
-                <span style={{ fontSize: '1rem', color: '#fff', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '2px', textShadow: '0 2px 4px rgba(0,0,0,0.5)' }}>
-                  {user ? "Begin Quest" : "Log In to Play"}
+                <span style={{ fontSize: '1.1rem', color: '#fff', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '2px', textShadow: '0 2px 4px rgba(0,0,0,0.7)' }}>
+                  ▶ PLAY GUIDED MEDITATION
                 </span>
               </div>
             </div>
