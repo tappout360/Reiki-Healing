@@ -496,49 +496,53 @@ const SignupFlow = ({ onComplete, onCancel }) => {
             {/* Step 3: Account Type */}
             {currentStep === 3 && (
               <div>
-                <h2 style={{ color: '#9b59b6', marginBottom: '2rem', textAlign: 'center' }}>
+                <h2 style={{ color: '#9b59b6', marginBottom: '1.5rem', textAlign: 'center' }}>
                   ⚡ Choose Your Path
                 </h2>
-                <p style={{ textAlign: 'center', color: 'var(--text-muted)', marginBottom: '3rem' }}>
-                  Select the type of account that best fits your journey
+                <p style={{ textAlign: 'center', color: 'var(--text-muted)', marginBottom: '2.5rem' }}>
+                  Select the type of account that best fits your spiritual journey
                 </p>
 
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '2rem', marginBottom: '2rem' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem', marginBottom: '2rem' }}>
                   <motion.div
-                    whileHover={{ scale: 1.05, y: -5 }}
-                    onClick={() => setFormData({ ...formData, accountType: 'seeker', subscription: 'seeker' })}
+                    whileHover={{ scale: 1.03, y: -4 }}
+                    onClick={() => setFormData({ ...formData, accountType: 'seeker', subscription: 'free' })}
                     style={{
                       padding: '2rem',
-                      background: formData.accountType === 'seeker' ? 'linear-gradient(135deg, rgba(160, 210, 235, 0.2), rgba(212, 175, 55, 0.2))' : 'rgba(255, 255, 255, 0.05)',
-                      border: `2px solid ${formData.accountType === 'seeker' ? 'var(--accent-gold)' : 'rgba(255, 255, 255, 0.1)'}`,
-                      borderRadius: '15px',
+                      background: formData.accountType === 'seeker' ? 'linear-gradient(135deg, rgba(160, 210, 235, 0.2), rgba(80, 227, 194, 0.15))' : 'rgba(255, 255, 255, 0.05)',
+                      border: `2px solid ${formData.accountType === 'seeker' ? '#50e3c2' : 'rgba(255, 255, 255, 0.1)'}`,
+                      borderRadius: '16px',
                       cursor: 'pointer',
                       textAlign: 'center'
                     }}
                   >
                     <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>🌙</div>
-                    <h3 style={{ color: 'var(--accent-ethereal)', marginBottom: '0.5rem' }}>Seeker</h3>
-                    <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>
-                      Begin your healing journey and explore our sanctuary
+                    <h3 style={{ color: '#50e3c2', marginBottom: '0.5rem' }}>Seeker</h3>
+                    <p style={{ color: 'var(--text-muted)', fontSize: '0.88rem', lineHeight: '1.5' }}>
+                      Begin your healing journey, explore energy alignment, and access community sanctuaries.
                     </p>
                   </motion.div>
 
                   <motion.div
-                    whileHover={{ scale: 1.05, y: -5 }}
+                    whileHover={{ scale: 1.03, y: -4 }}
                     onClick={() => setFormData({ ...formData, accountType: 'healer', subscription: 'healing' })}
                     style={{
                       padding: '2rem',
-                      background: formData.accountType === 'healer' ? 'linear-gradient(135deg, rgba(212, 175, 55, 0.2), rgba(160, 210, 235, 0.2))' : 'rgba(255, 255, 255, 0.05)',
+                      background: formData.accountType === 'healer' ? 'linear-gradient(135deg, rgba(212, 175, 55, 0.25), rgba(155, 89, 182, 0.2))' : 'rgba(255, 255, 255, 0.05)',
                       border: `2px solid ${formData.accountType === 'healer' ? 'var(--accent-gold)' : 'rgba(255, 255, 255, 0.1)'}`,
-                      borderRadius: '15px',
+                      borderRadius: '16px',
                       cursor: 'pointer',
-                      textAlign: 'center'
+                      textAlign: 'center',
+                      position: 'relative'
                     }}
                   >
-                    <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>🌟</div>
+                    <div style={{ position: 'absolute', top: '-12px', left: '50%', transform: 'translateX(-50%)', background: 'var(--accent-gold)', color: '#000', padding: '3px 12px', borderRadius: '12px', fontSize: '0.68rem', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '1px', whiteSpace: 'nowrap' }}>
+                      👑 Top-Tier Required ($22/mo)
+                    </div>
+                    <div style={{ fontSize: '3rem', marginBottom: '1rem', marginTop: '0.5rem' }}>🌟</div>
                     <h3 style={{ color: 'var(--accent-gold)', marginBottom: '0.5rem' }}>Healer</h3>
-                    <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>
-                      Guide others and access full healing capabilities
+                    <p style={{ color: 'var(--text-muted)', fontSize: '0.88rem', lineHeight: '1.5' }}>
+                      Accept 1:1 client bookings, direct Stripe payouts, 100% tip retention, and master tools.
                     </p>
                   </motion.div>
                 </div>
@@ -554,79 +558,110 @@ const SignupFlow = ({ onComplete, onCancel }) => {
               </div>
             )}
 
-            {/* Step 4: Subscription */}
+            {/* Step 4: Subscription Tiers */}
             {currentStep === 4 && (
               <div>
-                <h2 style={{ color: '#e74c3c', marginBottom: '2rem', textAlign: 'center' }}>
-                  👑 Choose Your Tier
+                <h2 style={{ color: 'var(--accent-gold)', marginBottom: '1rem', textAlign: 'center' }}>
+                  👑 Choose Your Subscription Tier
                 </h2>
+                <p style={{ textAlign: 'center', color: 'var(--text-muted)', marginBottom: '2rem', fontSize: '0.9rem' }}>
+                  Select the resonance plan that fits your practice
+                </p>
 
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '2rem', marginBottom: '2rem' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1.25rem', marginBottom: '2rem' }}>
+                  {/* Tier 1: Free */}
                   <motion.div
-                    whileHover={{ scale: 1.05 }}
-                    onClick={() => setFormData({ ...formData, subscription: 'seeker' })}
+                    whileHover={{ scale: 1.03 }}
+                    onClick={() => setFormData({ ...formData, subscription: 'free' })}
                     style={{
-                      padding: '2rem',
-                      background: formData.subscription === 'seeker' ? 'rgba(160, 210, 235, 0.1)' : 'rgba(255, 255, 255, 0.05)',
-                      border: `2px solid ${formData.subscription === 'seeker' ? 'var(--accent-ethereal)' : 'rgba(255, 255, 255, 0.1)'}`,
-                      borderRadius: '15px',
+                      padding: '1.5rem',
+                      background: formData.subscription === 'free' ? 'rgba(255, 255, 255, 0.12)' : 'rgba(255, 255, 255, 0.04)',
+                      border: `2px solid ${formData.subscription === 'free' ? '#fff' : 'rgba(255, 255, 255, 0.1)'}`,
+                      borderRadius: '16px',
                       cursor: 'pointer'
                     }}
                   >
-                    <div style={{ textAlign: 'center', marginBottom: '1.5rem' }}>
-                      <div style={{ fontSize: '2rem', marginBottom: '0.5rem' }}>🌱</div>
-                      <h3 style={{ color: 'var(--accent-ethereal)' }}>Free Seeker</h3>
-                      <p style={{ fontSize: '2rem', fontWeight: 'bold', color: 'var(--text-main)', margin: '0.5rem 0' }}>$0</p>
+                    <div style={{ textAlign: 'center', marginBottom: '1rem' }}>
+                      <div style={{ fontSize: '1.75rem', marginBottom: '0.25rem' }}>🌱</div>
+                      <h4 style={{ color: '#fff', margin: 0 }}>Free Tier</h4>
+                      <p style={{ fontSize: '1.75rem', fontWeight: 'bold', color: '#fff', margin: '0.25rem 0' }}>$0<span style={{ fontSize: '0.75rem', opacity: 0.6 }}>/mo</span></p>
                     </div>
-                    <ul style={{ listStyle: 'none', padding: 0 }}>
-                      <li style={{ padding: '0.5rem 0', color: 'var(--text-muted)' }}>✓ Basic protocols</li>
-                      <li style={{ padding: '0.5rem 0', color: 'var(--text-muted)' }}>✓ Community access</li>
-                      <li style={{ padding: '0.5rem 0', color: 'var(--text-muted)' }}>✓ Energy tracking</li>
+                    <ul style={{ listStyle: 'none', padding: 0, fontSize: '0.78rem', color: 'rgba(255,255,255,0.7)', lineHeight: '1.6' }}>
+                      <li>✓ Free Guided Meditation</li>
+                      <li>✓ 2 Weekly Rotated 8K Chakras</li>
+                      <li>✓ Basic Profile & Reflections</li>
                     </ul>
                   </motion.div>
 
+                  {/* Tier 2: Seeker ($11/mo) */}
                   <motion.div
-                    whileHover={{ scale: 1.05 }}
-                    onClick={() => setFormData({ ...formData, subscription: 'healing' })}
+                    whileHover={{ scale: 1.03 }}
+                    onClick={() => setFormData({ ...formData, subscription: 'seeker' })}
                     style={{
-                      padding: '2rem',
-                      background: formData.subscription === 'healing' ? 'linear-gradient(135deg, rgba(212, 175, 55, 0.2), rgba(160, 210, 235, 0.1))' : 'rgba(255, 255, 255, 0.05)',
-                      border: `2px solid ${formData.subscription === 'healing' ? 'var(--accent-gold)' : 'rgba(255, 255, 255, 0.1)'}`,
-                      borderRadius: '15px',
+                      padding: '1.5rem',
+                      background: formData.subscription === 'seeker' ? 'rgba(80, 227, 194, 0.15)' : 'rgba(255, 255, 255, 0.04)',
+                      border: `2px solid ${formData.subscription === 'seeker' ? '#50e3c2' : 'rgba(255, 255, 255, 0.1)'}`,
+                      borderRadius: '16px',
                       cursor: 'pointer'
                     }}
                   >
-                    <div style={{ textAlign: 'center', marginBottom: '1.5rem' }}>
-                      <div style={{ fontSize: '2rem', marginBottom: '0.5rem' }}>👑</div>
-                      <h3 style={{ color: 'var(--accent-gold)' }}>Healing Tier</h3>
+                    <div style={{ textAlign: 'center', marginBottom: '1rem' }}>
+                      <div style={{ fontSize: '1.75rem', marginBottom: '0.25rem' }}>🌙</div>
+                      <h4 style={{ color: '#50e3c2', margin: 0 }}>Seeker</h4>
+                      <p style={{ fontSize: '1.75rem', fontWeight: 'bold', color: '#50e3c2', margin: '0.25rem 0' }}>$11<span style={{ fontSize: '0.75rem', opacity: 0.6 }}>/mo</span></p>
                     </div>
-                    
-                    <div style={{ marginBottom: '1rem' }}>
-                      <select 
-                        value={formData.duration}
-                        onChange={(e) => setFormData({...formData, duration: e.target.value})}
-                        style={{
-                          width: '100%',
-                          padding: '0.8rem',
-                          background: 'rgba(0,0,0,0.3)',
-                          border: '1px solid var(--accent-gold)',
-                          borderRadius: '8px',
-                          color: 'white',
-                          cursor: 'pointer'
-                        }}
-                        onClick={(e) => e.stopPropagation()}
-                      >
-                        <option value="1_month">1 Month - $22</option>
-                        <option value="3_month">3 Months - $55</option>
-                        <option value="6_month">6 Months - $99</option>
-                        <option value="1_year">1 Year - $188</option>
-                      </select>
-                    </div>
+                    <ul style={{ listStyle: 'none', padding: 0, fontSize: '0.78rem', color: 'rgba(255,255,255,0.7)', lineHeight: '1.6' }}>
+                      <li>✓ All 7 8K Chakra Videos</li>
+                      <li>✓ Avatar Customization & Streaks</li>
+                      <li>✓ Chakra Runner Arcade Game</li>
+                    </ul>
+                  </motion.div>
 
-                    <ul style={{ listStyle: 'none', padding: 0 }}>
-                      <li style={{ padding: '0.4rem 0', color: 'var(--text-muted)', fontSize: '0.9rem' }}>✓ All basic features</li>
-                      <li style={{ padding: '0.4rem 0', color: 'var(--text-muted)', fontSize: '0.9rem' }}>✓ Advanced protocols</li>
-                      <li style={{ padding: '0.4rem 0', color: 'var(--text-muted)', fontSize: '0.9rem' }}>✓ AI Aura consultation</li>
+                  {/* Tier 3: Resonant ($22/mo) */}
+                  <motion.div
+                    whileHover={{ scale: 1.03 }}
+                    onClick={() => setFormData({ ...formData, subscription: 'resonant' })}
+                    style={{
+                      padding: '1.5rem',
+                      background: formData.subscription === 'resonant' ? 'rgba(212, 175, 55, 0.15)' : 'rgba(255, 255, 255, 0.04)',
+                      border: `2px solid ${formData.subscription === 'resonant' ? 'var(--accent-gold)' : 'rgba(255, 255, 255, 0.1)'}`,
+                      borderRadius: '16px',
+                      cursor: 'pointer'
+                    }}
+                  >
+                    <div style={{ textAlign: 'center', marginBottom: '1rem' }}>
+                      <div style={{ fontSize: '1.75rem', marginBottom: '0.25rem' }}>✨</div>
+                      <h4 style={{ color: 'var(--accent-gold)', margin: 0 }}>Resonant</h4>
+                      <p style={{ fontSize: '1.75rem', fontWeight: 'bold', color: 'var(--accent-gold)', margin: '0.25rem 0' }}>$22<span style={{ fontSize: '0.75rem', opacity: 0.6 }}>/mo</span></p>
+                    </div>
+                    <ul style={{ listStyle: 'none', padding: 0, fontSize: '0.78rem', color: 'rgba(255,255,255,0.7)', lineHeight: '1.6' }}>
+                      <li>✓ Host Group Video Sessions</li>
+                      <li>✓ Calendar Invites & Priority</li>
+                      <li>✓ Unlimited Sound Baths</li>
+                    </ul>
+                  </motion.div>
+
+                  {/* Tier 4: Healing Tier ($22/mo) */}
+                  <motion.div
+                    whileHover={{ scale: 1.03 }}
+                    onClick={() => setFormData({ ...formData, subscription: 'healing', accountType: 'healer' })}
+                    style={{
+                      padding: '1.5rem',
+                      background: formData.subscription === 'healing' ? 'rgba(155, 89, 182, 0.2)' : 'rgba(255, 255, 255, 0.04)',
+                      border: `2px solid ${formData.subscription === 'healing' ? '#9b59b6' : 'rgba(255, 255, 255, 0.1)'}`,
+                      borderRadius: '16px',
+                      cursor: 'pointer'
+                    }}
+                  >
+                    <div style={{ textAlign: 'center', marginBottom: '1rem' }}>
+                      <div style={{ fontSize: '1.75rem', marginBottom: '0.25rem' }}>👑</div>
+                      <h4 style={{ color: '#9b59b6', margin: 0 }}>Healing Tier</h4>
+                      <p style={{ fontSize: '1.75rem', fontWeight: 'bold', color: '#9b59b6', margin: '0.25rem 0' }}>$22<span style={{ fontSize: '0.75rem', opacity: 0.6 }}>/mo</span></p>
+                    </div>
+                    <ul style={{ listStyle: 'none', padding: 0, fontSize: '0.78rem', color: 'rgba(255,255,255,0.7)', lineHeight: '1.6' }}>
+                      <li>✓ 1:1 Client Bookings & Stripe</li>
+                      <li>✓ 100% Tips ($0 Fee)</li>
+                      <li>✓ Master Healer Dashboard</li>
                     </ul>
                   </motion.div>
                 </div>
@@ -634,15 +669,15 @@ const SignupFlow = ({ onComplete, onCancel }) => {
                 <button
                   className="btn btn-primary"
                   onClick={() => {
-                    if (formData.subscription === 'healing') {
+                    if (formData.accountType === 'healer') {
                       setCurrentStep(5);
                     } else {
-                      setCurrentStep(6);
+                      handleSubmit();
                     }
                   }}
                   style={{ width: '100%' }}
                 >
-                  Continue <ArrowRight size={18} style={{ marginLeft: '10px' }} />
+                  {formData.accountType === 'healer' ? 'Complete Healer Registration' : 'Complete Sanctuary Registration'} <ArrowRight size={18} style={{ marginLeft: '10px' }} />
                 </button>
               </div>
             )}

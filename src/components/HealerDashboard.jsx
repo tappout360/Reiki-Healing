@@ -2486,94 +2486,100 @@ const HealerDashboard = ({ onClose, onJoinPortal, healerAppsEnabled = false, onT
                             <button onClick={() => setSelectedClient(null)} style={{position: 'absolute', top: '1rem', right: '1rem', background: 'none', border: 'none', color: '#fff', fontSize: '1.5rem'}}>×</button>
                             <h3 style={{color: 'var(--accent-gold)', marginBottom: '0.5rem'}}>{selectedClient?.name || ''}</h3>
                             <p style={{fontSize: '0.9rem', color: 'var(--text-muted)', marginBottom: '2rem'}}>Client ID: {btoa(selectedClient?.email || '').substring(0,8)} | Sanctuary Record</p>
-                            
-                            <div style={{marginBottom: '2rem'}}>
-                            <label style={{display: 'block', marginBottom: '0.5rem', fontSize: '0.9rem'}}>Subscription Status</label>
-                            <div style={{display: 'flex', gap: '1rem'}}>
-                                <button 
-                                    className="btn"
-                                    style={{
-                                        border: '1px solid var(--accent-gold)',
-                                        background: selectedClient.subscription === 'healing' ? 'var(--accent-gold)' : 'transparent',
-                                        color: selectedClient.subscription === 'healing' ? '#000' : 'var(--accent-gold)',
-                                        flex: 1
-                                    }}
-                                    onClick={() => {
-                                        const updated = clients.map(c => c.email === selectedClient.email ? {...c, subscription: 'healing'} : c);
-                                        setClients(updated);
-                                        localStorage.setItem('aura_clients', JSON.stringify(updated));
-                                        setSelectedClient({...selectedClient, subscription: 'healing'});
-                                        toast.success('Subscription Upgraded');
-                                        logTransaction('[ADMIN] Subscription Change', selectedClient.name, selectedClient.email, 'Healer manually upgraded user to Healing Tier');
-                                        
-                                        if (isFirebaseConfigured() && selectedClient.id) {
-                                          db.updateProfile(selectedClient.id, { subscription: 'healing' })
-                                            .catch(err => console.error("Failed to update profile subscription in Firestore:", err));
-                                        }
-                                    }}
-                                >
-                                    Healing Tier (Active)
-                                </button>
-                                    <button 
-                                    className="btn"
-                                    style={{
-                                        border: '1px solid var(--text-muted)',
-                                        background: selectedClient.subscription !== 'healing' ? 'rgba(255,255,255,0.1)' : 'transparent',
-                                        color: '#fff',
-                                        flex: 1
-                                    }}
-                                    onClick={() => {
-                                        const updated = clients.map(c => c.email === selectedClient.email ? {...c, subscription: 'seeker'} : c);
-                                        setClients(updated);
-                                        localStorage.setItem('aura_clients', JSON.stringify(updated));
-                                        setSelectedClient({...selectedClient, subscription: 'seeker'});
-                                        toast.success('Subscription Downgraded');
-                                        logTransaction('[ADMIN] Subscription Change', selectedClient.name, selectedClient.email, 'Healer manually downgraded user to Seeker Tier');
-                                        
-                                        if (isFirebaseConfigured() && selectedClient.id) {
-                                          db.updateProfile(selectedClient.id, { subscription: 'seeker' })
-                                            .catch(err => console.error("Failed to update profile subscription in Firestore:", err));
-                                        }
-                                    }}
-                                >
-                                    Seeker (Free)
-                                </button>
-                            </div>
-                            </div>
+                                      <div style={{marginBottom: '1.5rem'}}>
+                             <label style={{display: 'block', marginBottom: '0.5rem', fontSize: '0.88rem', fontWeight: 'bold', color: 'var(--accent-gold)'}}>Subscription Tier</label>
+                             <div style={{display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr', gap: '0.5rem'}}>
+                                 {[
+                                   { id: 'free', name: 'Free', price: '$0' },
+                                   { id: 'seeker', name: 'Seeker', price: '$11' },
+                                   { id: 'resonant', name: 'Resonant', price: '$22' },
+                                   { id: 'healing', name: 'Healing', price: '$22' }
+                                 ].map(t => {
+                                   const isActive = selectedClient.subscription === t.id;
+                                   return (
+                                     <button 
+                                       key={t.id}
+                                       className="btn"
+                                       style={{
+                                           border: isActive ? '2px solid var(--accent-gold)' : '1px solid rgba(255,255,255,0.15)',
+                                           background: isActive ? 'var(--accent-gold)' : 'rgba(0,0,0,0.4)',
+                                           color: isActive ? '#000' : '#fff',
+                                           padding: '0.5rem 0.25rem',
+                                           fontSize: '0.78rem',
+                                           fontWeight: 'bold'
+                                       }}
+                                       onClick={async () => {
+                                           const updated = clients.map(c => c.email === selectedClient.email ? {...c, subscription: t.id} : c);
+                                           setClients(updated);
+                                           localStorage.setItem('aura_clients', JSON.stringify(updated));
+                                           setSelectedClient({...selectedClient, subscription: t.id});
+                                           toast.success(`✅ Saved! Subscription updated to ${t.name} (${t.price})`);
+                                           logTransaction('[ADMIN] Subscription Change', selectedClient.name, selectedClient.email, `Healer manually updated tier to ${t.name}`);
+                                           
+                                           fetch('/api/db/profiles', {
+                                             method: 'POST',
+                                             headers: { 'Content-Type': 'application/json' },
+                                             body: JSON.stringify({ email: selectedClient.email, subscription: t.id })
+                                           }).catch(() => {});
 
-                             <div>
-                                <label style={{display: 'block', marginBottom: '0.5rem', fontSize: '0.9rem'}}>Grant Free Access (Compliance Override)</label>
-                                <div style={{display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '10px'}}>
-                                    {[1, 3, 6].map(months => (
-                                        <button 
-                                            key={months}
-                                            className="btn"
-                                            style={{background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)'}}
-                                            onClick={() => {
-                                                const expiryDate = new Date();
-                                                expiryDate.setMonth(expiryDate.getMonth() + months);
-                                                const updated = clients.map(c => c.email === selectedClient.email ? {...c, subscription: 'healing', freeAccessUntil: expiryDate.toISOString()} : c);
-                                                setClients(updated);
-                                                localStorage.setItem('aura_clients', JSON.stringify(updated));
-                                                
-                                                toast.success(`Granted ${months} Months Free Access`);
-                                                logTransaction('[ADMIN] Free Access Grant', selectedClient.name, selectedClient.email, `Granted ${months} months free access. Expires: ${expiryDate.toLocaleDateString()}`);
-                                                setSelectedClient({...selectedClient, subscription: 'healing'});
-                                                
-                                                if (isFirebaseConfigured() && selectedClient.id) {
-                                                  db.updateProfile(selectedClient.id, { subscription: 'healing', freeAccessUntil: expiryDate.toISOString() })
-                                                    .catch(err => console.error("Failed to grant free access in Firestore:", err));
-                                                }
-                                            }}
-                                        >
-                                            {months} Month{months > 1 ? 's' : ''} Record
-                                        </button>
-                                    ))}
-                                </div>
-                                <p style={{fontSize: '0.7rem', color: 'var(--text-muted)', marginTop: '0.5rem'}}>
-                                    *Action will be logged in Healing Logs for sanctuary audit history.
-                                </p>
+                                           if (isFirebaseConfigured() && selectedClient.id) {
+                                             db.updateProfile(selectedClient.id, { subscription: t.id })
+                                               .catch(err => console.error("Failed to update profile subscription in Firestore:", err));
+                                           }
+                                       }}
+                                     >
+                                       {t.name} ({t.price})
+                                     </button>
+                                   );
+                                 })}
                              </div>
+                             </div>
+
+                              <div>
+                                 <label style={{display: 'block', marginBottom: '0.5rem', fontSize: '0.88rem', fontWeight: 'bold', color: '#50e3c2'}}>Grant Free Passes &amp; Discount Override</label>
+                                 <div style={{display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px'}}>
+                                     {[
+                                       { label: '🎁 1 Mo Free', months: 1, sub: 'healing' },
+                                       { label: '🎁 3 Mo Free', months: 3, sub: 'healing' },
+                                       { label: '🎁 6 Mo Free', months: 6, sub: 'healing' },
+                                       { label: '🏷️ 50% Off', months: 1, sub: 'resonant', discount: '50%' },
+                                       { label: '🌟 VIP Lifetime', months: 120, sub: 'healing', discount: '100%' }
+                                     ].map(opt => (
+                                         <button 
+                                             key={opt.label}
+                                             className="btn"
+                                             style={{background: 'rgba(80, 227, 194, 0.12)', border: '1px solid rgba(80, 227, 194, 0.3)', color: '#50e3c2', padding: '0.55rem 0.25rem', fontSize: '0.75rem', fontWeight: 'bold'}}
+                                             onClick={async () => {
+                                                 const expiryDate = new Date();
+                                                 expiryDate.setMonth(expiryDate.getMonth() + opt.months);
+                                                 const updated = clients.map(c => c.email === selectedClient.email ? {...c, subscription: opt.sub, freeAccessUntil: expiryDate.toISOString(), discount: opt.discount || '100%'} : c);
+                                                 setClients(updated);
+                                                 localStorage.setItem('aura_clients', JSON.stringify(updated));
+                                                 
+                                                 toast.success(`✅ Saved! ${opt.label} applied for ${selectedClient.name}`);
+                                                 logTransaction('[ADMIN] Discount/Free Pass Grant', selectedClient.name, selectedClient.email, `Granted ${opt.label}. Expires: ${expiryDate.toLocaleDateString()}`);
+                                                 setSelectedClient({...selectedClient, subscription: opt.sub, discount: opt.discount});
+                                                 
+                                                 fetch('/api/db/profiles', {
+                                                   method: 'POST',
+                                                   headers: { 'Content-Type': 'application/json' },
+                                                   body: JSON.stringify({ email: selectedClient.email, subscription: opt.sub, freeAccessUntil: expiryDate.toISOString() })
+                                                 }).catch(() => {});
+
+                                                 if (isFirebaseConfigured() && selectedClient.id) {
+                                                   db.updateProfile(selectedClient.id, { subscription: opt.sub, freeAccessUntil: expiryDate.toISOString() })
+                                                     .catch(err => console.error("Failed to grant free access in Firestore:", err));
+                                                 }
+                                             }}
+                                         >
+                                             {opt.label}
+                                         </button>
+                                     ))}
+                                 </div>
+                                 <p style={{fontSize: '0.7rem', color: 'var(--text-muted)', marginTop: '0.5rem'}}>
+                                     *All actions save immediately to MongoDB &amp; sanctuary audit logs.
+                                 </p>
+                              </div>
 
                              <div style={{marginTop: '2rem', paddingTop: '1rem', borderTop: '1px solid rgba(255,255,255,0.1)'}}>
                                  <label style={{display: 'block', marginBottom: '0.5rem', fontSize: '0.9rem'}}>Role Assignment</label>
