@@ -79,15 +79,23 @@
     padding: 14px;
     margin-bottom: 12px;
     border-radius: 8px;
-    border: 1px solid #e0e0e0;
+    border: 1px solid #cccccc;
+    background-color: #ffffff !important;
+    color: #1a1a2e !important;
     font-size: 1rem;
-    transition: border 0.3s;
+    font-weight: 500;
+    transition: border 0.3s, box-shadow 0.3s;
+}
+
+.booking-input::placeholder {
+    color: #718096 !important;
+    opacity: 1 !important;
 }
 
 .booking-input:focus {
-    border-color: #8e44ad;
+    border-color: #8e44ad !important;
     outline: none;
-    box-shadow: 0 0 0 3px rgba(142, 68, 173, 0.1);
+    box-shadow: 0 0 0 3px rgba(142, 68, 173, 0.2) !important;
 }
 
 .btn-primary {

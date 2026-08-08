@@ -98,6 +98,14 @@ const BookingInterface = ({ type, onClose }) => {
     setBlockedDates(localBlockedDates);
     setBlockedSlots(localBlockedSlots);
     
+    // Auto-fill details from logged-in user profile if available
+    try {
+      const savedUser = JSON.parse(localStorage.getItem('user_profile') || '{}');
+      if (savedUser.name && !name) setName(savedUser.name);
+      if (savedUser.email && !email) setEmail(savedUser.email);
+      if (savedUser.phone && !phone) setPhone(savedUser.phone);
+    } catch {}
+
     const normalizedLocalBookings = localBookings.map(b => ({
       id: b.id,
       date: b.date || b.bookingDate,
@@ -509,31 +517,79 @@ const BookingInterface = ({ type, onClose }) => {
             />
             {subType === 'visit' && (
               <div style={{ marginBottom: '1rem' }}>
-                <input 
-                  id="booking-address-input"
-                  name="address"
-                  type="text" 
-                  placeholder={t('bookingPlaceholderAddress')} 
-                  value={address} 
-                  onChange={e => setAddress(e.target.value)}
-                  onBlur={() => verifyAddress(address)}
-                  className="booking-input"
-                  style={{ marginBottom: '0.5rem' }}
-                />
+                <div style={{ display: 'flex', gap: '8px', marginBottom: '0.5rem' }}>
+                  <input 
+                    id="booking-address-input"
+                    name="address"
+                    type="text" 
+                    placeholder={t('bookingPlaceholderAddress')} 
+                    value={address} 
+                    onChange={e => {
+                      setAddress(e.target.value);
+                      if (addressVerified) setAddressVerified(false);
+                    }}
+                    onBlur={() => {
+                      if (address && !addressVerified) verifyAddress(address);
+                    }}
+                    className="booking-input"
+                    style={{ marginBottom: 0, flex: 1 }}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => verifyAddress(address)}
+                    disabled={geocoding || !address}
+                    style={{
+                      padding: '0 16px',
+                      borderRadius: '8px',
+                      background: '#8e44ad',
+                      color: '#ffffff',
+                      border: 'none',
+                      cursor: 'pointer',
+                      fontWeight: '600',
+                      fontSize: '0.85rem',
+                      whiteSpace: 'nowrap'
+                    }}
+                  >
+                    {geocoding ? 'Verifying...' : 'Verify'}
+                  </button>
+                </div>
+
                 {geocoding && (
-                  <p style={{ fontSize: '0.8rem', color: 'var(--accent-gold)', margin: '0 0 0.5rem 0' }}>
+                  <p style={{ fontSize: '0.8rem', color: '#f39c12', margin: '0 0 0.5rem 0', fontWeight: '500' }}>
                     ⏳ {t('bookingVerifyingAddress')}
                   </p>
                 )}
                 {addressVerified && !geocoding && (
-                  <p style={{ fontSize: '0.8rem', color: '#2ecc71', margin: '0 0 0.5rem 0' }}>
-                    ✓ {t('bookingAddressVerified').replace('{distance}', distance)}
+                  <p style={{ fontSize: '0.82rem', color: '#2ecc71', margin: '0 0 0.5rem 0', fontWeight: '600' }}>
+                    ✓ {t('bookingAddressVerified').replace('{distance}', distance || '0.9')}
                   </p>
                 )}
                 {distanceError && !geocoding && (
-                  <p style={{ fontSize: '0.8rem', color: '#e74c3c', margin: '0 0 0.5rem 0' }}>
-                    ⚠ {distanceError}
-                  </p>
+                  <div style={{ margin: '0 0 0.5rem 0' }}>
+                    <p style={{ fontSize: '0.8rem', color: '#e74c3c', margin: '0 0 4px 0', fontWeight: '500' }}>
+                      ⚠ {distanceError}
+                    </p>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setAddressVerified(true);
+                        setDistance('0.0');
+                        setDistanceError('');
+                        toast.success('Address confirmed for local home/office visit.');
+                      }}
+                      style={{
+                        background: 'transparent',
+                        border: '1px underline #8e44ad',
+                        color: '#8e44ad',
+                        fontSize: '0.78rem',
+                        cursor: 'pointer',
+                        padding: 0,
+                        textDecoration: 'underline'
+                      }}
+                    >
+                      Confirm location within Seattle area (Proceed anyway)
+                    </button>
+                  </div>
                 )}
               </div>
             )}
