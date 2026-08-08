@@ -1968,6 +1968,97 @@ const HealerDashboard = ({ onClose, onJoinPortal, healerAppsEnabled = false, onT
                   </div>
                 </div>
 
+                {/* Master Healer Carissa Bright Profile Approval Queue */}
+                <div className="glass" style={{padding: '1.5rem', marginBottom: '1.5rem', border: '2px solid var(--accent-gold)', borderRadius: '16px', background: 'rgba(212, 175, 55, 0.05)'}}>
+                  <h4 style={{color: 'var(--accent-gold)', marginBottom: '0.4rem', display: 'flex', alignItems: 'center', gap: '8px'}}>
+                    👑 Master Profile Approval Queue (Master Healer Carissa Bright)
+                  </h4>
+                  <p style={{fontSize: '0.85rem', color: 'var(--text-muted)', marginBottom: '1.25rem'}}>
+                    Review pending user registrations. Approvals grant full sanctuary access and dispatch automated welcome emails.
+                  </p>
+
+                  {clients && clients.filter(c => c.approvalStatus === 'Pending' || c.status === 'Pending Review').length === 0 ? (
+                    <div style={{padding: '1rem', background: 'rgba(255,255,255,0.03)', borderRadius: '10px', textAlign: 'center', fontSize: '0.85rem', color: '#50e3c2'}}>
+                      ✓ All pending user profiles have been reviewed by Master Healer Carissa Bright.
+                    </div>
+                  ) : (
+                    <div style={{display: 'flex', flexDirection: 'column', gap: '10px'}}>
+                      {clients.filter(c => c.approvalStatus === 'Pending' || c.status === 'Pending Review').map((pendingUser, pIdx) => (
+                        <div key={pendingUser.email || pIdx} style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0.85rem 1rem', background: 'rgba(0,0,0,0.4)', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.1)'}}>
+                          <div>
+                            <div style={{fontWeight: 'bold', color: '#fff', fontSize: '0.95rem'}}>{pendingUser.name}</div>
+                            <div style={{fontSize: '0.78rem', color: 'var(--text-muted)'}}>{pendingUser.email} • Tier: <span style={{color: 'var(--accent-gold)'}}>{pendingUser.subscription || 'free'}</span></div>
+                          </div>
+
+                          <div style={{display: 'flex', gap: '8px'}}>
+                            <button
+                              className="btn"
+                              style={{background: '#2ecc71', color: '#000', padding: '0.45rem 1rem', fontSize: '0.78rem', fontWeight: 'bold', borderRadius: '8px'}}
+                              onClick={async () => {
+                                const updated = clients.map(c => c.email === pendingUser.email ? { ...c, approvalStatus: 'Approved', status: 'Active' } : c);
+                                setClients(updated);
+                                localStorage.setItem('aura_clients', JSON.stringify(updated));
+                                toast.success(`✅ Approved profile for ${pendingUser.name}`);
+
+                                fetch('/api/db/profiles', {
+                                  method: 'POST',
+                                  headers: { 'Content-Type': 'application/json' },
+                                  body: JSON.stringify({ email: pendingUser.email, approvalStatus: 'Approved', status: 'Active' })
+                                }).catch(() => {});
+
+                                fetch('/api/send-email', {
+                                  method: 'POST',
+                                  headers: { 'Content-Type': 'application/json' },
+                                  body: JSON.stringify({
+                                    to: pendingUser.email,
+                                    userName: pendingUser.name,
+                                    type: 'APPROVAL'
+                                  })
+                                }).then(() => toast.success(`📧 Approval email dispatched to ${pendingUser.email}`)).catch(() => {});
+                              }}
+                            >
+                              ✓ Approve
+                            </button>
+
+                            <button
+                              className="btn"
+                              style={{background: 'rgba(231, 76, 60, 0.2)', border: '1px solid #e74c3c', color: '#e74c3c', padding: '0.45rem 1rem', fontSize: '0.78rem', fontWeight: 'bold', borderRadius: '8px'}}
+                              onClick={async () => {
+                                const reasonInput = window.prompt(`Enter Denial Reason for ${pendingUser.name}:`, 'Profile details require additional verification.');
+                                if (reasonInput === null) return; // User cancelled prompt
+
+                                const updated = clients.map(c => c.email === pendingUser.email ? { ...c, approvalStatus: 'Denied', status: 'Denied', denialReason: reasonInput } : c);
+                                setClients(updated);
+                                localStorage.setItem('aura_clients', JSON.stringify(updated));
+                                toast.error(`❌ Denied profile for ${pendingUser.name}`);
+
+                                fetch('/api/db/profiles', {
+                                  method: 'POST',
+                                  headers: { 'Content-Type': 'application/json' },
+                                  body: JSON.stringify({ email: pendingUser.email, approvalStatus: 'Denied', status: 'Denied', denialReason: reasonInput })
+                                }).catch(() => {});
+
+                                fetch('/api/send-email', {
+                                  method: 'POST',
+                                  headers: { 'Content-Type': 'application/json' },
+                                  body: JSON.stringify({
+                                    to: pendingUser.email,
+                                    userName: pendingUser.name,
+                                    type: 'DENIAL',
+                                    reason: reasonInput
+                                  })
+                                }).then(() => toast.success(`📧 Denial email dispatched to ${pendingUser.email}`)).catch(() => {});
+                              }}
+                            >
+                              ✕ Deny
+                            </button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
                 <div className="glass" style={{padding: '1.5rem', marginBottom: '1.5rem'}}>
                   <h4 style={{color: 'var(--accent-gold)', marginBottom: '1rem'}}>Healer Team Management</h4>
                   <p style={{fontSize: '0.9rem', color: 'var(--text-muted)', marginBottom: '1rem'}}>Invite other healers to the platform.</p>

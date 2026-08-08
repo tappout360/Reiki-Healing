@@ -890,6 +890,31 @@ const UserDashboard = ({ user, onClose, onUpdateUser, onNavigateToBooking, onNav
         />
       </div>
 
+      {/* Pending Approval Notice Banner */}
+      {(user?.approvalStatus === 'Pending' || user?.status === 'Pending Review') && (
+        <div style={{
+          background: 'linear-gradient(90deg, rgba(212, 175, 55, 0.25), rgba(155, 89, 182, 0.2))',
+          borderBottom: '1px solid var(--accent-gold)',
+          padding: '0.85rem 2rem',
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          color: '#fff',
+          fontSize: '0.88rem',
+          fontWeight: '500'
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <span style={{ fontSize: '1.2rem' }}>⏳</span>
+            <span>
+              <strong>Profile Pending Approval:</strong> Your registration is currently under review by <strong>Master Healer Carissa Bright</strong>. You will receive an email once approved.
+            </span>
+          </div>
+          <span style={{ background: 'var(--accent-gold)', color: '#000', padding: '2px 10px', borderRadius: '10px', fontSize: '0.72rem', fontWeight: 'bold', textTransform: 'uppercase' }}>
+            In Review
+          </span>
+        </div>
+      )}
+
       {/* Header Bar */}
       <div style={{
         padding: '1.5rem 2rem',

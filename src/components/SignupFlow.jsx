@@ -93,62 +93,48 @@ const SignupFlow = ({ onComplete, onCancel }) => {
           return;
         }
 
-        // Create Firebase Auth account + Firestore profile
-        await auth.signUp(formData.email, formData.password, {
-          name: formData.name,
-          username: formData.username.toLowerCase(),
-          role: formData.accountType === 'healer' ? 'healer' : 'seeker',
-          subscription: formData.subscription,
-          goals: formData.goals,
-          experience: formData.experience,
-          birthDate: formData.birthDate
-        });
+        const masterEmails = ['jasonmounts77@yahoo.com', 'carissabright@gmail.com'];
+        const isMaster = masterEmails.includes(formData.email.trim().toLowerCase());
 
         const profile = {
           name: formData.name,
           username: formData.username,
           email: formData.email,
-          role: formData.accountType === 'healer' ? 'healer' : 'seeker',
+          role: isMaster ? 'owner' : (formData.accountType === 'healer' ? 'healer' : 'seeker'),
           subscription: formData.subscription,
-          status: 'Active'
-        };
-
-        toast.success(`Welcome to the Sanctuary, ${profile.name}!`);
-        onComplete(profile);
-      } else {
-        // Fallback: localStorage for local dev without Firebase
-        const clients = JSON.parse(localStorage.getItem('aura_clients') || '[]');
-        const duplicateUsername = clients.find(c => c.username?.toLowerCase() === formData.username.toLowerCase());
-        if (duplicateUsername) {
-          toast.error('This username is already taken. Please choose another.');
-          setSubmitting(false);
-          return;
-        }
-        const duplicateEmail = clients.find(c => c.email?.toLowerCase() === formData.email.toLowerCase());
-        if (duplicateEmail) {
-          toast.error('An account with this email already exists.');
-          setSubmitting(false);
-          return;
-        }
-
-        const profile = {
-          name: formData.name,
-          username: formData.username,
-          email: formData.email,
-          role: formData.accountType === 'healer' ? 'healer' : 'seeker',
-          subscription: formData.subscription,
-          goals: formData.goals,
-          experience: formData.experience,
-          birthDate: formData.birthDate,
-          status: 'Active',
+          approvalStatus: isMaster ? 'Approved' : 'Pending',
+          status: isMaster ? 'Active' : 'Pending Review',
           joined: new Date().toISOString()
         };
 
-        localStorage.setItem('user_profile', JSON.stringify(profile));
-        clients.push(profile);
-        localStorage.setItem('aura_clients', JSON.stringify(clients));
+        if (isFirebaseConfigured()) {
+          await auth.signUp(formData.email, formData.password, profile);
+        }
 
-        toast.success(`Welcome to the Sanctuary, ${profile.name}!`);
+        // Store locally & update clients list
+        const clients = JSON.parse(localStorage.getItem('aura_clients') || '[]');
+        const existingIdx = clients.findIndex(c => c.email?.toLowerCase() === profile.email.toLowerCase());
+        if (existingIdx >= 0) {
+          clients[existingIdx] = profile;
+        } else {
+          clients.push(profile);
+        }
+        localStorage.setItem('aura_clients', JSON.stringify(clients));
+        localStorage.setItem('user_profile', JSON.stringify(profile));
+
+        // Save to MongoDB Atlas via serverless API
+        fetch('/api/db/profiles', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(profile)
+        }).catch(() => {});
+
+        if (isMaster) {
+          toast.success(`Welcome Master ${profile.name}! Full access unlocked.`);
+        } else {
+          toast.success(`Welcome ${profile.name}! Your profile is pending review by Master Healer Carissa Bright.`);
+        }
+
         onComplete(profile);
       }
     } catch (error) {
