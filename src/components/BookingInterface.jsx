@@ -48,8 +48,9 @@ const BookingInterface = ({ type, onClose }) => {
     setDistanceError('');
     setAddressVerified(false);
     try {
+      const formattedQuery = /^\d{5}$/.test(addrQuery.trim()) ? `${addrQuery.trim()}, USA` : addrQuery.trim();
       const response = await fetch(
-        `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(addrQuery)}&limit=1`,
+        `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(formattedQuery)}&limit=1`,
         {
           headers: {
             'User-Agent': 'ReikiSageSanctuary/1.0'
@@ -388,10 +389,10 @@ const BookingInterface = ({ type, onClose }) => {
               {/* Seattle Quick Neighborhood Clusters */}
               <div style={{ display: 'flex', gap: '0.4rem', overflowX: 'auto', paddingBottom: '4px' }}>
                 {[
-                  { label: '📍 Capitol Hill (98101)', zip: '98101' },
-                  { label: '📍 Eastside / Bellevue (98004)', zip: '98004' },
-                  { label: '📍 North Sound / Ballard (98107)', zip: '98107' },
-                  { label: '📍 South Sound / Tacoma (98402)', zip: '98402' }
+                  { label: '📍 Capitol Hill (98101)', zip: '98101, Seattle, WA' },
+                  { label: '📍 Eastside / Bellevue (98004)', zip: '98004, Bellevue, WA' },
+                  { label: '📍 North Sound / Ballard (98107)', zip: '98107, Seattle, WA' },
+                  { label: '📍 South Sound / Tacoma (98402)', zip: '98402, Tacoma, WA' }
                 ].map(cluster => (
                   <button
                     key={cluster.zip}
