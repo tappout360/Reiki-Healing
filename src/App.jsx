@@ -177,8 +177,8 @@ const protocols = [
       'energy-portal.png',
       'reiki_crown_chakra_light_1770423834100.png'
     ],
-    audio: '', // Violet Flame 528Hz Meditation
-    voice: '/assets/amethyst_meditation_voice.mp3', // Mock path for voiceover
+    audio: '/assets/audio/protocols/amethyst_meditation_music.mp3',
+    voice: '/assets/amethyst_meditation_voice.mp3',
     desc: 'Advanced 10-minute deep-field purification. Disintegrates psychic debris and restores neural tranquility via the sacred Violet Flame.',
     tier: 'advanced'
   },
@@ -200,7 +200,7 @@ const protocols = [
       'sage_protocol_crystal_cave_1770441218348.png',
       'sage_sacred_purify_1770423875666.png'
     ],
-    audio: '', // Quartz Lattice 432Hz Meditation
+    audio: '/assets/audio/protocols/quartz_meditation_music.mp3',
     voice: '/assets/quartz_meditation_voice.mp3',
     desc: 'Advanced 10-minute structural alignment. Amplifies mental focus and crystalline clarity through a multi-dimensional bio-field uplift.',
     tier: 'advanced'
@@ -224,7 +224,7 @@ const protocols = [
       'sage_protocol_heart_resonance_1770424959673.png',
       'sage_protocol_heart_glow_1770425071893.png'
     ],
-    audio: '', // Ethereal Heart Chakra Music 432Hz
+    audio: '/assets/audio/protocols/rose_meditation_music.mp3',
     voice: '/assets/rose_meditation_voice.mp3',
     desc: 'Advanced 10-minute heart-centered journey. Facilitates deep emotional release and compassion through soft radiance and harmonic heart-sync.',
     tier: 'basic'
@@ -247,7 +247,7 @@ const protocols = [
       'sage_protocol_purge_1770423911044.png',
       'forest_natural_path_intelligence_1770423845946.png'
     ],
-    audio: '', // 852Hz Awakening Intuition (Fixed)
+    audio: '/assets/audio/protocols/lapis_meditation_music.mp3',
     voice: '/assets/lapis_meditation_voice.mp3',
     desc: 'Advanced 10-minute intuition awakening. Deep-field synchronization for intellectual clarity, inner truth, and higher dimensional awareness.',
     tier: 'basic'
@@ -271,7 +271,7 @@ const protocols = [
       'sage_protocol_sunrise_ocean_1770425084382.png',
       'reiki_crown_chakra_light_1770423834100.png'
     ],
-    audio: '', // Solar Plexus 528Hz
+    audio: '/assets/audio/protocols/citrine_meditation_music.mp3',
     voice: '/assets/citrine_meditation_voice.mp3',
     desc: 'Advanced 10-minute solar-plexus alchemy. Uses the "Merchant\'s Stone" frequency and Sacred Geometry (Flower of Life) to align willpower with divine abundance.',
     tier: 'advanced'
@@ -298,8 +298,8 @@ const protocols = [
       'sage_protocol_dewy_sage_1770425226526.png',
       'sage_protocol_sunrise_ocean_1770425084382.png'
     ],
-    audio: '', // Native American Flute (Background)
-    voice: '/assets/sage_meditation_voice.mp3', // Mock path for voiceover
+    audio: '/assets/audio/protocols/sage_meditation_music.mp3',
+    voice: '/assets/sage_meditation_voice.mp3',
     desc: 'Advanced 10-minute immersive meditation. Clears deep-seated stress and resets vibrational baseline through sacred smoke and ocean resonance.',
     tier: 'advanced'
   },
@@ -323,7 +323,7 @@ const protocols = [
       'sage_protocol_starlight_ocean_v2_1770441141710.png',
       'sage_sacred_purify_1770423875666.png'
     ],
-    audio: '', // Ambient 528Hz background music
+    audio: '/assets/audio/protocols/reiki_meditation_music.mp3',
     voice: '/assets/reiki_meditation_voice.mp3',
     desc: 'Immersive 15-minute guided Reiki healing journey. Master Healer Carissa Bright\'s gentle voice leads you through universal life force energy alignment and deep restoration.',
     tier: 'advanced'
@@ -348,7 +348,7 @@ const protocols = [
       'sage_protocol_heart_glow_1770425071893.png',
       'hero-energy.png'
     ],
-    audio: '', // Ambient orchestral/ethereal background music
+    audio: '/assets/audio/protocols/celestial_meditation_music.mp3',
     voice: '/assets/celestial_meditation_voice.mp3',
     desc: '15-minute cinematic "Zodiac Awakening" — Master Healer Carissa Bright guides you through a Fantasia-inspired orchestra of gemstones, constellations, and healing aura.',
     tier: 'advanced'
@@ -746,7 +746,7 @@ const [showCheckoutModal, setShowCheckoutModal] = useState(false);
 
   useEffect(() => {
     if (isFirebaseConfigured()) {
-      // Firebase auth state listener — reactive login/logout
+      // Firebase auth state listener — reactive login/logout with local profile fallback
       const unsubscribe = auth.onAuthStateChange(async (firebaseUser) => {
         if (firebaseUser) {
           try {
@@ -755,7 +755,6 @@ const [showCheckoutModal, setShowCheckoutModal] = useState(false);
               setUser(profile);
               localStorage.setItem('user_profile', JSON.stringify(profile));
             } else {
-              // Auth exists but no profile yet (signup in progress)
               setUser({
                 name: firebaseUser.displayName || '',
                 email: firebaseUser.email,
@@ -767,8 +766,18 @@ const [showCheckoutModal, setShowCheckoutModal] = useState(false);
             console.error('Error loading profile:', err);
           }
         } else {
-          setUser(null);
-          localStorage.removeItem('user_profile');
+          // Check if local session profile is active before clearing
+          const saved = localStorage.getItem('user_profile');
+          if (saved && saved !== 'undefined' && saved !== 'null') {
+            try {
+              setUser(JSON.parse(saved));
+            } catch {
+              setUser(null);
+            }
+          } else {
+            setUser(null);
+            localStorage.removeItem('user_profile');
+          }
         }
       });
       return () => unsubscribe();
@@ -1531,17 +1540,21 @@ const [showCheckoutModal, setShowCheckoutModal] = useState(false);
             </div>
           ) : (
             <div style={{ width: '100%' }}>
-              <div style={{ aspectRatio: '16/9', width: '100%', background: '#000' }}>
+              <div style={{ aspectRatio: '16/9', width: '100%', background: '#000', borderRadius: '16px', overflow: 'hidden', boxShadow: '0 10px 30px rgba(0,0,0,0.8)' }}>
                 <video 
-                  src="/assets/the_golden_horizon_quest.mp4" 
                   controls 
+                  playsInline
+                  webkit-playsinline="true"
                   controlsList="nodownload"
                   onContextMenu={(e) => e.preventDefault()}
                   disablePictureInPicture
                   autoPlay 
-                  preload="auto"
+                  preload="metadata"
                   style={{ width: '100%', height: '100%', objectFit: 'contain', display: 'block' }}
-                />
+                >
+                  <source src="/assets/the_golden_horizon_quest.mp4" type="video/mp4" />
+                  Your browser does not support HTML5 video playback.
+                </video>
               </div>
             </div>
           )}
@@ -2644,7 +2657,7 @@ const [showCheckoutModal, setShowCheckoutModal] = useState(false);
             </div>
             {/* Audio Player */}
             <DuckingAudioPlayer 
-              musicSrc={currentProtocol.audio ? `https://www.youtube.com/embed/${currentProtocol.audio}?autoplay=1&mute=0&enablejsapi=1&origin=${window.location.origin}` : ""}
+              musicSrc={currentProtocol.audio}
               ambientSrc={currentProtocol.ambient}
               voiceSrc={currentProtocol.voice}
               isPlaying={showPortal && !isPaused}
@@ -2849,24 +2862,9 @@ const [showCheckoutModal, setShowCheckoutModal] = useState(false);
                 ></iframe>
               )}
               
-              {currentProtocol.audio && (
-                /* Primary Healing Frequency - High Fidelity Embed */
-                <div style={{position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', pointerEvents: 'none', zIndex: 0}}>
-                  <iframe 
-                    id="healing-audio-iframe"
-                    width="100%" 
-                    height="100%" 
-                    src={currentProtocol.audio ? `https://www.youtube.com/embed/${currentProtocol.audio}?autoplay=${isPaused ? 0 : 1}&mute=1&loop=1&playlist=${currentProtocol.audio}&enablejsapi=1&origin=${window.location.origin}` : ""} // Control autoplay
-                    frameBorder="0" 
-                    allow="autoplay; encrypted-media; fullscreen"
-                    style={{opacity: 0.01}}
-                  ></iframe>
-                </div>
-              )}
-
               {currentProtocol.isImmersive && (
                 <DuckingAudioPlayer 
-                  musicSrc={currentProtocol.audio ? `https://www.youtube.com/embed/${currentProtocol.audio}?autoplay=1&mute=0&enablejsapi=1&origin=${window.location.origin}` : ""} // Simplified for mock
+                  musicSrc={currentProtocol.audio}
                   ambientSrc={currentProtocol.ambient}
                   voiceSrc={currentProtocol.voice}
                   isPlaying={showPortal && !isPaused}
@@ -3577,7 +3575,10 @@ const [showCheckoutModal, setShowCheckoutModal] = useState(false);
       )}
 
       <Suspense fallback={null}>
-        <FreeCarissaMeditation onOpenSubscription={() => setShowSubscriptionModal(true)} />
+        <FreeCarissaMeditation 
+          onOpenSubscription={() => setShowSubscriptionModal(true)} 
+          onOpenGuidedMeditation={() => setShowMeditationModal(true)}
+        />
       </Suspense>
 
       <SacredReflections />

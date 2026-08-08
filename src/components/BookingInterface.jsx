@@ -415,7 +415,7 @@ const BookingInterface = ({ type, onClose }) => {
                 ))}
               </div>
 
-              {distanceVerified && (
+              {addressVerified && (
                 <div style={{ fontSize: '0.78rem', color: '#50e3c2', marginTop: '0.5rem' }}>
                   ✓ Match verified: {distance} miles from your location. Local practitioners ready.
                 </div>

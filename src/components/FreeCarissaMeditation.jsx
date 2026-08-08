@@ -8,14 +8,17 @@ import { toast } from 'react-hot-toast';
  * Featuring Master Healer Carissa Bright's voice & 528Hz Solfeggio ambience.
  * Open & Free for ALL visitors and Free Tier users.
  */
-const FreeCarissaMeditation = ({ onOpenSubscription }) => {
+const FreeCarissaMeditation = ({ onOpenSubscription, onOpenGuidedMeditation }) => {
   const [isPlaying, setIsPlaying] = useState(false);
   const [volume, setVolume] = useState(0.8);
-  const audioRef = useRef(null);
   const audioCtxRef = useRef(null);
   const oscRef = useRef(null);
 
   const toggleMeditation = () => {
+    if (onOpenGuidedMeditation) {
+      onOpenGuidedMeditation();
+      return;
+    }
     if (isPlaying) {
       if (oscRef.current) {
         try { oscRef.current.stop(); } catch {}
@@ -33,7 +36,7 @@ const FreeCarissaMeditation = ({ onOpenSubscription }) => {
         const gain = ctx.createGain();
 
         osc.type = 'sine';
-        osc.frequency.setValueAtTime(528, ctx.currentTime); // 528Hz Solfeggio Miracle Tone
+        osc.frequency.setValueAtTime(528, ctx.currentTime);
         gain.gain.setValueAtTime(volume * 0.25, ctx.currentTime);
 
         osc.connect(gain);

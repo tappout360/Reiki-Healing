@@ -8,8 +8,7 @@ import {
 } from 'lucide-react';
 import { ResponsiveContainer, AreaChart, Area, XAxis, YAxis, Tooltip, CartesianGrid } from 'recharts';
 import { getZodiacSign, getAdvancedHoroscope } from '../utils/horoscopes';
-import { auth, db, isFirebaseConfigured, firestore } from '../lib/firebase';
-import { collection, doc, setDoc, onSnapshot, deleteDoc } from 'firebase/firestore';
+import { auth, db, isFirebaseConfigured } from '../lib/firebase';
 import { BADGES, BADGE_CATEGORIES, getLevel, getLevelProgress, getNextLevel, getStats, getBadgesByCategory } from '../utils/gamification';
 import SacredRealmEngine from './SacredRealmEngine';
 
@@ -431,67 +430,16 @@ const UserDashboard = ({ user, onClose, onUpdateUser, onNavigateToBooking, onNav
     let unsubscribe = null;
     let heartbeatInterval = null;
 
-    if (isFirebaseConfigured()) {
-      // 1. Write current user presence document
-      const userPresenceRef = doc(firestore, 'presence', user.id);
-      
-      const writePresence = async () => {
-        try {
-          await setDoc(userPresenceRef, {
-            uid: user.id,
-            name: user.name || user.displayName || 'Anonymous Seeker',
-            email: user.email || '',
-            activeChakra: calibRegistry || 'crown',
-            resonanceScore: user.resonanceScore || 50,
-            lastActive: Date.now()
-          });
-        } catch (err) {
-          console.error("Error setting presence:", err);
-        }
-      };
-
-      // Write immediately
-      writePresence();
-
-      // Set heartbeat interval (every 20 seconds)
-      heartbeatInterval = setInterval(writePresence, 20000);
-
-      // 2. Setup onSnapshot listener for presence collection
-      const presenceQuery = collection(firestore, 'presence');
-      unsubscribe = onSnapshot(presenceQuery, (snapshot) => {
-        const seekers = [];
-        snapshot.forEach((doc) => {
-          const data = doc.data();
-          // Filter out users who haven't updated in 60 seconds
-          if (data.lastActive && Date.now() - data.lastActive < 60000) {
-            seekers.push({
-              id: doc.id,
-              ...data
-            });
-          }
-        });
-        setOnlineSeekers(seekers);
-      }, (error) => {
-        console.error("Error listening to presence:", error);
-      });
-
-      // Cleanup presence on unmount
-      return () => {
-        if (heartbeatInterval) clearInterval(heartbeatInterval);
-        if (unsubscribe) unsubscribe();
-        deleteDoc(userPresenceRef).catch(err => console.error("Error deleting presence:", err));
-      };
-    } else {
-      // Offline Simulation mode
-      const mockNames = [
-        { name: "Luna Rivers", chakra: "third_eye", score: 92 },
-        { name: "Gavin Thorne", chakra: "solar", score: 85 },
-        { name: "Estella Sky", chakra: "heart", score: 98 },
-        { name: "Zev Brooks", chakra: "root", score: 78 },
-        { name: "Aria Breeze", chakra: "throat", score: 88 },
-        { name: "Carissa (Healer)", chakra: "crown", score: 100 },
-        { name: "Leo Solar", chakra: "sacral", score: 82 }
-      ];
+    // Active Seeker Presence Simulation mode
+    const mockNames = [
+      { name: "Luna Rivers", chakra: "third_eye", score: 92 },
+      { name: "Gavin Thorne", chakra: "solar", score: 85 },
+      { name: "Estella Sky", chakra: "heart", score: 98 },
+      { name: "Zev Brooks", chakra: "root", score: 78 },
+      { name: "Aria Breeze", chakra: "throat", score: 88 },
+      { name: "Carissa (Healer)", chakra: "crown", score: 100 },
+      { name: "Leo Solar", chakra: "sacral", score: 82 }
+    ];
 
       // Format mock seekers
       const initialSeekers = mockNames.map((item, idx) => ({
@@ -546,7 +494,6 @@ const UserDashboard = ({ user, onClose, onUpdateUser, onNavigateToBooking, onNav
       }, 5000);
 
       return () => clearInterval(interval);
-    }
   }, [user?.id, user?.name, user?.displayName, user?.email, user?.resonanceScore, calibRegistry]);
 
   // Vibrational History

@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Volume2, VolumeX, Play, Pause } from 'lucide-react';
 
 const DuckingAudioPlayer = ({ 
@@ -14,6 +14,7 @@ const DuckingAudioPlayer = ({
   binauralVolume = 30,
   onEnded 
 }) => {
+  const [musicFailed, setMusicFailed] = useState(false);
   const audioContextRef = useRef(null);
   const musicNodeRef = useRef(null);
   const ambientNodeRef = useRef(null);
@@ -39,6 +40,7 @@ const DuckingAudioPlayer = ({
   const voiceElementRef = useRef(new Audio());
 
   useEffect(() => {
+    setMusicFailed(false);
     const isYouTube = musicSrc && (musicSrc.includes('youtube.com') || musicSrc.includes('youtu.be'));
     
     // Initialize Web Audio API only if it doesn't exist
@@ -88,8 +90,11 @@ const DuckingAudioPlayer = ({
       musicElementRef.current.loop = true;
       musicElementRef.current.crossOrigin = "anonymous";
       musicElementRef.current.src = musicSrc;
+      musicElementRef.current.onerror = () => {
+        console.warn("Music track missing or failed to load. Falling back to 5-layer Solfeggio sound bath.", musicSrc);
+        setMusicFailed(true);
+      };
     } else {
-      // Clear music element if switching to YouTube or if empty to avoid background play
       musicElementRef.current.pause();
       musicElementRef.current.src = "";
     }
@@ -238,8 +243,8 @@ const DuckingAudioPlayer = ({
 
     // Only play synthesized drone if:
     // 1. We are playing
-    // 2. There is no custom music file (musicSrc is empty/falsy)
-    const shouldPlaySynth = isPlaying && (!musicSrc || musicSrc === "");
+    // 2. There is no custom music file, or the music file failed to load
+    const shouldPlaySynth = isPlaying && (!musicSrc || musicSrc === "" || musicFailed);
 
     if (!shouldPlaySynth) {
       cleanupSynth();
@@ -338,7 +343,7 @@ const DuckingAudioPlayer = ({
     return () => {
       cleanupSynth();
     };
-  }, [isPlaying, binauralCarrier, musicSrc, volume]);
+  }, [isPlaying, binauralCarrier, musicSrc, volume, musicFailed]);
 
   // Binaural Beat Oscillator Management
   useEffect(() => {
