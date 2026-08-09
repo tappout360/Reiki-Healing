@@ -539,8 +539,8 @@ const [showJoinPortalModal, setShowJoinPortalModal] = useState(false);
 const [showMyStories, setShowMyStories] = useState(false);
 const [healerAppsEnabled, setHealerAppsEnabled] = useState(localStorage.getItem('aura_applications_enabled') !== 'false');
 const [showCheckoutModal, setShowCheckoutModal] = useState(false);
-  const [meditationConsent, setMeditationConsent] = useState(false);
-  const [meditationConsentPending, setMeditationConsentPending] = useState(false);
+  const [meditationConsent, setMeditationConsent] = useState(true);
+  const [meditationConsentPending, setMeditationConsentPending] = useState(true);
 
   // NEW: Tablet/Mobile App Shell States
   const [viewMode, setViewMode] = useState(() => {
