@@ -963,11 +963,8 @@ const [showCheckoutModal, setShowCheckoutModal] = useState(false);
       setBinauralCarrier(settings.carrier);
       setBinauralBeat(settings.beat);
 
-      if (showPortal) {
-        protocolSoundEngine.startProtocolSound(settings.carrier);
-      } else {
-        protocolSoundEngine.stopProtocolSound();
-      }
+      // Ensure raw synth engine is stopped when viewing video portal so only video audio plays
+      protocolSoundEngine.stopProtocolSound();
     } else if (!showPortal) {
       protocolSoundEngine.stopProtocolSound();
     }
