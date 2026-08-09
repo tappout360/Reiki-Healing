@@ -14,8 +14,10 @@ export const auth = {
   instance: null,
 
   signUp: async (email, password, metadata = {}) => {
-    const userId = 'user_' + Date.now();
+    const userId = metadata.id || 'user_' + Date.now();
     const profileData = {
+      id: userId,
+      uid: userId,
       name: metadata.name || '',
       username: (metadata.username || email.split('@')[0]).toLowerCase(),
       email: email.toLowerCase(),
@@ -31,14 +33,26 @@ export const auth = {
       joined: new Date().toISOString()
     };
 
+    // Save to permanent local clients registry
+    const clients = JSON.parse(localStorage.getItem('aura_clients') || '[]');
+    const existingIdx = clients.findIndex(c => c.email?.toLowerCase() === profileData.email.toLowerCase());
+    if (existingIdx >= 0) {
+      clients[existingIdx] = { ...clients[existingIdx], ...profileData };
+    } else {
+      clients.push(profileData);
+    }
+    localStorage.setItem('aura_clients', JSON.stringify(clients));
+    localStorage.setItem('user_profile', JSON.stringify(profileData));
+
     try {
       const created = await mongoDbClient.createOrUpdateProfile(userId, profileData);
-      localStorage.setItem('user_profile', JSON.stringify(created || profileData));
-      return created || profileData;
-    } catch {
-      localStorage.setItem('user_profile', JSON.stringify(profileData));
-      return profileData;
-    }
+      if (created) {
+        localStorage.setItem('user_profile', JSON.stringify(created));
+        return created;
+      }
+    } catch {}
+
+    return profileData;
   },
 
   signIn: async (email, password) => {
@@ -48,13 +62,13 @@ export const auth = {
 
     try {
       const profile = await mongoDbClient.getProfile(emailTrimmed);
-      if (profile) {
+      if (profile && profile.email) {
         localStorage.setItem('user_profile', JSON.stringify(profile));
         return profile;
       }
     } catch {}
 
-    // Check local clients store
+    // Check permanent local clients registry
     const clients = JSON.parse(localStorage.getItem('aura_clients') || '[]');
     const matched = clients.find(c => c.email?.toLowerCase() === emailTrimmed);
     if (matched) {
@@ -65,6 +79,7 @@ export const auth = {
     if (isMaster) {
       const masterUser = {
         id: 'master_owner',
+        uid: 'master_owner',
         name: emailTrimmed.includes('jason') ? 'Jason Mounts' : 'Master Healer Carissa Bright',
         email: emailTrimmed,
         role: 'owner',
@@ -113,34 +128,60 @@ export const auth = {
 export const db = {
   // --- Profiles ---
   getProfile: async (userId) => {
+    if (!userId) return null;
     try {
       const p = await mongoDbClient.getProfile(userId);
-      if (p) return p;
+      if (p && p.email) return p;
     } catch {}
     const clients = JSON.parse(localStorage.getItem('aura_clients') || '[]');
-    return clients.find(c => c.id === userId || c.email?.toLowerCase() === String(userId).toLowerCase()) || null;
+    const key = String(userId).toLowerCase();
+    return clients.find(c => c.id === userId || c.uid === userId || c.email?.toLowerCase() === key) || null;
   },
 
   createProfile: async (userId, data) => {
-    try {
-      return await mongoDbClient.createOrUpdateProfile(userId, data);
-    } catch {
-      const profile = { id: userId, ...data };
-      const clients = JSON.parse(localStorage.getItem('aura_clients') || '[]');
+    const profile = { id: userId, uid: userId, ...data };
+    const clients = JSON.parse(localStorage.getItem('aura_clients') || '[]');
+    const existingIdx = clients.findIndex(c => c.id === userId || c.email?.toLowerCase() === data.email?.toLowerCase());
+    if (existingIdx >= 0) {
+      clients[existingIdx] = { ...clients[existingIdx], ...profile };
+    } else {
       clients.push(profile);
-      localStorage.setItem('aura_clients', JSON.stringify(clients));
-      return profile;
     }
+    localStorage.setItem('aura_clients', JSON.stringify(clients));
+    localStorage.setItem('user_profile', JSON.stringify(profile));
+
+    try {
+      const serverProfile = await mongoDbClient.createOrUpdateProfile(userId, profile);
+      if (serverProfile) return serverProfile;
+    } catch {}
+
+    return profile;
   },
 
   updateProfile: async (userId, data) => {
-    try {
-      return await mongoDbClient.createOrUpdateProfile(userId, data);
-    } catch {
-      const profile = { id: userId, ...data };
-      localStorage.setItem('user_profile', JSON.stringify(profile));
-      return profile;
+    const clients = JSON.parse(localStorage.getItem('aura_clients') || '[]');
+    const key = String(userId).toLowerCase();
+    const existingIdx = clients.findIndex(c => c.id === userId || c.uid === userId || c.email?.toLowerCase() === key);
+    let updated = { id: userId, ...data };
+    if (existingIdx >= 0) {
+      updated = { ...clients[existingIdx], ...data };
+      clients[existingIdx] = updated;
+    } else {
+      clients.push(updated);
     }
+    localStorage.setItem('aura_clients', JSON.stringify(clients));
+
+    const currentSession = JSON.parse(localStorage.getItem('user_profile') || '{}');
+    if (currentSession.id === userId || currentSession.uid === userId || currentSession.email?.toLowerCase() === key) {
+      localStorage.setItem('user_profile', JSON.stringify({ ...currentSession, ...data }));
+    }
+
+    try {
+      const serverProfile = await mongoDbClient.createOrUpdateProfile(userId, data);
+      if (serverProfile) return serverProfile;
+    } catch {}
+
+    return updated;
   },
 
   isUsernameTaken: async (username) => {

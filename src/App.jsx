@@ -746,24 +746,22 @@ const [showCheckoutModal, setShowCheckoutModal] = useState(false);
 
   useEffect(() => {
     if (isFirebaseConfigured()) {
-      // Firebase auth state listener — reactive login/logout with local profile fallback
+      // MongoDB / Serverless auth state listener — persistent profile lookup
       const unsubscribe = auth.onAuthStateChange(async (firebaseUser) => {
         if (firebaseUser) {
           try {
-            const profile = await db.getProfile(firebaseUser.uid);
-            if (profile) {
+            const lookupKey = firebaseUser.id || firebaseUser.uid || firebaseUser.email;
+            const profile = await db.getProfile(lookupKey);
+            if (profile && (profile.name || profile.email)) {
               setUser(profile);
               localStorage.setItem('user_profile', JSON.stringify(profile));
             } else {
-              setUser({
-                name: firebaseUser.displayName || '',
-                email: firebaseUser.email,
-                role: 'seeker',
-                status: 'Active'
-              });
+              setUser(firebaseUser);
+              localStorage.setItem('user_profile', JSON.stringify(firebaseUser));
             }
           } catch (err) {
             console.error('Error loading profile:', err);
+            setUser(firebaseUser);
           }
         } else {
           // Check if local session profile is active before clearing
@@ -776,7 +774,6 @@ const [showCheckoutModal, setShowCheckoutModal] = useState(false);
             }
           } else {
             setUser(null);
-            localStorage.removeItem('user_profile');
           }
         }
       });

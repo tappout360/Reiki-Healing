@@ -20,7 +20,14 @@ export default async function handler(req, res) {
       const { userId, username, role, type } = req.query;
 
       if (userId) {
-        const profile = await collection.findOne({ userId });
+        const queryKey = String(userId).toLowerCase();
+        const profile = await collection.findOne({
+          $or: [
+            { userId: userId },
+            { email: queryKey },
+            { id: userId }
+          ]
+        });
         if (!profile) {
           return res.status(404).json({ error: 'Profile not found' });
         }
@@ -46,10 +53,11 @@ export default async function handler(req, res) {
     }
 
     if (req.method === 'POST' || req.method === 'PUT') {
-      const { userId = 'user_simulated', ...profileData } = req.body || {};
+      const { userId = 'user_simulated', email, ...profileData } = req.body || {};
 
       const cleanData = {
         userId,
+        email: email ? email.toLowerCase() : undefined,
         ...profileData,
         updatedAt: new Date()
       };
@@ -62,8 +70,12 @@ export default async function handler(req, res) {
         });
       }
 
+      const lookupQuery = email 
+        ? { $or: [{ userId }, { email: email.toLowerCase() }] }
+        : { userId };
+
       await collection.updateOne(
-        { userId },
+        lookupQuery,
         {
           $set: cleanData,
           $setOnInsert: { createdAt: new Date() }
