@@ -11,9 +11,6 @@ export default defineConfig({
     rollupOptions: {
       output: {
         manualChunks: {
-          // Split Firebase SDK into its own cached chunk
-          firebase: ['firebase/app', 'firebase/auth', 'firebase/firestore'],
-          // Split other large vendor deps
           vendor: ['react', 'react-dom', 'framer-motion'],
           charts: ['recharts'],
         }
