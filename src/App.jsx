@@ -1455,23 +1455,25 @@ const [showCheckoutModal, setShowCheckoutModal] = useState(false);
           top: 0, left: 0, 
           width: '100vw', height: '100vh', 
           zIndex: 9999, 
-          background: 'rgba(5, 5, 10, 0.95)', 
+          background: 'rgba(5, 5, 10, 0.96)', 
           backdropFilter: 'blur(20px)', 
           display: 'flex', 
           justifyContent: 'center', 
-          alignItems: 'center' 
+          alignItems: 'center',
+          padding: '1rem'
         }}
       >
-        <div style={{ position: 'relative', width: '90%', maxWidth: '700px', borderRadius: '24px', overflow: 'hidden', border: '1px solid rgba(212, 175, 55, 0.3)', boxShadow: '0 0 50px rgba(212, 175, 55, 0.15)', background: '#0a0a0f', padding: '3rem' }}>
-          <div style={{ position: 'absolute', top: '1.5rem', right: '1.5rem', zIndex: 10 }}>
+        <div style={{ position: 'relative', width: '100%', maxWidth: '850px', borderRadius: '24px', overflow: 'hidden', border: '1px solid rgba(212, 175, 55, 0.4)', boxShadow: '0 0 60px rgba(212, 175, 55, 0.2)', background: '#0a0a0f', padding: '2rem' }}>
+          {/* Close Button */}
+          <div style={{ position: 'absolute', top: '1.25rem', right: '1.25rem', zIndex: 10 }}>
             <button 
               className="close-portal" 
               style={{ 
                 position: 'static', 
-                width: '45px', height: '45px', 
-                fontSize: '2rem', 
-                background: 'rgba(0,0,0,0.5)', 
-                border: '1px solid rgba(255,255,255,0.1)', 
+                width: '42px', height: '42px', 
+                fontSize: '1.75rem', 
+                background: 'rgba(0,0,0,0.6)', 
+                border: '1px solid rgba(255,255,255,0.2)', 
                 borderRadius: '50%', 
                 color: 'white', 
                 cursor: 'pointer',
@@ -1490,71 +1492,52 @@ const [showCheckoutModal, setShowCheckoutModal] = useState(false);
             </button>
           </div>
 
-          {!meditationConsent ? (
-            <div style={{ textAlign: 'center' }}>
-              <h3 style={{ fontSize: '1.5rem', color: 'var(--accent-gold)', marginBottom: '1.5rem', fontFamily: "'Playfair Display', serif" }}>
-                Wellness Consent & Disclaimer
-              </h3>
-              <div style={{
-                background: 'rgba(231, 76, 60, 0.08)',
-                border: '1px solid rgba(231, 76, 60, 0.2)',
-                borderRadius: '12px',
-                padding: '1.5rem',
-                marginBottom: '2rem',
-                textAlign: 'left',
-                fontSize: '0.85rem',
-                lineHeight: '1.6',
-                color: 'rgba(255, 255, 255, 0.8)'
-              }}>
-                <p style={{ fontWeight: '700', color: '#e74c3c', marginBottom: '0.5rem' }}>
-                  ⚠️ Spiritual Wellness Notice
-                </p>
-                The Guided Meditation Journey is designed for relaxation, stress management, and personal spiritual growth. It is not a medical device, diagnosis, or clinical treatment, and it is not regulated or approved by the FDA. Reiki is a complementary therapy and is not a substitute for professional medical or mental health care.
-              </div>
-              <div style={{ display: 'flex', alignItems: 'flex-start', gap: '10px', textAlign: 'left', marginBottom: '2rem' }}>
-                <input 
-                  type="checkbox" 
-                  id="meditation-consent-checkbox" 
-                  checked={meditationConsentPending}
-                  onChange={(e) => setMeditationConsentPending(e.target.checked)}
-                  style={{ marginTop: '4px', cursor: 'pointer' }}
-                />
-                <label htmlFor="meditation-consent-checkbox" style={{ fontSize: '0.8rem', opacity: 0.8, cursor: 'pointer', userSelect: 'none', color: '#fff' }}>
-                  I understand and agree that this is a spiritual wellness practice, not a clinical treatment, and I wish to proceed.
-                </label>
-              </div>
-              <button 
-                onClick={() => {
-                  setMeditationConsent(true);
-                  protocolSoundEngine.startProtocolSound(528);
-                }}
-                disabled={!meditationConsentPending}
-                className="btn btn-primary"
-                style={{ width: '100%', padding: '1rem', opacity: meditationConsentPending ? 1 : 0.5 }}
+          {/* Title Header */}
+          <div style={{ textAlign: 'center', marginBottom: '1.25rem' }}>
+            <div style={{ fontSize: '0.75rem', color: 'var(--accent-gold)', letterSpacing: '2px', fontWeight: 'bold', textTransform: 'uppercase', marginBottom: '0.25rem' }}>
+              ✦ Sacred Guided Meditation Portal ✦
+            </div>
+            <h2 style={{ fontFamily: "'Playfair Display', serif", fontSize: '1.75rem', color: '#ffffff', margin: 0 }}>
+              The Golden Horizon Quest — Manifestation Adventure
+            </h2>
+            <div style={{ fontSize: '0.85rem', color: '#50e3c2', fontWeight: '500', marginTop: '0.25rem' }}>
+              Guided by Master Healer Carissa Bright • Audio &amp; Captions Stream
+            </div>
+          </div>
+
+          {/* Video Stream Player */}
+          <div style={{ width: '100%' }}>
+            <div style={{ aspectRatio: '16/9', width: '100%', background: '#000', borderRadius: '16px', overflow: 'hidden', boxShadow: '0 10px 40px rgba(0,0,0,0.9)', border: '1px solid rgba(255,255,255,0.1)' }}>
+              <video 
+                controls 
+                autoPlay
+                playsInline
+                webkit-playsinline="true"
+                preload="auto"
+                style={{ width: '100%', height: '100%', objectFit: 'contain', display: 'block' }}
               >
-                Proceed to Sanctuary Video
-              </button>
+                <source src="/assets/the_golden_horizon_quest.mp4" type="video/mp4" />
+                Your browser does not support HTML5 video playback.
+              </video>
             </div>
-          ) : (
-            <div style={{ width: '100%' }}>
-              <div style={{ aspectRatio: '16/9', width: '100%', background: '#000', borderRadius: '16px', overflow: 'hidden', boxShadow: '0 10px 30px rgba(0,0,0,0.8)' }}>
-                <video 
-                  controls 
-                  playsInline
-                  webkit-playsinline="true"
-                  controlsList="nodownload"
-                  onContextMenu={(e) => e.preventDefault()}
-                  disablePictureInPicture
-                  autoPlay 
-                  preload="metadata"
-                  style={{ width: '100%', height: '100%', objectFit: 'contain', display: 'block' }}
-                >
-                  <source src="/assets/the_golden_horizon_quest.mp4" type="video/mp4" />
-                  Your browser does not support HTML5 video playback.
-                </video>
-              </div>
-            </div>
-          )}
+          </div>
+
+          {/* Wellness Disclaimer */}
+          <div style={{
+            marginTop: '1.25rem',
+            background: 'rgba(255, 255, 255, 0.03)',
+            border: '1px solid rgba(255, 255, 255, 0.08)',
+            borderRadius: '12px',
+            padding: '0.85rem 1.25rem',
+            textAlign: 'left',
+            fontSize: '0.75rem',
+            lineHeight: '1.5',
+            color: 'rgba(255, 255, 255, 0.7)'
+          }}>
+            <p style={{ margin: 0 }}>
+              <strong>🛡️ Spiritual Wellness Notice:</strong> The Golden Horizon Quest guided video journey is provided for meditation, relaxation, and personal alignment. Reiki is a spiritual wellness practice; healers do not diagnose or treat medical conditions.
+            </p>
+          </div>
         </div>
       </div>
     );
