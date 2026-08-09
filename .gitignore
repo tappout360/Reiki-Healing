@@ -25,7 +25,4 @@ dev-tools/
 
 .vercel
 .env*
-
-# Large Media
-public/assets/*.mp4
-public/assets/*.webm
+public/assets/golden_source.mp4
