@@ -1484,8 +1484,6 @@ const [showCheckoutModal, setShowCheckoutModal] = useState(false);
               }} 
               onClick={() => {
                 setShowMeditationModal(false);
-                setMeditationConsent(false);
-                setMeditationConsentPending(false);
                 protocolSoundEngine.stopProtocolSound();
               }}
             >
