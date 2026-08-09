@@ -1411,6 +1411,7 @@ const [showCheckoutModal, setShowCheckoutModal] = useState(false);
             <div 
               style={{ position: 'relative', width: '100%', borderRadius: '16px', overflow: 'hidden', boxShadow: '0 15px 35px rgba(0,0,0,0.6)', aspectRatio: '16/9', background: '#000', cursor: 'pointer', border: '1px solid rgba(212, 175, 55, 0.3)' }}
               onClick={() => {
+                protocolSoundEngine.stopProtocolSound();
                 setShowMeditationModal(true);
               }}
             >

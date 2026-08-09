@@ -17,36 +17,8 @@ const FreeCarissaMeditation = ({ onOpenSubscription, onOpenGuidedMeditation }) =
   const toggleMeditation = () => {
     if (onOpenGuidedMeditation) {
       onOpenGuidedMeditation();
-      return;
-    }
-    if (isPlaying) {
-      if (oscRef.current) {
-        try { oscRef.current.stop(); } catch {}
-        oscRef.current = null;
-      }
-      setIsPlaying(false);
-    } else {
-      try {
-        const AudioCtx = window.AudioContext || window.webkitAudioContext;
-        if (!audioCtxRef.current) audioCtxRef.current = new AudioCtx();
-        if (audioCtxRef.current.state === 'suspended') audioCtxRef.current.resume();
-
-        const ctx = audioCtxRef.current;
-        const osc = ctx.createOscillator();
-        const gain = ctx.createGain();
-
-        osc.type = 'sine';
-        osc.frequency.setValueAtTime(528, ctx.currentTime);
-        gain.gain.setValueAtTime(volume * 0.25, ctx.currentTime);
-
-        osc.connect(gain);
-        gain.connect(ctx.destination);
-        osc.start();
-        oscRef.current = osc;
-      } catch {}
-
-      setIsPlaying(true);
-      toast.success('🧘 Carissa’s Free 5-Minute Guided Meditation Active');
+    } else if (onOpenSubscription) {
+      onOpenSubscription();
     }
   };
 
