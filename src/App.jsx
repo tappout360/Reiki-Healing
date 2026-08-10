@@ -1245,7 +1245,7 @@ const [showCheckoutModal, setShowCheckoutModal] = useState(false);
               </p>
               
               {user && !isMobileLayout && (
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.9rem', cursor: 'pointer', marginBottom: '1.5rem' }} onClick={() => document.getElementById('user-dashboard-section')?.scrollIntoView({ behavior: 'smooth' })}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.9rem', cursor: 'pointer', marginBottom: '1.5rem' }} onClick={() => setShowUserFullDashboard(true)}>
                   <div style={{ width: '32px', height: '32px', borderRadius: '50%', background: 'var(--accent-gold)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'black', fontWeight: 'bold' }}>
                     {user.name.charAt(0)}
                   </div>
@@ -2234,14 +2234,7 @@ const [showCheckoutModal, setShowCheckoutModal] = useState(false);
               <UserDashboardInline 
                 user={user} 
                 onUpdateUser={handleUpdateUser}
-                onOpenFullDashboard={() => {
-                  if (user.subscription === 'healing' || user.role === 'owner') {
-                    setShowUserFullDashboard(true);
-                  } else {
-                    toast.error("Guardian status required for Full Dashboard view.");
-                    setShowSubscriptionPage(true);
-                  }
-                }}
+                onOpenFullDashboard={() => setShowUserFullDashboard(true)}
                 onNavigateToBooking={() => {
                   setActiveTab('home');
                   toast.success("Scroll to appointment section below.");
@@ -3133,20 +3126,23 @@ const [showCheckoutModal, setShowCheckoutModal] = useState(false);
               ) : (
                   <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px' }}>
                     <button 
-                      onClick={() => {
-                        if (user.subscription === 'healing' || user.role === 'owner') {
-                          setShowUserFullDashboard(true);
-                        } else {
-                          toast.error("Guardian status required for Full Dashboard view.");
-                          setShowSubscriptionPage(true);
-                        }
-                      }}
+                      onClick={() => setShowUserFullDashboard(true)}
                       style={{
-                        background: 'none', border: '1px solid var(--accent-gold)', cursor: 'pointer',
-                        color: 'var(--accent-gold)', padding: '0.4rem 1rem', borderRadius: '20px',
-                        fontSize: '0.75rem', letterSpacing: '1px', display: 'inline-flex', alignItems: 'center', gap: '8px',
-                        opacity: (user.subscription === 'healing' || user.role === 'owner') ? 1 : 0.6
+                        background: 'rgba(212, 175, 55, 0.1)', 
+                        border: '1px solid var(--accent-gold)', 
+                        cursor: 'pointer',
+                        color: 'var(--accent-gold)', 
+                        padding: '0.45rem 1.1rem', 
+                        borderRadius: '20px',
+                        fontSize: '0.75rem', 
+                        letterSpacing: '1px', 
+                        display: 'inline-flex', 
+                        alignItems: 'center', 
+                        gap: '8px',
+                        fontWeight: '600',
+                        transition: 'all 0.2s ease'
                       }}
+                      title="Open Profile Dashboard"
                     >
                       <Sparkles size={14} /> {user.username || user.email}
                     </button>
@@ -3215,7 +3211,7 @@ const [showCheckoutModal, setShowCheckoutModal] = useState(false);
               </p>
               
               {user && (
-                <div style={{display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.9rem', cursor: 'pointer', marginBottom: '1.5rem'}} onClick={() => document.getElementById('user-dashboard-section')?.scrollIntoView({ behavior: 'smooth' })}>
+                <div style={{display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.9rem', cursor: 'pointer', marginBottom: '1.5rem'}} onClick={() => setShowUserFullDashboard(true)}>
                   <div style={{width: '32px', height: '32px', borderRadius: '50%', background: 'var(--accent-gold)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'black', fontWeight: 'bold'}}>
                     {user.name.charAt(0)}
                   </div>
