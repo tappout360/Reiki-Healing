@@ -4,6 +4,15 @@ import { Activity, Heart, Camera, RefreshCw, X, ShieldCheck, Bluetooth, Sparkles
 import { toast } from 'react-hot-toast';
 import { db } from '../lib/firebase';
 
+// Helper to generate simulated metrics outside component for React purity
+const generateSimMetrics = () => {
+  return {
+    bpm: Math.floor(64 + Math.random() * 12),
+    rmssd: Math.floor(35 + Math.random() * 25),
+    coherence: Math.floor(65 + Math.random() * 30)
+  };
+};
+
 const BiofieldPulse = ({ onClose, onOpenProtocol, onOpenSoundBaths, onOpenVoiceStudio }) => {
   const [mode, setMode] = useState('select'); // 'select' | 'ble_connect' | 'scanning' | 'live' | 'results'
   const [bleSupported, setBleSupported] = useState(false);
@@ -128,15 +137,16 @@ const BiofieldPulse = ({ onClose, onOpenProtocol, onOpenSoundBaths, onOpenVoiceS
       setCameraActive(false);
     }
 
+    let curProgress = 0;
     const interval = setInterval(() => {
-      setProgress(prev => {
-        if (prev >= 100) {
-          clearInterval(interval);
-          finishVisualScan();
-          return 100;
-        }
-        return prev + 5;
-      });
+      curProgress += 5;
+      if (curProgress >= 100) {
+        clearInterval(interval);
+        setProgress(100);
+        finishVisualScan();
+      } else {
+        setProgress(curProgress);
+      }
     }, 200);
   };
 
@@ -146,13 +156,11 @@ const BiofieldPulse = ({ onClose, onOpenProtocol, onOpenSoundBaths, onOpenVoiceS
       setCameraActive(false);
     }
 
-    const simBpm = Math.floor(64 + Math.random() * 12);
-    const simRmssd = Math.floor(35 + Math.random() * 25);
-    const simCoherence = Math.floor(65 + Math.random() * 30);
+    const sim = generateSimMetrics();
 
-    setBpm(simBpm);
-    setRmssd(simRmssd);
-    setCoherence(simCoherence);
+    setBpm(sim.bpm);
+    setRmssd(sim.rmssd);
+    setCoherence(sim.coherence);
 
     setMode('live');
     startSessionTimer();

@@ -39,7 +39,7 @@ const AIAvatarDropBox = ({ user, onClose, onAvatarUpdated }) => {
   useEffect(() => {
     const saved = localStorage.getItem('aura_avatar_history');
     if (saved) {
-      try { setHistory(JSON.parse(saved)); } catch {}
+      try { setHistory(JSON.parse(saved)); } catch (e) { /* ignore */ }
     }
   }, []);
 

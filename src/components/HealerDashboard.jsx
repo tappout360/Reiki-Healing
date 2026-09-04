@@ -100,12 +100,6 @@ const HealerDashboard = ({ onClose, onJoinPortal, healerAppsEnabled = false, onT
   const [auditCategory, setAuditCategory] = useState('ALL');
   const [auditSearch, setAuditSearch] = useState('');
 
-  useEffect(() => {
-    if (activeTab === 'logs') {
-      fetchAuditLogs();
-    }
-  }, [activeTab, auditCategory, auditSearch]);
-
   const fetchAuditLogs = async () => {
     try {
       const url = `/api/db/audit-logs?category=${encodeURIComponent(auditCategory)}&search=${encodeURIComponent(auditSearch)}`;
@@ -118,6 +112,12 @@ const HealerDashboard = ({ onClose, onJoinPortal, healerAppsEnabled = false, onT
       console.warn('Failed to load MongoDB audit logs.');
     }
   };
+
+  useEffect(() => {
+    if (activeTab === 'logs') {
+      fetchAuditLogs();
+    }
+  }, [activeTab, auditCategory, auditSearch]);
 
   const toggleChecklistItem = (key) => {
     setChecklist(prev => ({ ...prev, [key]: !prev[key] }));

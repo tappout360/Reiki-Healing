@@ -183,11 +183,11 @@ const ChakraVideoVisualizer = ({ onClose, user, onOpenSubscription }) => {
 
   const stopAudioResonance = () => {
     if (oscRef.current) {
-      try { oscRef.current.stop(); } catch {}
+      try { oscRef.current.stop(); } catch (e) { /* ignore */ }
       oscRef.current = null;
     }
     if (binauralOscRef.current) {
-      try { binauralOscRef.current.stop(); } catch {}
+      try { binauralOscRef.current.stop(); } catch (e) { /* ignore */ }
       binauralOscRef.current = null;
     }
     setIsPlaying(false);

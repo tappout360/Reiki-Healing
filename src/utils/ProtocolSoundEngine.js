@@ -36,7 +36,7 @@ class ProtocolSoundEngine {
     }
   }
 
-  startProtocolSound(frequency = 528, options = {}) {
+  startProtocolSound(frequency = 528, _options = {}) {
     this.initContext();
     if (this.isPlaying) {
       this.stopProtocolSound();
@@ -172,7 +172,7 @@ class ProtocolSoundEngine {
     if (this.masterGain) {
       try {
         this.masterGain.gain.linearRampToValueAtTime(0.0001, now + 1.5);
-      } catch {}
+      } catch (e) { /* ignore */ }
     }
 
     setTimeout(() => {
@@ -183,7 +183,7 @@ class ProtocolSoundEngine {
         if (this.subBassOsc) this.subBassOsc.stop();
         if (this.lfoOsc) this.lfoOsc.stop();
         if (this.pinkNoiseNode) this.pinkNoiseNode.stop();
-      } catch {}
+      } catch (e) { /* ignore */ }
       this.isPlaying = false;
     }, 1600);
   }

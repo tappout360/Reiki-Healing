@@ -12,6 +12,17 @@ const SOLFEGGIO_FREQUENCIES = [
   { freq: 852, name: '852 Hz', title: 'Third Eye & Divine Order', color: '#f1c40f', desc: 'Clears cognitive static, returning the mind to higher spiritual awareness.' }
 ];
 
+// Generate ambient rain noise buffer outside component for purity
+const createRainBuffer = (ctx) => {
+  const bufferSize = ctx.sampleRate * 2;
+  const noiseBuffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+  const output = noiseBuffer.getChannelData(0);
+  for (let i = 0; i < bufferSize; i++) {
+    output[i] = Math.random() * 2 - 1;
+  }
+  return noiseBuffer;
+};
+
 const SonicSoundBaths = ({ onClose }) => {
   const [showChakraVideo, setShowChakraVideo] = useState(false);
   const [selectedFreq, setSelectedFreq] = useState(SOLFEGGIO_FREQUENCIES[1]); // 528Hz default
@@ -30,7 +41,7 @@ const SonicSoundBaths = ({ onClose }) => {
   const rainNoiseRef = useRef(null);
   const bowlIntervalRef = useRef(null);
 
-  // Initialize Web Audio Context
+  // Initialize Web Audio Context on user gesture
   const initAudio = () => {
     if (!audioCtxRef.current) {
       const AudioCtx = window.AudioContext || window.webkitAudioContext;
@@ -87,12 +98,7 @@ const SonicSoundBaths = ({ onClose }) => {
 
     // 3. Ambient Rain Synthesizer (White noise + Bandpass filter)
     if (natureRain) {
-      const bufferSize = ctx.sampleRate * 2;
-      const noiseBuffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
-      const output = noiseBuffer.getChannelData(0);
-      for (let i = 0; i < bufferSize; i++) {
-        output[i] = Math.random() * 2 - 1;
-      }
+      const noiseBuffer = createRainBuffer(ctx);
 
       const whiteNoise = ctx.createBufferSource();
       whiteNoise.buffer = noiseBuffer;
@@ -119,15 +125,15 @@ const SonicSoundBaths = ({ onClose }) => {
 
   const stopSoundBath = () => {
     if (mainOscRef.current) {
-      try { mainOscRef.current.stop(); } catch {}
+      try { mainOscRef.current.stop(); } catch (e) { /* ignore */ }
       mainOscRef.current = null;
     }
     if (binauralOscRef.current) {
-      try { binauralOscRef.current.stop(); } catch {}
+      try { binauralOscRef.current.stop(); } catch (e) { /* ignore */ }
       binauralOscRef.current = null;
     }
     if (rainNoiseRef.current) {
-      try { rainNoiseRef.current.stop(); } catch {}
+      try { rainNoiseRef.current.stop(); } catch (e) { /* ignore */ }
       rainNoiseRef.current = null;
     }
     setIsPlaying(false);

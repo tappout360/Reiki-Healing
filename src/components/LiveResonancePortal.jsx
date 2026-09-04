@@ -14,6 +14,7 @@ import DailyIframe from '@daily-co/daily-js';
 
 import SacredWaitingRoom from './SacredWaitingRoom';
 import PostSessionReflection from './PostSessionReflection';
+import { moderateContent } from '../utils/moderation';
 
 const LiveResonancePortal = ({ user, session, onClose, onOpenVoiceStudio }) => {
   const [isMuted, setIsMuted] = useState(false);
@@ -22,6 +23,8 @@ const LiveResonancePortal = ({ user, session, onClose, onOpenVoiceStudio }) => {
   const [sessionEnded, setSessionEnded] = useState(false);
   const [resonanceLevel, setResonanceLevel] = useState(88);
   const [vibrationalStatus, setVibrationalStatus] = useState('Synchronizing...');
+  const [offenseCount, setOffenseCount] = useState(0);
+  const [moderationWarning, setModerationWarning] = useState('');
   const [messages, setMessages] = useState([
     { id: 1, sender: 'System', text: 'Resonance established. Field is stable.', time: '10:00' },
     { id: 2, sender: 'Carissa (Healer)', text: 'Welcome to your deep alignment. Can you feel the crystal core pulsing?', time: '10:02' }
@@ -206,8 +209,8 @@ const LiveResonancePortal = ({ user, session, onClose, onOpenVoiceStudio }) => {
     e.preventDefault();
     if (!inputText.trim()) return;
 
-    const lowerText = inputText.toLowerCase();
-    const hasProfanity = PROFANITY_LIST.some(word => lowerText.includes(word));
+    const modResult = moderateContent(inputText);
+    const hasProfanity = !modResult.isSafe;
 
     if (hasProfanity) {
       const nextOffense = offenseCount + 1;

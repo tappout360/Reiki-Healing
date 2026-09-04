@@ -3592,7 +3592,7 @@ const [showCheckoutModal, setShowCheckoutModal] = useState(false);
 
       <Suspense fallback={null}>
         <FreeCarissaMeditation 
-          onOpenSubscription={() => setShowSubscriptionModal(true)} 
+          onOpenSubscription={() => setShowSubscriptionPage(true)} 
           onOpenGuidedMeditation={() => setShowMeditationModal(true)}
           onOpenMicroPractices={() => setShowMicroPractices(true)}
         />

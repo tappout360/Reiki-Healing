@@ -104,7 +104,7 @@ const BookingInterface = ({ type, onClose }) => {
       if (savedUser.name && !name) setName(savedUser.name);
       if (savedUser.email && !email) setEmail(savedUser.email);
       if (savedUser.phone && !phone) setPhone(savedUser.phone);
-    } catch {}
+    } catch (e) { /* ignore */ }
 
     const normalizedLocalBookings = localBookings.map(b => ({
       id: b.id,

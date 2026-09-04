@@ -25,7 +25,7 @@ const SacredWaitingRoom = ({ session, user, onConsentAcknowledged }) => {
   const toggleDroneAudio = () => {
     if (dronePlaying) {
       if (droneOscRef.current) {
-        try { droneOscRef.current.stop(); } catch {}
+        try { droneOscRef.current.stop(); } catch (e) { /* ignore */ }
         droneOscRef.current = null;
       }
       setDronePlaying(false);
@@ -87,7 +87,7 @@ const SacredWaitingRoom = ({ session, user, onConsentAcknowledged }) => {
 
     // Clean up drone, camera, and meter
     if (droneOscRef.current) {
-      try { droneOscRef.current.stop(); } catch {}
+      try { droneOscRef.current.stop(); } catch (e) { /* ignore */ }
     }
     if (videoRef.current && videoRef.current.srcObject) {
       videoRef.current.srcObject.getTracks().forEach(t => t.stop());
@@ -123,7 +123,7 @@ const SacredWaitingRoom = ({ session, user, onConsentAcknowledged }) => {
   useEffect(() => {
     return () => {
       if (droneOscRef.current) {
-        try { droneOscRef.current.stop(); } catch {}
+        try { droneOscRef.current.stop(); } catch (e) { /* ignore */ }
       }
       if (videoRef.current && videoRef.current.srcObject) {
         videoRef.current.srcObject.getTracks().forEach(t => t.stop());

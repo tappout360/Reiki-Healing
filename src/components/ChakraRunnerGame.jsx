@@ -50,7 +50,7 @@ const ChakraRunnerGame = ({ onClose, onAddXp }) => {
       gain.connect(ctx.destination);
       osc.start();
       osc.stop(ctx.currentTime + duration);
-    } catch {}
+    } catch (e) { /* ignore */ }
   };
 
   const startGame = () => {

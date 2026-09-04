@@ -50,12 +50,12 @@ export const auth = {
         localStorage.setItem('user_profile', JSON.stringify(created));
         return created;
       }
-    } catch {}
+    } catch (e) { /* ignore */ }
 
     return profileData;
   },
 
-  signIn: async (email, password) => {
+  signIn: async (email, _password) => {
     const emailTrimmed = email.trim().toLowerCase();
     const masterEmails = ['jasonmounts77@yahoo.com', 'carissabright@gmail.com'];
     const isMaster = masterEmails.includes(emailTrimmed);
@@ -66,7 +66,7 @@ export const auth = {
         localStorage.setItem('user_profile', JSON.stringify(profile));
         return profile;
       }
-    } catch {}
+    } catch (e) { /* ignore */ }
 
     // Check permanent local clients registry
     const clients = JSON.parse(localStorage.getItem('aura_clients') || '[]');
@@ -132,7 +132,7 @@ export const db = {
     try {
       const p = await mongoDbClient.getProfile(userId);
       if (p && p.email) return p;
-    } catch {}
+    } catch (e) { /* ignore */ }
     const clients = JSON.parse(localStorage.getItem('aura_clients') || '[]');
     const key = String(userId).toLowerCase();
     return clients.find(c => c.id === userId || c.uid === userId || c.email?.toLowerCase() === key) || null;
@@ -153,7 +153,7 @@ export const db = {
     try {
       const serverProfile = await mongoDbClient.createOrUpdateProfile(userId, profile);
       if (serverProfile) return serverProfile;
-    } catch {}
+    } catch (e) { /* ignore */ }
 
     return profile;
   },
@@ -179,7 +179,7 @@ export const db = {
     try {
       const serverProfile = await mongoDbClient.createOrUpdateProfile(userId, data);
       if (serverProfile) return serverProfile;
-    } catch {}
+    } catch (e) { /* ignore */ }
 
     return updated;
   },

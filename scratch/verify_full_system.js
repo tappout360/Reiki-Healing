@@ -1,3 +1,4 @@
+/* global process */
 // End-to-End System Verification Suite for Reiki & Sage Go-Live Readiness
 import fetch from 'node-fetch';
 

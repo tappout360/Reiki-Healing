@@ -2,6 +2,9 @@
 import { connectToDatabase } from '../lib/mongodb.js';
 import { ObjectId } from 'mongodb';
 
+// In-memory atomic lock store for simulated / offline environment
+const simulatedLocks = new Map();
+
 export default async function handler(req, res) {
   try {
     let db, collection;
@@ -64,6 +67,17 @@ export default async function handler(req, res) {
         const lockExpiresAt = new Date(Date.now() + lockDurationMs);
 
         if (!collection) {
+          const lockKey = `${healerId}_${slotStartTime}`;
+          const existing = simulatedLocks.get(lockKey);
+          const nowMs = Date.now();
+          if (existing && existing.lockExpiresAt > nowMs) {
+            return res.status(409).json({
+              success: false,
+              lockGranted: false,
+              error: 'Slot is already locked by another seeker.'
+            });
+          }
+          simulatedLocks.set(lockKey, { customerEmail: customerEmail.toLowerCase(), lockExpiresAt: nowMs + lockDurationMs });
           return res.status(200).json({
             success: true,
             lockGranted: true,
