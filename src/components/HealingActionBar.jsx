@@ -9,16 +9,16 @@ const HealingActionBar = ({ onActivate, onJoinPortal }) => {
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
       style={{
-        position: 'fixed',
-        bottom: '2rem',
-        left: '50%',
-        transform: 'translateX(-50%)',
-        zIndex: 1000,
+        position: 'relative',
+        margin: '0 auto',
+        width: '100%',
+        maxWidth: '620px',
+        zIndex: 10,
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
         gap: '0.5rem',
-        transition: 'all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275)'
+        padding: '0.5rem 1rem'
       }}
     >
       {/* Pulse Effect Aura */}
@@ -27,8 +27,8 @@ const HealingActionBar = ({ onActivate, onJoinPortal }) => {
         top: '50%', left: '50%',
         transform: 'translate(-50%, -50%)',
         width: isHovered ? '320px' : '280px',
-        height: '60px',
-        background: 'radial-gradient(circle, rgba(142, 68, 173, 0.4) 0%, rgba(0,0,0,0) 70%)',
+        height: '50px',
+        background: 'radial-gradient(circle, rgba(142, 68, 173, 0.3) 0%, rgba(0,0,0,0) 70%)',
         borderRadius: '50%',
         filter: 'blur(10px)',
         zIndex: -1,
@@ -36,33 +36,40 @@ const HealingActionBar = ({ onActivate, onJoinPortal }) => {
       }}></div>
 
       {/* Main Glass Bar */}
-      <div style={{display: 'flex', gap: '1rem'}}>
+      <div style={{
+        display: 'flex',
+        gap: '0.75rem',
+        flexWrap: 'wrap',
+        justifyContent: 'center',
+        width: '100%'
+      }}>
           <button
             onClick={onActivate}
             style={{
+              flex: '1 1 180px',
+              maxWidth: '280px',
               background: 'rgba(20, 20, 30, 0.65)',
               backdropFilter: 'blur(12px)',
               border: '1px solid rgba(255, 255, 255, 0.15)',
               borderRadius: '50px',
-              padding: '0.8rem 2.2rem',
+              padding: '0.75rem 1.5rem',
               display: 'flex',
               alignItems: 'center',
-              gap: '0.8rem',
+              gap: '0.75rem',
               color: '#fff',
               cursor: 'pointer',
               boxShadow: isHovered 
                 ? '0 10px 30px rgba(0, 0, 0, 0.5), 0 0 20px rgba(142, 68, 173, 0.4)' 
                 : '0 5px 15px rgba(0, 0, 0, 0.3)',
-              transition: 'all 0.3s ease',
-              transform: isHovered ? 'translateY(-5px)' : 'translateY(0)',
-              minWidth: '200px'
+              transition: 'all 0.3s ease'
             }}
           >
             <div style={{
               width: '24px', height: '24px',
               borderRadius: '50%',
               background: 'linear-gradient(135deg, #8e44ad, #3498db)',
-              display: 'flex', alignItems: 'center', justifyContent: 'center'
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              flexShrink: 0
             }}>
               <div style={{width: '60%', height: '60%', background: '#fff', clipPath: 'polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%)'}}></div>
             </div>
@@ -75,22 +82,22 @@ const HealingActionBar = ({ onActivate, onJoinPortal }) => {
           <button
             onClick={onJoinPortal}
             style={{
+              flex: '1 1 180px',
+              maxWidth: '280px',
               background: 'rgba(212, 175, 55, 0.1)',
               backdropFilter: 'blur(12px)',
               border: '1px solid rgba(212, 175, 55, 0.3)',
               borderRadius: '50px',
-              padding: '0.8rem 2.2rem',
+              padding: '0.75rem 1.5rem',
               display: 'flex',
               alignItems: 'center',
-              gap: '0.8rem',
+              gap: '0.75rem',
               color: 'var(--accent-gold)',
               cursor: 'pointer',
-              transition: 'all 0.3s ease',
-              transform: isHovered ? 'translateY(-5px)' : 'translateY(0)',
-              minWidth: '200px'
+              transition: 'all 0.3s ease'
             }}
           >
-            <div style={{fontSize: '1.2rem'}}>🔑</div>
+            <div style={{fontSize: '1.2rem', flexShrink: 0}}>🔑</div>
             <div style={{display: 'flex', flexDirection: 'column', alignItems: 'flex-start'}}>
               <span style={{fontSize: '0.8rem', fontWeight: '700', letterSpacing: '1px', textTransform: 'uppercase'}}>Enter Portal</span>
               <span style={{fontSize: '0.6rem', color: 'rgba(212, 175, 55, 0.8)'}}>SESSION CODE</span>

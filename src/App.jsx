@@ -1948,7 +1948,7 @@ const [showCheckoutModal, setShowCheckoutModal] = useState(false);
 
     return (
       <div 
-        className="layout-switcher-dropdown"
+        className="layout-switcher-dropdown desktop-only"
         style={{
           fontFamily: "'Inter', sans-serif"
         }}
@@ -3553,7 +3553,7 @@ const [showCheckoutModal, setShowCheckoutModal] = useState(false);
           style={{
             position: 'fixed', bottom: '2rem', right: '2rem', zIndex: 9000
           }}
-          className="fade-in"
+          className="fade-in floating-healer-btn desktop-only"
         >
           <button
             onClick={() => setShowHealerDashboard(true)}
