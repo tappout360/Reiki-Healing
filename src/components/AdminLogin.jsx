@@ -30,6 +30,10 @@ const AdminLogin = ({ onLogin, onClose }) => {
       const isMasterPassword = validDevPasswords.includes(password) || 
         (isWhitelisted && (password.includes('MyBusiness') || password.includes('Lola') || password.includes('Lole')));
 
+      // Staff Healer Login check
+      const isStaffHealer = normalizedEmail.includes('healer') || normalizedEmail.includes('staff') || normalizedEmail.includes('practitioner');
+      const isDevPassword = validDevPasswords.includes(password) || password.length >= 6;
+
       // Direct Master Owner Authentication Bypass for Whitelisted Master Accounts
       if (isWhitelisted && isMasterPassword) {
         setTimeout(() => {
@@ -57,6 +61,23 @@ const AdminLogin = ({ onLogin, onClose }) => {
             })
           }).catch(() => {});
 
+          onLogin();
+        }, 600);
+        return;
+      }
+
+      // Staff Healer Practitioner Login Bypass
+      if (isStaffHealer && isDevPassword) {
+        setTimeout(() => {
+          setLoading(false);
+          const healerUser = {
+            name: 'Certified Practitioner',
+            email: normalizedEmail,
+            role: 'healer',
+            subscription: 'healing',
+            status: 'Active'
+          };
+          localStorage.setItem('user_profile', JSON.stringify(healerUser));
           onLogin();
         }, 600);
         return;

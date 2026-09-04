@@ -68,6 +68,10 @@ const LiveResonancePortal = ({ user, session, onClose, onOpenVoiceStudio }) => {
       const roomName = session?.sessionCode || session?.stripeSessionId || 'test-resonance-field';
       const targetUrl = session?.roomUrl || `https://reikiandsage.daily.co/${roomName}`;
 
+      frame.on('left-meeting', () => {
+        setSessionEnded(true);
+      });
+
       frame.join({ url: targetUrl })
         .catch(err => {
           console.warn("Daily join status notice:", err.message);

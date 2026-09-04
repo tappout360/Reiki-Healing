@@ -50,6 +50,7 @@ export const translations = {
     heroCTAScience: "See the Science",
     heroAlreadyAccount: "Already have an account?",
     heroLogin: "Log In",
+    logIntoProfile: "Log into Profile",
     
     // Daily Resonance
     dailyResonance: "DAILY RESONANCE",
@@ -240,6 +241,7 @@ export const translations = {
     heroCTAScience: "Ver la Ciencia",
     heroAlreadyAccount: "¿Ya tiene una cuenta?",
     heroLogin: "Iniciar Sesión",
+    logIntoProfile: "Ingresar al Perfil",
     
     // Daily Resonance
     dailyResonance: "RESONANCIA DIARIA",
@@ -426,6 +428,7 @@ export const translations = {
     heroCTAScience: "探索科学依据",
     heroAlreadyAccount: "已有账号？",
     heroLogin: "登录",
+    logIntoProfile: "进入个人资料",
     
     // Daily Resonance
     dailyResonance: "每日共振",
@@ -612,6 +615,7 @@ export const translations = {
     heroCTAScience: "Ver a Ciência",
     heroAlreadyAccount: "Já tem uma conta?",
     heroLogin: "Entrar",
+    logIntoProfile: "Entrar no Perfil",
     
     // Daily Resonance
     dailyResonance: "RESSONÂNCIA DIÁRIA",
@@ -798,6 +802,7 @@ export const translations = {
     heroCTAScience: "科学を見る",
     heroAlreadyAccount: "すでにアカウントをお持ちですか？",
     heroLogin: "ログイン",
+    logIntoProfile: "プロフィールを開く",
     
     // Daily Resonance
     dailyResonance: "日々の共鳴",
@@ -984,6 +989,7 @@ export const translations = {
     heroCTAScience: "Voir la Science",
     heroAlreadyAccount: "Vous avez déjà un compte ?",
     heroLogin: "Connexion",
+    logIntoProfile: "Accéder au Profil",
     
     // Daily Resonance
     dailyResonance: "RÉSONANCE QUOTIDIENNE",

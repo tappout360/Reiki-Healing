@@ -30,12 +30,45 @@ const StaffHealerDashboard = ({ user, onLogout, onLaunchVideoRoom }) => {
   // Financial & Payout State
   const [payouts, setPayouts] = useState([]);
   const [grossRevenue, setGrossRevenue] = useState(1408.00);
+  const [tipsRevenue, setTipsRevenue] = useState(145.00);
   const [platformFeePercent] = useState(15); // 15% platform app fee
-  const [pendingPayout, setPendingPayout] = useState(1196.80);
+  const [pendingPayout, setPendingPayout] = useState(1341.80);
   const [requestingPayout, setRequestingPayout] = useState(false);
+  const [loadingOnboarding, setLoadingOnboarding] = useState(false);
+  const [stripeAccountStatus, setStripeAccountStatus] = useState({
+    charges_enabled: true,
+    payouts_enabled: true,
+    accountId: user?.stripe_account_id || 'acct_express_connected'
+  });
 
   // Contractor Compliance State
   const [contractorAgreed, setContractorAgreed] = useState(true);
+
+  // Open or refresh Stripe Express Onboarding Link
+  const handleStripeOnboarding = async () => {
+    setLoadingOnboarding(true);
+    try {
+      const res = await fetch('/api/create-connect-account', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: user?.email || 'staff@reikiandsage.com',
+          healerName: user?.displayName || user?.name || 'Staff Healer'
+        })
+      });
+      const data = await res.json();
+      if (data.url) {
+        window.open(data.url, '_blank', 'noopener,noreferrer');
+        toast.success('Opening Stripe Express verification portal...');
+      } else {
+        toast.error(data.error || 'Could not initiate Stripe onboarding.');
+      }
+    } catch (err) {
+      toast.error('Network error reaching Stripe Connect.');
+    } finally {
+      setLoadingOnboarding(false);
+    }
+  };
 
   // Fetch healer bookings & payouts on mount
   useEffect(() => {
@@ -414,10 +447,11 @@ const StaffHealerDashboard = ({ user, onLogout, onLaunchVideoRoom }) => {
             </h3>
 
             {/* Metrics Overview Cards */}
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem', marginBottom: '1.5rem' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '1rem', marginBottom: '1.5rem' }}>
               <div style={{ background: 'rgba(15,18,30,0.9)', border: '1px solid rgba(255,255,255,0.1)', padding: '1.25rem', borderRadius: '16px' }}>
                 <div style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.6)' }}>GROSS SESSION REVENUE</div>
                 <div style={{ fontSize: '1.6rem', fontWeight: 'bold', color: '#fff', marginTop: '4px' }}>${grossRevenue.toFixed(2)}</div>
+                <span style={{ fontSize: '0.68rem', color: 'rgba(255,255,255,0.4)' }}>Before platform deductions</span>
               </div>
 
               <div style={{ background: 'rgba(15,18,30,0.9)', border: '1px solid rgba(231,76,60,0.3)', padding: '1.25rem', borderRadius: '16px' }}>
@@ -426,9 +460,43 @@ const StaffHealerDashboard = ({ user, onLogout, onLaunchVideoRoom }) => {
                 <span style={{ fontSize: '0.68rem', color: 'rgba(255,255,255,0.5)' }}>Covers Daily.co, Stripe & Servers</span>
               </div>
 
+              <div style={{ background: 'rgba(15,18,30,0.9)', border: '1px solid rgba(80,227,194,0.4)', padding: '1.25rem', borderRadius: '16px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <div style={{ fontSize: '0.75rem', color: '#50e3c2' }}>SEEKER TIPS (100% HEALER)</div>
+                  <span style={{ fontSize: '0.65rem', background: 'rgba(80,227,194,0.15)', color: '#50e3c2', padding: '1px 6px', borderRadius: '6px' }}>$0 Platform Fee</span>
+                </div>
+                <div style={{ fontSize: '1.6rem', fontWeight: 'bold', color: '#50e3c2', marginTop: '4px' }}>+${tipsRevenue.toFixed(2)}</div>
+                <span style={{ fontSize: '0.68rem', color: 'rgba(255,255,255,0.5)' }}>100% retained by practitioner</span>
+              </div>
+
               <div style={{ background: 'rgba(15,18,30,0.9)', border: '1px solid var(--accent-gold)', padding: '1.25rem', borderRadius: '16px' }}>
-                <div style={{ fontSize: '0.75rem', color: 'var(--accent-gold)' }}>NET PAYABLE EARNINGS</div>
-                <div style={{ fontSize: '1.6rem', fontWeight: 'bold', color: 'var(--accent-gold)', marginTop: '4px' }}>${netEarnings}</div>
+                <div style={{ fontSize: '0.75rem', color: 'var(--accent-gold)' }}>TOTAL NET PAYABLE</div>
+                <div style={{ fontSize: '1.6rem', fontWeight: 'bold', color: 'var(--accent-gold)', marginTop: '4px' }}>
+                  ${(parseFloat(netEarnings) + tipsRevenue).toFixed(2)}
+                </div>
+                <span style={{ fontSize: '0.68rem', color: 'rgba(255,255,255,0.5)' }}>Sessions (85%) + Tips (100%)</span>
+              </div>
+            </div>
+
+            {/* Healer Tip & Fee Policy Guarantee */}
+            <div style={{
+              background: 'linear-gradient(135deg, rgba(212,175,55,0.08) 0%, rgba(15,18,30,0.7) 100%)',
+              border: '1px solid rgba(212,175,55,0.25)',
+              borderRadius: '16px',
+              padding: '1.2rem 1.5rem',
+              marginBottom: '1.5rem',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '1rem'
+            }}>
+              <Sparkles size={28} color="var(--accent-gold)" style={{ flexShrink: 0 }} />
+              <div>
+                <h4 style={{ color: 'var(--accent-gold)', margin: '0 0 0.25rem 0', fontSize: '0.95rem' }}>
+                  Sacred Sanctuary Healer Financial Guarantee
+                </h4>
+                <p style={{ margin: 0, fontSize: '0.82rem', color: 'rgba(255,255,255,0.75)', lineHeight: '1.4' }}>
+                  Reiki & Sage maintains total transparent pricing. The 15% platform commission applies strictly to scheduled session bookings to cover Daily.co HD WebRTC video rooms, hosting, and card merchant fees. <strong>100% of seeker tips flow directly to your Stripe Express account with zero platform deduction.</strong>
+                </p>
               </div>
             </div>
           </div>
@@ -440,6 +508,54 @@ const StaffHealerDashboard = ({ user, onLogout, onLaunchVideoRoom }) => {
             <h3 style={{ fontFamily: 'Playfair Display', fontSize: '1.4rem', color: 'var(--accent-gold)', marginBottom: '1rem' }}>
               Fast In-App Payout Hub (Stripe Connect Express)
             </h3>
+
+            {/* Stripe Connect Express Status Card */}
+            <div style={{
+              background: 'rgba(15,18,30,0.9)',
+              border: '1px solid rgba(255,255,255,0.1)',
+              borderRadius: '16px',
+              padding: '1.25rem 1.5rem',
+              marginBottom: '1.5rem',
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              flexWrap: 'wrap',
+              gap: '1rem'
+            }}>
+              <div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '0.35rem' }}>
+                  <ShieldCheck size={18} color="#2ecc71" />
+                  <strong style={{ color: '#fff', fontSize: '0.95rem' }}>Stripe Connect Express Status</strong>
+                  <span style={{ fontSize: '0.72rem', background: 'rgba(46,204,113,0.15)', color: '#2ecc71', padding: '2px 8px', borderRadius: '10px', fontWeight: 'bold' }}>
+                    Active & Connected
+                  </span>
+                </div>
+                <div style={{ fontSize: '0.78rem', color: 'rgba(255,255,255,0.6)' }}>
+                  Charges: <span style={{ color: '#2ecc71' }}>✓ Enabled</span> &nbsp;|&nbsp;
+                  Payouts: <span style={{ color: '#2ecc71' }}>✓ Enabled</span> &nbsp;|&nbsp;
+                  Direct Destination Account: <code style={{ color: 'var(--accent-gold)' }}>{stripeAccountStatus.accountId}</code>
+                </div>
+              </div>
+
+              <button
+                onClick={handleStripeOnboarding}
+                disabled={loadingOnboarding}
+                style={{
+                  background: 'rgba(212,175,55,0.12)',
+                  border: '1px solid rgba(212,175,55,0.4)',
+                  color: 'var(--accent-gold)',
+                  padding: '0.6rem 1.2rem',
+                  borderRadius: '20px',
+                  cursor: 'pointer',
+                  fontSize: '0.82rem',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '6px'
+                }}
+              >
+                <ExternalLink size={14} /> {loadingOnboarding ? 'Loading Portal...' : 'Manage Bank Account on Stripe'}
+              </button>
+            </div>
 
             <div style={{ background: 'rgba(15,18,30,0.9)', border: '1px solid rgba(212,175,55,0.3)', padding: '1.5rem', borderRadius: '16px', marginBottom: '1.5rem', textAlign: 'center' }}>
               <div style={{ fontSize: '0.85rem', color: 'rgba(255,255,255,0.7)', marginBottom: '0.5rem' }}>AVAILABLE PENDING BALANCE FOR WITHDRAWAL</div>

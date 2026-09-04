@@ -8,7 +8,7 @@ import { toast } from 'react-hot-toast';
  * Featuring Master Healer Carissa Bright's voice & 528Hz Solfeggio ambience.
  * Open & Free for ALL visitors and Free Tier users.
  */
-const FreeCarissaMeditation = ({ onOpenSubscription, onOpenGuidedMeditation }) => {
+const FreeCarissaMeditation = ({ onOpenSubscription, onOpenGuidedMeditation, onOpenMicroPractices }) => {
   const [isPlaying, setIsPlaying] = useState(false);
   const [volume, setVolume] = useState(0.8);
   const audioCtxRef = useRef(null);
@@ -93,12 +93,12 @@ const FreeCarissaMeditation = ({ onOpenSubscription, onOpenGuidedMeditation }) =
             Experience Master Healer Carissa Bright's signature voice grounding transmission paired with organic 528Hz Solfeggio acoustic resonance. Completely free for all visitors.
           </p>
 
-          <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', flexWrap: 'wrap' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.85rem', flexWrap: 'wrap' }}>
             <button
               onClick={toggleMeditation}
               className="btn-primary"
               style={{
-                padding: '0.75rem 2rem',
+                padding: '0.75rem 1.75rem',
                 borderRadius: '30px',
                 fontSize: '0.9rem',
                 fontWeight: 'bold',
@@ -111,6 +111,28 @@ const FreeCarissaMeditation = ({ onOpenSubscription, onOpenGuidedMeditation }) =
               {isPlaying ? 'Pause Free Guided Session' : 'Play Free Guided Session'}
             </button>
 
+            {onOpenMicroPractices && (
+              <button
+                onClick={onOpenMicroPractices}
+                style={{
+                  background: 'rgba(80, 227, 194, 0.12)',
+                  border: '1px solid #50e3c2',
+                  color: '#50e3c2',
+                  padding: '0.75rem 1.4rem',
+                  borderRadius: '30px',
+                  fontSize: '0.85rem',
+                  cursor: 'pointer',
+                  fontWeight: 'bold',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  transition: 'all 0.2s ease'
+                }}
+              >
+                <Heart size={16} /> 5 Micro Heart Practices (1–2 min)
+              </button>
+            )}
+
             {onOpenSubscription && (
               <button
                 onClick={onOpenSubscription}
@@ -118,7 +140,7 @@ const FreeCarissaMeditation = ({ onOpenSubscription, onOpenGuidedMeditation }) =
                   background: 'rgba(255,255,255,0.06)',
                   border: '1px solid rgba(255,255,255,0.2)',
                   color: 'rgba(255,255,255,0.9)',
-                  padding: '0.75rem 1.5rem',
+                  padding: '0.75rem 1.4rem',
                   borderRadius: '30px',
                   fontSize: '0.85rem',
                   cursor: 'pointer',

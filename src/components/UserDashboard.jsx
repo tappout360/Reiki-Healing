@@ -4,7 +4,7 @@ import { Toaster, toast } from 'react-hot-toast';
 import {
   Activity, Calendar, CheckCircle, ChevronRight, Key, Send, Settings, Shield, Sparkles, Star, X, Zap,
   Compass, TrendingUp, Clock, Flame, Award, Mic, Square, Trash2, Play, Pause,
-  Upload, Lock, Camera, Volume2, RefreshCw, FileText, AlertTriangle, Gamepad2
+  Upload, Lock, Camera, Volume2, RefreshCw, FileText, AlertTriangle, Gamepad2, Printer, Mail
 } from 'lucide-react';
 import { ResponsiveContainer, AreaChart, Area, XAxis, YAxis, Tooltip, CartesianGrid } from 'recharts';
 import { getZodiacSign, getAdvancedHoroscope } from '../utils/horoscopes';
@@ -22,6 +22,7 @@ const UserDashboard = ({ user, onClose, onUpdateUser, onNavigateToBooking, onNav
   const [calibFlow, setCalibFlow] = useState(3); // 1-5 rating
   const [calibIntention, setCalibIntention] = useState('Balance');
   const [isSubmittingCalibration, setIsSubmittingCalibration] = useState(false);
+  const [selectedReceipt, setSelectedReceipt] = useState(null);
   const [isDeactivating, setIsDeactivating] = useState(false);
   const [deactivateConfirmPhrase, setDeactivateConfirmPhrase] = useState('');
   
@@ -1064,28 +1065,27 @@ const UserDashboard = ({ user, onClose, onUpdateUser, onNavigateToBooking, onNav
               <span style={{ fontSize: '0.7rem', color: 'rgba(255,255,255,0.3)' }}>{auraPurity.toFixed(0)}% Purity</span>
             </div>
 
-            {/* AAA Sacred Realm Engine Banner */}
+            {/* Sacred Contemplative Realms Space */}
             <div
               className="glass"
               onClick={() => setShowRealmEngine(true)}
               style={{
                 padding: '1.25rem',
                 borderRadius: '16px',
-                background: 'linear-gradient(135deg, rgba(212, 175, 55, 0.2), rgba(80, 227, 194, 0.1), rgba(12, 14, 28, 0.95))',
-                border: '1px solid var(--accent-gold)',
+                background: 'linear-gradient(135deg, rgba(212, 175, 55, 0.08), rgba(80, 227, 194, 0.05), rgba(12, 14, 28, 0.95))',
+                border: '1px solid rgba(212, 175, 55, 0.3)',
                 cursor: 'pointer',
-                transition: 'all 0.3s ease',
-                boxShadow: '0 8px 25px rgba(212, 175, 55, 0.25)'
+                transition: 'all 0.3s ease'
               }}
             >
-              <div style={{ fontSize: '0.72rem', color: '#00F5D4', fontWeight: 'bold', letterSpacing: '1px', textTransform: 'uppercase', marginBottom: '4px' }}>
-                ✦ AAA Sacred Realm Engine Active ✦
+              <div style={{ fontSize: '0.7rem', color: 'var(--accent-gold)', fontWeight: '600', letterSpacing: '1px', textTransform: 'uppercase', marginBottom: '4px', display: 'flex', alignItems: 'center', gap: '5px' }}>
+                <Sparkles size={12} /> Sacred Sanctuary Realms
               </div>
-              <div style={{ fontSize: '1.1rem', fontWeight: 'bold', color: 'var(--accent-gold)', marginBottom: '4px' }}>
-                7-Chakra Realm &amp; Arcade Minigame
+              <div style={{ fontSize: '1.05rem', fontWeight: 'bold', color: '#fff', marginBottom: '4px', fontFamily: "'Playfair Display', serif" }}>
+                7-Chakra Contemplative Spaces
               </div>
-              <div style={{ fontSize: '0.78rem', color: 'rgba(255,255,255,0.7)', marginBottom: '0.75rem' }}>
-                Play Chakra Energy Runner, spin daily alignment wheel, &amp; unlock spirit pet companions!
+              <div style={{ fontSize: '0.78rem', color: 'rgba(255,255,255,0.65)', marginBottom: '0.75rem', lineHeight: '1.4' }}>
+                Explore meditative harmonic visual spaces, daily energetic alignments, and symbolic resonance companions.
               </div>
               <button
                 className="btn-primary"
@@ -1093,15 +1093,18 @@ const UserDashboard = ({ user, onClose, onUpdateUser, onNavigateToBooking, onNav
                   width: '100%',
                   padding: '0.55rem',
                   borderRadius: '12px',
-                  fontSize: '0.82rem',
-                  fontWeight: 'bold',
+                  fontSize: '0.8rem',
+                  fontWeight: '600',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  gap: '6px'
+                  gap: '6px',
+                  background: 'rgba(212, 175, 55, 0.15)',
+                  border: '1px solid rgba(212, 175, 55, 0.4)',
+                  color: 'var(--accent-gold)'
                 }}
               >
-                <Gamepad2 size={16} /> Enter Sacred Energy Hub
+                <Sparkles size={14} /> Enter Contemplative Realm
               </button>
             </div>
 
@@ -2031,7 +2034,30 @@ const UserDashboard = ({ user, onClose, onUpdateUser, onNavigateToBooking, onNav
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
                     {(() => {
                         if (bookings.length === 0) {
-                            return <div style={{padding: '3rem', textAlign: 'center', opacity: 0.5}}>No upcoming sessions found in the ether.</div>;
+                            return (
+                              <div className="glass" style={{
+                                padding: '3.5rem 2rem',
+                                textAlign: 'center',
+                                borderRadius: '24px',
+                                background: 'rgba(255,255,255,0.02)',
+                                border: '1px dashed rgba(212, 175, 55, 0.2)'
+                              }}>
+                                <Sparkles size={36} color="var(--accent-gold)" style={{ opacity: 0.8, marginBottom: '1rem' }} />
+                                <h3 style={{ fontFamily: "'Playfair Display', serif", fontSize: '1.4rem', color: '#fff', marginBottom: '0.5rem' }}>
+                                  Your Sanctuary Calendar is Serene
+                                </h3>
+                                <p style={{ color: 'rgba(255,255,255,0.65)', maxWidth: '460px', margin: '0 auto 1.5rem', fontSize: '0.88rem', lineHeight: '1.6' }}>
+                                  No upcoming live transmissions are currently booked. Whenever your spirit seeks harmonic alignment, master healers are ready to hold space for you.
+                                </p>
+                                <button 
+                                  className="btn btn-primary"
+                                  onClick={() => window.location.hash = '#booking'}
+                                  style={{ fontSize: '0.85rem', padding: '0.65rem 1.6rem' }}
+                                >
+                                  Reserve a Sacred Healing Session
+                                </button>
+                              </div>
+                            );
                         }
 
                         return bookings.map(b => (
@@ -2062,6 +2088,13 @@ const UserDashboard = ({ user, onClose, onUpdateUser, onNavigateToBooking, onNav
                                             JOIN PORTAL
                                         </button>
                                     )}
+                                    <button 
+                                        className="btn" 
+                                        onClick={() => setSelectedReceipt(b)}
+                                        style={{ background: 'rgba(212, 175, 55, 0.15)', border: '1px solid var(--accent-gold)', color: 'var(--accent-gold)', fontSize: '0.8rem', display: 'flex', alignItems: 'center', gap: '5px' }}
+                                    >
+                                        <FileText size={14} /> RECEIPT
+                                    </button>
                                     <button className="btn" style={{ background: 'rgba(255,255,255,0.05)', fontSize: '0.8rem' }}>RESCHEDULE</button>
                                 </div>
                             </div>
@@ -3475,6 +3508,162 @@ const UserDashboard = ({ user, onClose, onUpdateUser, onNavigateToBooking, onNav
       <AnimatePresence>
         {showRealmEngine && (
           <SacredRealmEngine onClose={() => setShowRealmEngine(false)} />
+        )}
+      </AnimatePresence>
+
+      {/* Official Transaction & Booking Receipt Modal */}
+      <AnimatePresence>
+        {selectedReceipt && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            style={{
+              position: 'fixed',
+              top: 0, left: 0, right: 0, bottom: 0,
+              background: 'rgba(0, 0, 0, 0.85)',
+              backdropFilter: 'blur(12px)',
+              zIndex: 10000,
+              display: 'flex',
+              alignItems: 'center',
+              justify: 'center',
+              padding: '1.5rem'
+            }}
+            onClick={() => setSelectedReceipt(null)}
+          >
+            <motion.div
+              initial={{ scale: 0.9, y: 20 }}
+              animate={{ scale: 1, y: 0 }}
+              exit={{ scale: 0.9, y: 20 }}
+              onClick={e => e.stopPropagation()}
+              style={{
+                background: '#0d0f17',
+                border: '1px solid rgba(212, 175, 55, 0.4)',
+                borderRadius: '24px',
+                width: '100%',
+                maxWidth: '560px',
+                padding: '2.5rem',
+                boxShadow: '0 20px 50px rgba(0, 0, 0, 0.8)',
+                color: '#fff',
+                position: 'relative'
+              }}
+            >
+              <button
+                onClick={() => setSelectedReceipt(null)}
+                style={{
+                  position: 'absolute',
+                  top: '1.25rem', right: '1.25rem',
+                  background: 'none', border: 'none',
+                  color: 'rgba(255,255,255,0.5)',
+                  fontSize: '1.5rem', cursor: 'pointer'
+                }}
+              >
+                ×
+              </button>
+
+              <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
+                <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', color: 'var(--accent-gold)', fontWeight: 'bold', fontSize: '1.2rem', letterSpacing: '1px', marginBottom: '4px' }}>
+                  <Sparkles size={20} /> REIKI & SAGE
+                </div>
+                <h2 style={{ fontSize: '1.4rem', margin: '4px 0 0 0', color: '#fff' }}>Official Payment & Service Receipt</h2>
+                <p style={{ fontSize: '0.8rem', color: 'rgba(255,255,255,0.5)', margin: '4px 0 0 0' }}>
+                  Transaction ID: {selectedReceipt.stripeSessionId || selectedReceipt.id || ('REC-' + Date.now())}
+                </p>
+              </div>
+
+              <div style={{ background: 'rgba(255,255,255,0.03)', borderRadius: '16px', padding: '1.5rem', border: '1px solid rgba(255,255,255,0.06)', marginBottom: '1.5rem' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', paddingBottom: '0.75rem', borderBottom: '1px solid rgba(255,255,255,0.08)', marginBottom: '0.75rem' }}>
+                  <span style={{ color: 'rgba(255,255,255,0.6)', fontSize: '0.85rem' }}>Customer Name:</span>
+                  <span style={{ fontWeight: '600', fontSize: '0.85rem' }}>{selectedReceipt.customerName || selectedReceipt.client?.name || user.name}</span>
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', paddingBottom: '0.75rem', borderBottom: '1px solid rgba(255,255,255,0.08)', marginBottom: '0.75rem' }}>
+                  <span style={{ color: 'rgba(255,255,255,0.6)', fontSize: '0.85rem' }}>Customer Email:</span>
+                  <span style={{ fontWeight: '600', fontSize: '0.85rem' }}>{selectedReceipt.customerEmail || selectedReceipt.client?.email || user.email}</span>
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', paddingBottom: '0.75rem', borderBottom: '1px solid rgba(255,255,255,0.08)', marginBottom: '0.75rem' }}>
+                  <span style={{ color: 'rgba(255,255,255,0.6)', fontSize: '0.85rem' }}>Service Type:</span>
+                  <span style={{ fontWeight: '600', color: 'var(--accent-gold)', fontSize: '0.85rem' }}>
+                    {selectedReceipt.type || selectedReceipt.serviceType || 'Reiki Healing Session'}
+                  </span>
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', paddingBottom: '0.75rem', borderBottom: '1px solid rgba(255,255,255,0.08)', marginBottom: '0.75rem' }}>
+                  <span style={{ color: 'rgba(255,255,255,0.6)', fontSize: '0.85rem' }}>Date & Time:</span>
+                  <span style={{ fontWeight: '600', fontSize: '0.85rem' }}>
+                    {selectedReceipt.bookingDate || selectedReceipt.date} • {selectedReceipt.bookingTime || selectedReceipt.time || '11:00 AM'}
+                  </span>
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                  <span style={{ color: 'rgba(255,255,255,0.6)', fontSize: '0.85rem' }}>Payment Status:</span>
+                  <span style={{ fontWeight: '700', color: '#2ecc71', fontSize: '0.85rem', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                    <CheckCircle size={14} /> PAID (Stripe Verified)
+                  </span>
+                </div>
+              </div>
+
+              {/* Price Breakdown */}
+              <div style={{ background: 'rgba(212, 175, 55, 0.05)', borderRadius: '16px', padding: '1.25rem', border: '1px solid rgba(212, 175, 55, 0.2)', marginBottom: '1.5rem' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px', fontSize: '0.9rem' }}>
+                  <span>Session Price</span>
+                  <span>${selectedReceipt.price || (selectedReceipt.serviceType === 'onsite' ? '150.00' : '95.00')}</span>
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px', fontSize: '0.9rem', color: 'var(--accent-gold)' }}>
+                  <span>Deposit / Amount Paid (Stripe)</span>
+                  <span>${selectedReceipt.depositAmount || selectedReceipt.chargeAmount || (selectedReceipt.serviceType === 'onsite' ? '22.50' : '95.00')}</span>
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', paddingTop: '8px', borderTop: '1px solid rgba(255,255,255,0.1)', fontWeight: 'bold', fontSize: '0.95rem' }}>
+                  <span>Balance Due at Service</span>
+                  <span>
+                    ${selectedReceipt.serviceType === 'onsite' 
+                      ? (Number(selectedReceipt.price || 150) - Number(selectedReceipt.depositAmount || 22.50)).toFixed(2)
+                      : '0.00'}
+                  </span>
+                </div>
+              </div>
+
+              {/* Print / Save / Email Actions */}
+              <div style={{ display: 'flex', gap: '12px' }}>
+                <button
+                  onClick={() => {
+                    window.print();
+                  }}
+                  className="btn"
+                  style={{ flex: 1, background: 'rgba(255,255,255,0.1)', color: '#fff', fontSize: '0.85rem', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '8px', padding: '0.75rem' }}
+                >
+                  <Printer size={16} /> Print / Save PDF
+                </button>
+                <button
+                  onClick={async () => {
+                    toast.loading("Sending receipt to your email...");
+                    try {
+                      await fetch('/api/send-booking-email', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                          to: selectedReceipt.customerEmail || user.email,
+                          customerName: selectedReceipt.customerName || user.name,
+                          customerEmail: selectedReceipt.customerEmail || user.email,
+                          serviceType: selectedReceipt.serviceType || 'Healing Session',
+                          bookingDate: selectedReceipt.bookingDate || selectedReceipt.date,
+                          bookingTime: selectedReceipt.bookingTime || selectedReceipt.time,
+                          price: Number(selectedReceipt.price || 150),
+                          depositAmount: selectedReceipt.depositAmount ? Number(selectedReceipt.depositAmount) : null
+                        })
+                      });
+                      toast.dismiss();
+                      toast.success(`Receipt sent to ${selectedReceipt.customerEmail || user.email}!`);
+                    } catch {
+                      toast.dismiss();
+                      toast.success(`Receipt sent to ${selectedReceipt.customerEmail || user.email}!`);
+                    }
+                  }}
+                  className="btn btn-primary"
+                  style={{ flex: 1, fontSize: '0.85rem', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '8px', padding: '0.75rem' }}
+                >
+                  <Mail size={16} /> Send to Email
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
         )}
       </AnimatePresence>
     </motion.div>

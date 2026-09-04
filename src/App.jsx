@@ -48,6 +48,7 @@ const BiofieldPulse = safeLazy(() => import('./components/BiofieldPulse'));
 const VoiceReflectionStudio = safeLazy(() => import('./components/VoiceReflectionStudio'));
 const AIAvatarDropBox = safeLazy(() => import('./components/AIAvatarDropBox'));
 const FreeCarissaMeditation = safeLazy(() => import('./components/FreeCarissaMeditation'));
+const MicroHeartPractices = safeLazy(() => import('./components/MicroHeartPractices'));
 import DuckingAudioPlayer from './components/DuckingAudioPlayer';
 import { protocolSoundEngine } from './utils/ProtocolSoundEngine';
 import BillingForm from './components/BillingForm';
@@ -505,6 +506,7 @@ function AppContent() {
   const [showAuraGuide, setShowAuraGuide] = useState(false);
   const [showScience, setShowScience] = useState(false); // Science Modal
   const [showMeditationModal, setShowMeditationModal] = useState(false); // Guided Meditation Modal
+  const [showMicroPractices, setShowMicroPractices] = useState(false); // 5 Micro Heart Practices
   const [showHealerDashboard, setShowHealerDashboard] = useState(false); // Admin access
   const [showAdminLogin, setShowAdminLogin] = useState(false); // NEW: Staff/Admin login
   const [showLegalModal, setShowLegalModal] = useState(null); // 'terms' | 'privacy' | 'disclaimer' | null
@@ -1245,11 +1247,32 @@ const [showCheckoutModal, setShowCheckoutModal] = useState(false);
               </p>
               
               {user && !isMobileLayout && (
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.9rem', cursor: 'pointer', marginBottom: '1.5rem' }} onClick={() => setShowUserFullDashboard(true)}>
-                  <div style={{ width: '32px', height: '32px', borderRadius: '50%', background: 'var(--accent-gold)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'black', fontWeight: 'bold' }}>
-                    {user.name.charAt(0)}
+                <div 
+                  style={{ 
+                    display: 'inline-flex', 
+                    alignItems: 'center', 
+                    gap: '10px', 
+                    fontSize: '0.9rem', 
+                    cursor: 'pointer', 
+                    marginBottom: '1.5rem',
+                    padding: '6px 16px 6px 8px',
+                    borderRadius: '30px',
+                    background: 'rgba(212, 175, 55, 0.12)',
+                    border: '1px solid rgba(212, 175, 55, 0.35)',
+                    backdropFilter: 'blur(8px)',
+                    boxShadow: '0 4px 15px rgba(0, 0, 0, 0.25)',
+                    transition: 'all 0.25s ease'
+                  }} 
+                  onClick={() => setShowUserFullDashboard(true)}
+                  title={t('logIntoProfile')}
+                >
+                  <div style={{ width: '30px', height: '30px', borderRadius: '50%', background: 'var(--accent-gold)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'black', fontWeight: 'bold', fontSize: '0.85rem' }}>
+                    {user.name ? user.name.charAt(0) : 'U'}
                   </div>
-                  {user.name}
+                  <span style={{ fontWeight: '600', color: '#fff' }}>{user.name}</span>
+                  <span style={{ color: 'var(--accent-gold)', fontSize: '0.85rem', display: 'inline-flex', alignItems: 'center', gap: '4px', opacity: 0.9 }}>
+                    — {t('logIntoProfile')} <ArrowRight size={14} />
+                  </span>
                 </div>
               )}
 
@@ -3211,11 +3234,32 @@ const [showCheckoutModal, setShowCheckoutModal] = useState(false);
               </p>
               
               {user && (
-                <div style={{display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.9rem', cursor: 'pointer', marginBottom: '1.5rem'}} onClick={() => setShowUserFullDashboard(true)}>
-                  <div style={{width: '32px', height: '32px', borderRadius: '50%', background: 'var(--accent-gold)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'black', fontWeight: 'bold'}}>
-                    {user.name.charAt(0)}
+                <div 
+                  style={{ 
+                    display: 'inline-flex', 
+                    alignItems: 'center', 
+                    gap: '10px', 
+                    fontSize: '0.9rem', 
+                    cursor: 'pointer', 
+                    marginBottom: '1.5rem',
+                    padding: '6px 16px 6px 8px',
+                    borderRadius: '30px',
+                    background: 'rgba(212, 175, 55, 0.12)',
+                    border: '1px solid rgba(212, 175, 55, 0.35)',
+                    backdropFilter: 'blur(8px)',
+                    boxShadow: '0 4px 15px rgba(0, 0, 0, 0.25)',
+                    transition: 'all 0.25s ease'
+                  }} 
+                  onClick={() => setShowUserFullDashboard(true)}
+                  title={t('logIntoProfile')}
+                >
+                  <div style={{ width: '30px', height: '30px', borderRadius: '50%', background: 'var(--accent-gold)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'black', fontWeight: 'bold', fontSize: '0.85rem' }}>
+                    {user.name ? user.name.charAt(0) : 'U'}
                   </div>
-                  {user.name}
+                  <span style={{ fontWeight: '600', color: '#fff' }}>{user.name}</span>
+                  <span style={{ color: 'var(--accent-gold)', fontSize: '0.85rem', display: 'inline-flex', alignItems: 'center', gap: '4px', opacity: 0.9 }}>
+                    — {t('logIntoProfile')} <ArrowRight size={14} />
+                  </span>
                 </div>
               )}
 
@@ -3550,6 +3594,7 @@ const [showCheckoutModal, setShowCheckoutModal] = useState(false);
         <FreeCarissaMeditation 
           onOpenSubscription={() => setShowSubscriptionModal(true)} 
           onOpenGuidedMeditation={() => setShowMeditationModal(true)}
+          onOpenMicroPractices={() => setShowMicroPractices(true)}
         />
       </Suspense>
 
@@ -3905,6 +3950,15 @@ const [showCheckoutModal, setShowCheckoutModal] = useState(false);
               onOpenSoundBaths={() => setShowSoundBaths(true)}
               onOpenVoiceStudio={() => setShowVoiceReflectionStudio(true)}
             />
+          )}
+        </AnimatePresence>
+      </Suspense>
+
+      {/* Micro Heart Practices Modal (5 Light 1-2 min practices) */}
+      <Suspense fallback={null}>
+        <AnimatePresence>
+          {showMicroPractices && (
+            <MicroHeartPractices onClose={() => setShowMicroPractices(false)} />
           )}
         </AnimatePresence>
       </Suspense>

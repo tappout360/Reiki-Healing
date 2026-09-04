@@ -169,6 +169,9 @@ export default async function handler(req, res) {
             depositAmount,
             customerEmail,
             customerName,
+            healerEmail = 'carissabright@gmail.com',
+            healerName = 'Master Healer Carissa Bright',
+            healerStripeAccountId = '',
             bookingDate,
             bookingTime,
             notes
@@ -182,6 +185,9 @@ export default async function handler(req, res) {
             id: bookingId,
             customerName,
             customerEmail: customerEmail.toLowerCase(),
+            healerEmail: healerEmail.toLowerCase(),
+            healerName,
+            healerStripeAccountId,
             serviceType,
             videoJoinLink: serviceType === 'live' ? videoJoinLink : null,
             price: Number(fullPrice),
@@ -201,7 +207,7 @@ export default async function handler(req, res) {
           // Save in MongoDB
           if (mongoDb) {
             await mongoDb.collection('bookings').insertOne(bookingDoc);
-            console.log(`[MongoDB] Booking created for ${customerName} (${serviceType}) on ${bookingDate}`);
+            console.log(`[MongoDB] Booking created for ${customerName} (${serviceType}) on ${bookingDate} with ${healerName}`);
           }
 
           // Save in Firestore fallback
@@ -230,6 +236,8 @@ export default async function handler(req, res) {
                 to: customerEmail,
                 customerName,
                 customerEmail,
+                healerEmail,
+                healerName,
                 serviceType,
                 bookingDate,
                 bookingTime,
