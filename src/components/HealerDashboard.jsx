@@ -13,6 +13,9 @@ import 'react-calendar/dist/Calendar.css';
 import { logTransaction } from '../utils/logger';
 import { isFirebaseConfigured, db } from '../lib/firebase';
 import './HealerDashboard.css';
+import HealerEarningsTab from '../features/healer-marketplace/HealerEarningsTab';
+import HealerClientsTab from '../features/healer-marketplace/HealerClientsTab';
+
 
 const HealerDashboard = ({ onClose, onJoinPortal, healerAppsEnabled = false, onToggleHealerApps = () => {}, protocols = [], onToggleProtocol = () => {} }) => {
   const [activeTab, setActiveTab] = useState('bookings');
@@ -1192,23 +1195,7 @@ const HealerDashboard = ({ onClose, onJoinPortal, healerAppsEnabled = false, onT
 
           {activeTab === 'financials' && (
             <div className="financials-section fade-in">
-              <div style={{display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '2rem', marginBottom: '3rem'}}>
-                <div className="stat-card glass" style={{textAlign: 'center', padding: '2rem'}}>
-                  <p style={{color: 'var(--text-muted)', fontSize: '0.9rem'}}>Estimated Monthly Revenue</p>
-                  <h2 style={{color: 'var(--accent-gold)', fontSize: '2.5rem'}}>${
-                    clients.filter(c => c.subscription === 'healing').length * 29
-                  }</h2>
-                </div>
-                <div className="stat-card glass" style={{textAlign: 'center', padding: '2rem'}}>
-                  <p style={{color: 'var(--text-muted)', fontSize: '0.9rem'}}>Paid Subscriptions</p>
-                  <h2 style={{color: 'var(--accent-ethereal)', fontSize: '2.5rem'}}>{clients.filter(c => c.subscription === 'healing').length}</h2>
-                </div>
-              </div>
-
-              <div className="glass" style={{padding: '2rem'}}>
-                <h3 style={{marginBottom: '1.5rem'}}>Transaction Status</h3>
-                <p style={{fontSize: '0.9rem', color: 'var(--text-muted)'}}>All financial frequencies are currently stable. Detailed transaction logs can be found in the "Logs" tab.</p>
-              </div>
+              <HealerEarningsTab bookings={bookings} healerSharePercent={85} />
             </div>
           )}
 
@@ -1651,44 +1638,7 @@ const HealerDashboard = ({ onClose, onJoinPortal, healerAppsEnabled = false, onT
               <p style={{fontSize: '0.9rem', color: 'var(--text-muted)', marginBottom: '1rem'}}>
                  Verified Client Database (Sanctuary Compliance Records). Click on a spirit to manage their journey.
               </p>
-              <div className="archive-table-container">
-                <table className="archive-table">
-                  <thead>
-                    <tr><th>Name</th><th>Contact info</th><th>Sub Status</th><th>Last Connection</th><th>Security</th></tr>
-                  </thead>
-                  <tbody>                    {clients && clients.filter(Boolean).map((c, i) => (
-                      <tr key={i} style={{transition: 'background 0.2s'}}>
-                        <td onClick={() => setSelectedClient(c)} style={{cursor: 'pointer'}}><strong>{c?.name || 'Anonymous Seeker'}</strong></td>
-                        <td onClick={() => setSelectedClient(c)} style={{cursor: 'pointer'}}>{c?.phone || ''}<br/><span style={{opacity: 0.6}}>{c?.email || ''}</span></td>
-                        <td onClick={() => setSelectedClient(c)} style={{cursor: 'pointer'}}>
-                            <span style={{
-                                color: c?.subscription === 'healing' ? 'var(--accent-gold)' : 'var(--text-muted)',
-                                border: `1px solid ${c?.subscription === 'healing' ? 'var(--accent-gold)' : 'rgba(255,255,255,0.2)'}`,
-                                padding: '2px 8px', borderRadius: '4px', fontSize: '0.75rem'
-                            }}>
-                                {c?.subscription === 'healing' ? 'Healing' : 'Seeker'}
-                            </span>
-                        </td>
-                        <td onClick={() => setSelectedClient(c)} style={{cursor: 'pointer'}}>{c?.lastBooking || 'No sessions yet'}</td>
-                        <td>
-                          <button onClick={(e) => {
-                             e.stopPropagation();
-                             const newPass = prompt("Enter new password for " + (c?.name || ''));
-                             if (newPass) {
-                               const updated = clients.map(cl => cl && cl.email === c?.email ? {...cl, password: newPass} : cl);
-                               setClients(updated);
-                               localStorage.setItem('aura_clients', JSON.stringify(updated));
-                               toast.success("Security code reset.");
-                             }
-                          }} style={{background: 'none', border: '1px solid var(--accent-gold)', color: 'var(--accent-gold)', padding: '2px 8px', borderRadius: '4px', fontSize: '0.7rem', cursor: 'pointer'}}>Reset Pass</button>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-              
-
+              <HealerClientsTab clients={clients} onSelectClient={(client) => setSelectedClient(client)} />
             </div>
           )}
 

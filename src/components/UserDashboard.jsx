@@ -11,6 +11,11 @@ import { getZodiacSign, getAdvancedHoroscope } from '../utils/horoscopes';
 import { auth, db, isFirebaseConfigured } from '../lib/firebase';
 import { BADGES, BADGE_CATEGORIES, getLevel, getLevelProgress, getNextLevel, getStats, getBadgesByCategory } from '../utils/gamification';
 import SacredRealmEngine from './SacredRealmEngine';
+import LightbodyCanvas from '../features/sanctuary/LightbodyCanvas';
+import StreakCard from '../features/sanctuary/StreakCard';
+import AuraPurityMeter from '../features/sanctuary/AuraPurityMeter';
+import SessionReceiptModal from '../features/sanctuary/SessionReceiptModal';
+
 
 const UserDashboard = ({ user, onClose, onUpdateUser, onNavigateToBooking, onNavigateToProtocols, onJoinLivePortal, gamificationState }) => {
   const [showRealmEngine, setShowRealmEngine] = useState(false);
@@ -987,31 +992,7 @@ const UserDashboard = ({ user, onClose, onUpdateUser, onNavigateToBooking, onNav
         }}>
           <div style={{ marginBottom: '3rem', textAlign: 'center' }}>
             {/* Dynamic Lightbody Canvas */}
-            <div style={{
-              width: '120px',
-              height: '120px',
-              borderRadius: '100%',
-              margin: '0 auto 1.5rem',
-              position: 'relative',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              background: 'rgba(5,5,12,0.6)',
-              boxShadow: '0 0 25px rgba(0,0,0,0.5)',
-              overflow: 'hidden',
-              border: '2px solid rgba(212, 175, 55, 0.2)'
-            }}>
-              <canvas 
-                ref={canvasRef} 
-                width={120} 
-                height={120} 
-                style={{ 
-                  width: '120px', 
-                  height: '120px',
-                  display: 'block'
-                }} 
-              />
-            </div>
+            <LightbodyCanvas auraPurity={auraPurity} activeColor={resonance?.color || 'var(--accent-gold)'} />
             <h3 style={{ fontSize: '1.4rem', margin: '0 0 0.5rem 0' }}>{user.name}</h3>
             <span style={{ 
               fontSize: '0.75rem', 
@@ -1027,18 +1008,8 @@ const UserDashboard = ({ user, onClose, onUpdateUser, onNavigateToBooking, onNav
           </div>
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-            <div className="glass" style={{ padding: '1.25rem', borderRadius: '16px', background: 'rgba(255,255,255,0.02)' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '1rem' }}>
-                <span style={{ fontSize: '0.8rem', color: 'rgba(255,255,255,0.4)' }}>Total Alignment</span>
-                <TrendingUp size={16} color="var(--accent-gold)" />
-              </div>
-              <div style={{ fontSize: '1.8rem', fontWeight: '700' }}>{auraPurity.toFixed(1)}%</div>
-              <div style={{ marginTop: '0.5rem', display: 'flex', alignItems: 'center', gap: '5px' }}>
-                <span style={{ fontSize: '0.75rem', color: '#00b894' }}>+2.4%</span>
-                <span style={{ fontSize: '0.7rem', color: 'rgba(255,255,255,0.3)' }}>from last cycle</span>
-              </div>
-            </div>
-
+            
+            <AuraPurityMeter purity={auraPurity} color={resonance?.color || '#6c5ce7'} />
             <div className="glass" style={{ padding: '1.25rem', borderRadius: '16px', background: 'rgba(255,255,255,0.02)' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '1rem' }}>
                 <span style={{ fontSize: '0.8rem', color: 'rgba(255,255,255,0.4)' }}>Active Sessions</span>
@@ -1048,21 +1019,6 @@ const UserDashboard = ({ user, onClose, onUpdateUser, onNavigateToBooking, onNav
               <div style={{ marginTop: '0.5rem', display: 'flex', alignItems: 'center', gap: '5px' }}>
                 <span style={{ fontSize: '0.7rem', color: 'rgba(255,255,255,0.3)' }}>Next resonance in 4 days</span>
               </div>
-            </div>
-
-            <div className="glass" style={{ padding: '1.25rem', borderRadius: '16px', background: 'rgba(255,255,255,0.02)' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '1rem' }}>
-                <span style={{ fontSize: '0.8rem', color: 'rgba(255,255,255,0.4)' }}>Aura Strength</span>
-                <Activity size={16} color="#e17055" />
-              </div>
-              <div style={{ width: '100%', height: '4px', background: 'rgba(255,255,255,0.1)', borderRadius: '2px', margin: '0.75rem 0' }}>
-                <motion.div 
-                  initial={{ width: 0 }}
-                  animate={{ width: `${auraPurity}%` }}
-                  style={{ height: '100%', background: `linear-gradient(90deg, #e17055, ${resonance?.color || '#6c5ce7'})`, borderRadius: '2px' }}
-                />
-              </div>
-              <span style={{ fontSize: '0.7rem', color: 'rgba(255,255,255,0.3)' }}>{auraPurity.toFixed(0)}% Purity</span>
             </div>
 
             {/* Sacred Contemplative Realms Space */}
@@ -1109,31 +1065,7 @@ const UserDashboard = ({ user, onClose, onUpdateUser, onNavigateToBooking, onNav
             </div>
 
             {/* Healing Streak Card */}
-            <div className="glass" style={{ padding: '1.25rem', borderRadius: '16px', background: 'rgba(255,255,255,0.02)' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '1rem' }}>
-                <span style={{ fontSize: '0.8rem', color: 'rgba(255,255,255,0.4)' }}>Healing Streak</span>
-                <Flame size={16} color="#e17055" />
-              </div>
-              <div style={{ display: 'flex', alignItems: 'baseline', gap: '6px' }}>
-                <div style={{ fontSize: '1.8rem', fontWeight: '700', color: (user.streak || 0) >= 7 ? '#f39c12' : (user.streak || 0) >= 3 ? '#e17055' : 'var(--text-main)' }}>
-                  {user.streak || 0}
-                </div>
-                <span style={{ fontSize: '0.8rem', color: 'rgba(255,255,255,0.4)' }}>days</span>
-              </div>
-              <div style={{ marginTop: '0.75rem', display: 'flex', gap: '4px' }}>
-                {[1,2,3,4,5,6,7].map(d => (
-                  <div key={d} style={{
-                    flex: 1, height: '4px', borderRadius: '2px',
-                    background: d <= (user.streak || 0) 
-                      ? 'linear-gradient(90deg, #e17055, #f39c12)' 
-                      : 'rgba(255,255,255,0.1)'
-                  }} />
-                ))}
-              </div>
-              <div style={{ marginTop: '0.5rem', fontSize: '0.7rem', color: 'rgba(255,255,255,0.3)' }}>
-                Best: {user.longestStreak || 0} days
-              </div>
-            </div>
+            <StreakCard streak={user.streak || 0} longestStreak={user.longestStreak || 0} />
 
             {/* XP Level & Progress */}
             {gamificationState && (
