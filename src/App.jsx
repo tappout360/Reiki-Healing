@@ -11,6 +11,7 @@ import { UserDashboardInline } from './components/UserDashboardInline'
 import { auth, db, isFirebaseConfigured } from './lib/firebase'
 import { loadGamificationState, saveGamificationState, processSessionComplete, syncToFirestore } from './utils/gamification'
 import './App.css'
+import { SpeedInsights } from '@vercel/speed-insights/react'
 import './components/AuraGuide.css'
 
 // Robust Lazy Load Helper (Auto-reloads if bundle hash changes across Vercel deployments)
@@ -3718,6 +3719,9 @@ const [showCheckoutModal, setShowCheckoutModal] = useState(false);
       )}
 
       {/* Gating Disclaimer Modal */}
+
+      {/* Vercel Speed Insights */}
+      <SpeedInsights />
       {!disclaimerAccepted && renderGatingDisclaimerModal()}
 
     </div>
