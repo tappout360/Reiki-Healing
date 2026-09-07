@@ -58,10 +58,8 @@ import { LoadingSpinner } from './components/ui/LoadingSpinner';
 import { AuraClouds } from './components/ui/AuraClouds';
 import { StardustBackground as Stardust } from './components/ui/StardustBackground';
 import { protocols, positiveAffirmations } from './features/protocols/protocolCatalog';
-import { ProtocolPortalModal } from './features/protocols/ProtocolPortalModal';
-import { AppNavbar } from './app/AppNavbar';
-import { AppFooter } from './app/AppFooter';
-import { HeroSection } from './app/HeroSection';
+// Features & Shared UI
+
 
 const getRandomItem = (arr) => {
   return arr[Math.floor(Math.random() * arr.length)];
