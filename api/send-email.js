@@ -56,6 +56,20 @@ export default async function handler(req, res) {
         </p>
       </div>
     `;
+  } else if (type === 'POST_SESSION' || req.body?.serviceType) {
+    const { customerName, serviceType, sessionDate } = req.body || {};
+    emailSubject = emailSubject || '✨ Session Integration & Voice Reflection — Reiki & Sage';
+    emailHtml = `
+      <div style="font-family: Georgia, serif; max-width: 600px; margin: 0 auto; background: #0b0c10; color: #e0e0e0; padding: 30px; border-radius: 12px; border: 1px solid #c9a84c;">
+        <h1 style="color: #c9a84c; text-align: center; margin-bottom: 20px;">Peace & Light Unto You</h1>
+        <p>Dear ${customerName || sanitizedName},</p>
+        <p>Thank you for entering the sacred healing sanctuary for your ${serviceType === 'live' ? 'Live Video Energy Session' : 'Reiki Session'} on ${sessionDate || 'today'}.</p>
+        <p>Your biofield resonance has been aligned. We invite you to record your thoughts, ground your energy, and integrate in stillness.</p>
+        <p style="font-size: 0.85em; color: #888; border-top: 1px solid #222; padding-top: 15px;">
+          <em>Disclaimer: Reiki & Sage provides spiritual wellness services only. Our sessions are not medical treatments, diagnoses, or clinical care.</em>
+        </p>
+      </div>
+    `;
   }
 
   // Attempt real SMTP send if credentials exist, otherwise log to audit

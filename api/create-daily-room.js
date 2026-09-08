@@ -1,6 +1,6 @@
 // Vercel Serverless Function — Create Daily.co Video Room for Live Healing Sessions
 // Supports named rooms, waiting room knocking, and MongoDB room metadata storage
-import { connectToDatabase } from './lib/mongodb.js';
+import { connectToDatabase } from './_lib/mongodb.js';
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') {

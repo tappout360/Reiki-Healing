@@ -1,5 +1,5 @@
 // Vercel Serverless Endpoint — Concurrency-Safe Bookings & ZIP Proximity Matchmaking (MongoDB)
-import { connectToDatabase } from '../lib/mongodb.js';
+import { connectToDatabase } from '../_lib/mongodb.js';
 import { ObjectId } from 'mongodb';
 
 // In-memory atomic lock store for simulated / offline environment

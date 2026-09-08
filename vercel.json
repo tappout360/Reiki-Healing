@@ -9,6 +9,10 @@
     }
   ],
   "rewrites": [
+    { "source": "/api/create-account-link", "destination": "/api/create-connect-account" },
+    { "source": "/api/create-healer-connect-account", "destination": "/api/create-connect-account" },
+    { "source": "/api/send-post-session-email", "destination": "/api/send-email" },
+    { "source": "/api/stripe-connect-webhook", "destination": "/api/stripe-webhook" },
     { "source": "/((?!api/|assets/|sw.js|manifest.json|vite.svg|.*\\..*).*)", "destination": "/index.html" }
   ]
 }

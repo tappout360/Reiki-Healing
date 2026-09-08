@@ -2,7 +2,7 @@
 // Receives events from Stripe when payments succeed, subscriptions change, etc.
 // Supports MongoDB (primary) and Firebase (fallback) for persistence
 import Stripe from 'stripe';
-import { connectToDatabase } from './lib/mongodb.js';
+import { connectToDatabase } from './_lib/mongodb.js';
 
 // Optional Firebase Admin SDK fallback
 let admin;
@@ -135,8 +135,18 @@ export default async function handler(req, res) {
   try {
     event = stripe.webhooks.constructEvent(buf, sig, webhookSecret);
   } catch (err) {
-    console.error('Webhook signature verification failed:', err.message);
-    return res.status(400).json({ error: `Webhook Error: ${err.message}` });
+    const connectSecret = process.env.STRIPE_CONNECT_WEBHOOK_SECRET;
+    if (connectSecret) {
+      try {
+        event = stripe.webhooks.constructEvent(buf, sig, connectSecret);
+      } catch (err2) {
+        console.error('Webhook signature verification failed:', err2.message);
+        return res.status(400).json({ error: `Webhook Error: ${err2.message}` });
+      }
+    } else {
+      console.error('Webhook signature verification failed:', err.message);
+      return res.status(400).json({ error: `Webhook Error: ${err.message}` });
+    }
   }
 
   // Connect to DBs
@@ -325,6 +335,29 @@ export default async function handler(req, res) {
                 updatedAt: admin.firestore.FieldValue.serverTimestamp()
               });
             }
+          }
+        }
+        break;
+      }
+
+      case 'account.updated': {
+        const account = event.data.object;
+        if (mongoDb) {
+          try {
+            await mongoDb.collection('profiles').updateOne(
+              { stripe_account_id: account.id },
+              {
+                $set: {
+                  charges_enabled: !!account.charges_enabled,
+                  payouts_enabled: !!account.payouts_enabled,
+                  onboarding_complete: !!account.details_submitted,
+                  updatedAt: new Date()
+                }
+              }
+            );
+            console.log(`Updated Connect Account ${account.id}: charges_enabled=${account.charges_enabled}, payouts_enabled=${account.payouts_enabled}`);
+          } catch (dbErr) {
+            console.error('Failed to update Connect Account status in MongoDB:', dbErr);
           }
         }
         break;

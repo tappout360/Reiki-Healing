@@ -1,5 +1,5 @@
 // Vercel Serverless Function — MongoDB Healer Payouts & Commission Analytics API
-import { connectToDatabase } from '../lib/mongodb.js';
+import { connectToDatabase } from '../_lib/mongodb.js';
 
 export default async function handler(req, res) {
   try {

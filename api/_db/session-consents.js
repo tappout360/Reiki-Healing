@@ -1,5 +1,5 @@
 // Vercel Serverless Function — MongoDB Session Consents API
-import { connectToDatabase } from '../lib/mongodb.js';
+import { connectToDatabase } from '../_lib/mongodb.js';
 
 export default async function handler(req, res) {
   try {

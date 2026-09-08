@@ -1,5 +1,5 @@
 // Vercel Serverless Endpoint — User & Healer Profiles Management (MongoDB)
-import { connectToDatabase } from '../lib/mongodb.js';
+import { connectToDatabase } from '../_lib/mongodb.js';
 
 export default async function handler(req, res) {
   try {
