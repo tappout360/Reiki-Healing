@@ -6,6 +6,7 @@
   min-height: 100vh;
   display: flex;
   align-items: center;
+  padding-top: 6.5rem;
   background: radial-gradient(circle at 80% 20%, rgba(160, 210, 235, 0.1) 0%, transparent 40%);
 }
 

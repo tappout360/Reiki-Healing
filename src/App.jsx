@@ -972,6 +972,57 @@ const [showCheckoutModal, setShowCheckoutModal] = useState(false);
                 </div>
               )}
 
+              {isMobileLayout && (
+                <div style={{
+                  display: 'grid',
+                  gridTemplateColumns: '1fr 1fr',
+                  gap: '0.75rem',
+                  width: '100%',
+                  maxWidth: '380px',
+                  margin: '0 auto 1.25rem auto'
+                }}>
+                  <button
+                    onClick={() => setActiveTab('ai-guide')}
+                    style={{
+                      background: 'rgba(142, 68, 173, 0.18)',
+                      border: '1px solid rgba(160, 210, 235, 0.35)',
+                      borderRadius: '16px',
+                      padding: '0.75rem 0.5rem',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      alignItems: 'center',
+                      gap: '4px',
+                      color: 'var(--accent-ethereal)',
+                      cursor: 'pointer'
+                    }}
+                  >
+                    <Sparkles size={18} />
+                    <span style={{ fontSize: '0.75rem', fontWeight: '700', letterSpacing: '0.5px' }}>CONSULT AURA</span>
+                    <span style={{ fontSize: '0.6rem', opacity: 0.7 }}>AI REIKI GUIDE</span>
+                  </button>
+
+                  <button
+                    onClick={() => setShowJoinPortalModal(true)}
+                    style={{
+                      background: 'rgba(212, 175, 55, 0.15)',
+                      border: '1px solid rgba(212, 175, 55, 0.4)',
+                      borderRadius: '16px',
+                      padding: '0.75rem 0.5rem',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      alignItems: 'center',
+                      gap: '4px',
+                      color: 'var(--accent-gold)',
+                      cursor: 'pointer'
+                    }}
+                  >
+                    <Key size={18} />
+                    <span style={{ fontSize: '0.75rem', fontWeight: '700', letterSpacing: '0.5px' }}>ENTER PORTAL</span>
+                    <span style={{ fontSize: '0.6rem', opacity: 0.7 }}>SESSION CODE</span>
+                  </button>
+                </div>
+              )}
+
               <div style={{ display: 'flex', gap: '1.25rem', flexDirection: isMobileLayout ? 'column' : 'row', alignItems: 'center', justifyContent: 'center' }}>
                 <button 
                   className="btn btn-primary" 
@@ -1636,6 +1687,7 @@ const [showCheckoutModal, setShowCheckoutModal] = useState(false);
   };
 
   const renderLayoutSwitcher = () => {
+    if (viewMode !== 'desktop') return null;
     const activeLabel = {
       desktop: '💻 Desktop',
       tablet: '📟 Tablet',
@@ -2001,6 +2053,26 @@ const [showCheckoutModal, setShowCheckoutModal] = useState(false);
               title={theme === 'dark' ? 'Switch to Light' : 'Switch to Dark'}
             >
               {theme === 'dark' ? <Sun size={18} /> : <Moon size={18} />}
+            </button>
+            <button 
+              onClick={() => setShowJoinPortalModal(true)}
+              style={{
+                background: 'rgba(212, 175, 55, 0.15)',
+                border: '1px solid var(--accent-gold)',
+                color: 'var(--accent-gold)',
+                padding: '0.3rem 0.65rem',
+                borderRadius: '15px',
+                fontSize: '0.65rem',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '4px',
+                fontWeight: '600',
+                cursor: 'pointer'
+              }}
+              title="Enter Portal (Session Code)"
+            >
+              <Key size={12} />
+              <span>Portal</span>
             </button>
             {user ? (
               <button 
@@ -2882,21 +2954,61 @@ const [showCheckoutModal, setShowCheckoutModal] = useState(false);
                   </div>
               )}
 
+              {/* Enter Portal with Session Code */}
+              <button 
+                onClick={() => setShowJoinPortalModal(true)}
+                style={{
+                  background: 'rgba(212, 175, 55, 0.12)', 
+                  border: '1px solid var(--accent-gold)', 
+                  cursor: 'pointer',
+                  color: 'var(--accent-gold)', 
+                  padding: '0.55rem 1.15rem', 
+                  borderRadius: '20px',
+                  fontSize: '0.78rem', 
+                  letterSpacing: '1px', 
+                  display: 'inline-flex', 
+                  alignItems: 'center', 
+                  gap: '6px',
+                  fontWeight: '600',
+                  transition: 'all 0.2s ease',
+                  whiteSpace: 'nowrap'
+                }}
+                title="Enter Session Portal with Access Code"
+              >
+                <Key size={14} />
+                <span>{t('navEnterPortal') || 'Enter Portal'}</span>
+              </button>
+
+              {/* Consult Aura AI Guide */}
               <button 
                 onClick={() => setShowAuraGuide(true)}
                 style={{
-                  background: 'none', border: '1px solid var(--accent-ethereal)', cursor: 'pointer',
-                  color: 'var(--accent-ethereal)', padding: '0.6rem 1.25rem', borderRadius: '20px',
-                  fontSize: '0.8rem', letterSpacing: '1px', display: 'flex', alignItems: 'center', gap: '5px'
+                  background: 'rgba(142, 68, 173, 0.15)', 
+                  border: '1px solid var(--accent-ethereal)', 
+                  cursor: 'pointer',
+                  color: 'var(--accent-ethereal)', 
+                  padding: '0.55rem 1.15rem', 
+                  borderRadius: '20px',
+                  fontSize: '0.78rem', 
+                  letterSpacing: '1px', 
+                  display: 'inline-flex', 
+                  alignItems: 'center', 
+                  gap: '6px',
+                  fontWeight: '600',
+                  transition: 'all 0.2s ease',
+                  whiteSpace: 'nowrap'
                 }}
+                title="Consult Aura AI Guide"
               >
-                {t('navConsultAura')}
+                <Sparkles size={14} />
+                <span>{t('navConsultAura')}</span>
               </button>
               
+              {/* Book a Session */}
               <button 
                 onClick={() => document.getElementById('mobile-service').scrollIntoView({ behavior: 'smooth' })}
                 className="btn btn-primary" 
-                style={{ padding: '0.6rem 1.5rem' }}
+                style={{ padding: '0.55rem 1.35rem', fontSize: '0.8rem', whiteSpace: 'nowrap' }}
               >
                 {t('navSetAppointment')}
               </button>
@@ -2905,17 +3017,6 @@ const [showCheckoutModal, setShowCheckoutModal] = useState(false);
           </div>
         </div>
       </nav>
-
-      <div style={{ padding: '0.5rem 0', backgroundColor: 'var(--bg-section)' }}>
-        <div style={{ height: '1px', background: 'rgba(255,255,255,0.1)', width: '80%', margin: '0 auto 1.5rem auto' }}></div>
-        <Suspense fallback={null}>
-          <HealingActionBar 
-            onActivate={() => setShowAIInterface(true)} 
-            onJoinPortal={() => setShowJoinPortalModal(true)}
-          />
-        </Suspense>
-        <div style={{ height: '1px', background: 'rgba(255,255,255,0.1)', width: '80%', margin: '1.5rem auto 0 auto' }}></div>
-      </div>
 
       <section className="hero">
         <div className="container">
@@ -3244,7 +3345,7 @@ const [showCheckoutModal, setShowCheckoutModal] = useState(false);
         )}
       </AnimatePresence>
 
-      {user && (user.role === 'admin' || user.role === 'owner') && (!isFirebaseConfigured() || ['carissabright@gmail.com', 'jasonmounts77@yahoo.com'].includes(user.email?.toLowerCase())) && (
+      {user && (user.role === 'admin' || user.role === 'owner') && (!isFirebaseConfigured() || ['carissabright@gmail.com', 'jasonmounts77@yahoo.com'].includes(user.email?.toLowerCase())) && viewMode === 'desktop' && (
         <div 
           style={{
             position: 'fixed', bottom: '2rem', right: '2rem', zIndex: 9000
