@@ -24,46 +24,58 @@ export const HealerOnboardingGateModal = ({ healer, onCompleteAll }) => {
 
   const stepsConfig = [
     {
-      key: OnboardingSteps.ACCOUNT_CLAIMED,
+      key: OnboardingSteps.STEP_1_ACCOUNT_CLAIM,
       title: '1. Account Claim & Authentication',
       desc: 'Verify your sacred practitioner account and security credentials.',
       icon: UserCheck
     },
     {
-      key: OnboardingSteps.AGREEMENT_SIGNED,
+      key: OnboardingSteps.STEP_2_AGREEMENT_SIGNED,
       title: '2. Independent Practitioner Agreement (1099)',
-      desc: 'Sign terms establishing 1099 contractor status, 15% platform commission on sessions, and 100% tip guarantee.',
+      desc: 'Sign terms establishing 1099 freedom worker status, 20% platform commission on sessions, and 100% tip guarantee.',
       icon: FileText
     },
     {
-      key: OnboardingSteps.HANDBOOK_SIGNED,
-      title: '3. Healer Handbook & Non-Medical Code of Ethics',
-      desc: 'Affirm FTC/FDA wellness boundaries, zero PHI collection, and the 24-hr appointment response standard.',
+      key: OnboardingSteps.STEP_3_HANDBOOK_ACKNOWLEDGED,
+      title: '3. Independent Practitioner Handbook',
+      desc: 'Affirm 19-section standards, non-medical wellness boundaries, and 24-hr appointment response protocol.',
       icon: ShieldCheck
     },
     {
-      key: OnboardingSteps.TAX_ACKNOWLEDGED,
-      title: '4. Tax Responsibility (Form W-9 & 1099-NEC)',
-      desc: 'Acknowledge independent tax filing responsibilities and electronic 1099-NEC delivery.',
+      key: OnboardingSteps.STEP_4_TAX_ACKNOWLEDGED,
+      title: '4. Tax & Bookkeeping Responsibility',
+      desc: 'Acknowledge independent tax filing (Form W-9 & 1099-NEC) and sovereign financial record-keeping.',
       icon: FileText
     },
     {
-      key: OnboardingSteps.STRIPE_CONNECTED,
-      title: '5. Stripe Express Bank & Payout Connection',
-      desc: 'Link your direct deposit checking account or debit card for instant session and tip payouts.',
+      key: OnboardingSteps.STEP_5_PRIVACY_ADDENDUM_SIGNED,
+      title: '5. Client Privacy & Sanctuary Boundaries',
+      desc: 'Agree to zero PHI collection, non-medical record retention, and sacred discretion.',
+      icon: ShieldCheck
+    },
+    {
+      key: OnboardingSteps.STEP_6_STRIPE_CONNECTED,
+      title: '6. Stripe Express Bank & Payout Connection',
+      desc: 'Link checking account or debit card for automated session payouts (80%) and tips (100%).',
       icon: CreditCard
     },
     {
-      key: OnboardingSteps.AVAILABILITY_CONFIGURED,
-      title: '6. Availability, Buffers & Service Radius',
-      desc: 'Define your working hours, 15-minute integration buffers, and in-person travel radius (up to 50 miles).',
+      key: OnboardingSteps.STEP_7_AVAILABILITY_CONFIGURED,
+      title: '7. Availability, Buffers & Service Radius',
+      desc: 'Define working hours, 15-minute energetic integration buffers, and in-person travel radius (up to 50 miles).',
       icon: Clock
     },
     {
-      key: OnboardingSteps.PROFILE_COMPLETED,
-      title: '7. Public Directory Profile & Modalities',
+      key: OnboardingSteps.STEP_8_PROFILE_COMPLETED,
+      title: '8. Public Directory Profile & Modalities',
       desc: 'Publish your sacred bio, profile photo, and specialized energy/sound modalities for seekers.',
       icon: Sparkles
+    },
+    {
+      key: OnboardingSteps.STEP_9_DASHBOARD_ACTIVATED,
+      title: '9. Sanctuary Dashboard Activation',
+      desc: 'Finalize account activation to unlock appointment requests, calendar booking, and live sessions.',
+      icon: CheckCircle2
     }
   ];
 
@@ -82,7 +94,7 @@ export const HealerOnboardingGateModal = ({ healer, onCompleteAll }) => {
             Welcome to the Healer Sanctuary
           </h2>
           <p className="text-xs md:text-sm text-stone-400 max-w-md mx-auto">
-            Please complete these 7 sacred readiness steps to activate your booking calendar and begin receiving seeker appointments.
+            Please complete these 9 sacred readiness steps to activate your booking calendar and begin receiving seeker appointments.
           </p>
 
           {/* Progress bar */}

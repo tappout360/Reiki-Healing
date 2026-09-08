@@ -9,7 +9,7 @@ export default async function handler(req, res) {
   try {
     const {
       amount,               // total session price in cents (e.g. 10000 = $100)
-      platformFeePercent = 15, // default 15% platform commission
+      platformFeePercent = 20, // default 15% platform commission
       healerStripeAccountId,
       customerId,
       sessionId,

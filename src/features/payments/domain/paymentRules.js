@@ -3,8 +3,8 @@
  * Pure business logic — Zero external dependencies.
  */
 
-export const PLATFORM_FEE_PERCENT = 15;
-export const HEALER_SHARE_PERCENT = 85;
+export const PLATFORM_FEE_PERCENT = 20;
+export const HEALER_SHARE_PERCENT = 80;
 
 export const paymentRules = {
   calculateSessionSplit(amountInDollars) {

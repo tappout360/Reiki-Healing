@@ -84,7 +84,7 @@ export const AppointmentRequestsTab = ({ requests = [], onAccept, onDecline, onP
                     {new Date(req.slotUtc).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' })}
                   </span>
                   <span className="text-amber-200/80 font-medium">
-                    Fee: ${req.price} | Net Payout (85%): ${(req.price * 0.85).toFixed(2)}
+                    Fee: ${req.price} | Net Payout (80%): ${(req.price * 0.80).toFixed(2)}
                   </span>
                 </div>
 

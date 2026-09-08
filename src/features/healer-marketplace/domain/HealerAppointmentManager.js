@@ -1,7 +1,7 @@
 /**
  * Healer OS: Appointment Request Lifecycle Manager
  * 
- * Empowers healers with sovereign schedule control:
+ * Empowers independent practitioners with sovereign schedule control:
  * - Accept appointment (locks slot, prepares Daily room)
  * - Decline appointment with compassionate reason (triggers instant seeker refund)
  * - Propose alternative slots (gives seeker 24 hours to accept new time)
@@ -48,11 +48,11 @@ export class HealerAppointmentManager {
       slotUtc,
       serviceType: serviceType || 'distance_live',
       price: Number(price) || 88,
-      netPayout: Number((price * 0.85).toFixed(2)),
+      netPayout: Number((price * 0.80).toFixed(2)), // 80% net payout
       intentionTags: intentionTags || ['spiritual_alignment'],
       status: AppointmentStatus.PENDING,
       createdAt: new Date().toISOString(),
-      expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(), // 24-hr window
+      expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
     };
 
     list.push(newReq);
@@ -93,7 +93,7 @@ export class HealerAppointmentManager {
     return {
       success: true,
       request: req,
-      message: 'Appointment declined with gratitude. Seeker refunded and offered alternative healers.'
+      message: 'Appointment declined with gratitude. Seeker refunded and offered alternative vetted practitioners.'
     };
   }
 
