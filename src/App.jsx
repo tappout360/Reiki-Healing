@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { 
   Sparkles, Activity, Shield, Info, Heart, Zap, Waves, Moon, Sun, 
   LogOut, Lock, Clock, Quote, Star, MessageSquare, Play, Pause, Maximize, Minimize,
-  Home, Grid, Compass, User, Shuffle, BookOpen, Bell, ArrowRight, Calendar
+  Home, Grid, Compass, User, Shuffle, BookOpen, Bell, ArrowRight, Calendar, Key
 } from 'lucide-react'
 import { aiKnowledgeBase } from './components/aiKnowledgeBase'
 import { Toaster, toast } from 'react-hot-toast'
