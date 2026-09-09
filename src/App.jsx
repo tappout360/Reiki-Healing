@@ -312,6 +312,37 @@ const [showCheckoutModal, setShowCheckoutModal] = useState(false);
   const currentProtocol = protocolList.find(p => p.id === selectedProtocol);
   const activeProtocols = protocolList.filter(p => p.active);
 
+  // Requirement: Only 2 random protocols available for free at a time. Rest require a subscription.
+  const [freeProtocolIds, setFreeProtocolIds] = useState(() => {
+    const saved = localStorage.getItem('aura_free_protocols');
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length === 2) return parsed;
+      } catch {}
+    }
+    return ['rose', 'sage'];
+  });
+
+  const rotateFreeProtocols = () => {
+    const active = protocolList.filter(p => p.active);
+    const shuffled = [...active].sort(() => 0.5 - Math.random());
+    const twoFree = [shuffled[0].id, shuffled[1].id];
+    setFreeProtocolIds(twoFree);
+    localStorage.setItem('aura_free_protocols', JSON.stringify(twoFree));
+    const name1 = active.find(p => p.id === twoFree[0])?.name || 'Rose Quartz';
+    const name2 = active.find(p => p.id === twoFree[1])?.name || 'Sage Purification';
+    toast.success(`🎲 Rotated Today's Free Protocols: ${name1} & ${name2}`);
+  };
+
+  const isProtocolUnlocked = (protoId) => {
+    if (freeProtocolIds.includes(protoId)) return true;
+    if (user && (user.role === 'admin' || user.role === 'owner' || user.subscription === 'healing' || user.subscription === 'premium')) {
+      return true;
+    }
+    return false;
+  };
+
   const selectRandomProtocol = () => {
     const available = activeProtocols.filter(p => p.id !== selectedProtocol);
     if (available.length > 0) {
@@ -1316,29 +1347,64 @@ const [showCheckoutModal, setShowCheckoutModal] = useState(false);
       <section id="protocols-section" style={{ backgroundColor: 'var(--bg-section)', padding: isMobileLayout ? '2.5rem 1rem' : '8rem 0' }}>
         <div className="container" style={{ textAlign: 'center' }}>
           <h2 style={{ fontSize: isMobileLayout ? '2rem' : '2.5rem', marginBottom: '1rem', color: 'var(--text-main)' }}>{t('protocolsHeading')}</h2>
-          <p style={{ marginBottom: isMobileLayout ? '1rem' : '2rem', opacity: '0.7', color: 'var(--text-muted)', fontSize: '0.9rem' }}>{t('protocolsSub')}</p>
+          <p style={{ marginBottom: isMobileLayout ? '1rem' : '1.5rem', opacity: '0.7', color: 'var(--text-muted)', fontSize: '0.9rem' }}>{t('protocolsSub')}</p>
           
-          {/* Random Protocol Button */}
-          <div style={{ marginBottom: isMobileLayout ? '1.5rem' : '2rem' }}>
-            <button
-              onClick={selectRandomProtocol}
-              className="btn"
-              style={{
-                background: 'rgba(212, 175, 55, 0.1)',
-                border: '1px solid var(--accent-gold)',
-                color: 'var(--accent-gold)',
-                padding: '0.6rem 1.5rem',
-                borderRadius: '30px',
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '8px',
-                cursor: 'pointer',
-                fontSize: '0.85rem',
-                transition: 'all 0.3s ease'
-              }}
-            >
-              <Shuffle size={16} /> {t('protocolsRandom')}
-            </button>
+          {/* Daily 2-Free Access Banner */}
+          <div style={{
+            background: 'linear-gradient(135deg, rgba(212, 175, 55, 0.12), rgba(80, 227, 194, 0.08))',
+            border: '1px solid rgba(212, 175, 55, 0.35)',
+            borderRadius: '20px',
+            padding: '1rem 1.5rem',
+            maxWidth: '750px',
+            margin: '0 auto 2.5rem auto',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            gap: '14px',
+            flexWrap: 'wrap',
+            boxShadow: '0 8px 30px rgba(0,0,0,0.4)'
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', textAlign: 'left', minWidth: '240px', flex: 1 }}>
+              <div style={{
+                width: '36px', height: '36px', borderRadius: '50%',
+                background: 'rgba(212, 175, 55, 0.2)', border: '1px solid var(--accent-gold)',
+                display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0
+              }}>
+                <Sparkles size={18} color="var(--accent-gold)" />
+              </div>
+              <div>
+                <div style={{ fontSize: '0.88rem', fontWeight: 'bold', color: '#fff' }}>
+                  ✦ Daily Free Sanctuary Access (2 Protocols Active) ✦
+                </div>
+                <div style={{ fontSize: '0.76rem', color: 'rgba(255,255,255,0.7)', marginTop: '2px' }}>
+                  2 random protocols rotate open for all seekers. Remaining 6 protocols unlocked with <strong style={{ color: 'var(--accent-gold)' }}>Sacred Seeker Tier ($11/mo)</strong>.
+                </div>
+              </div>
+            </div>
+
+            <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+              <button
+                type="button"
+                onClick={rotateFreeProtocols}
+                style={{
+                  background: 'rgba(255, 255, 255, 0.08)',
+                  border: '1px solid var(--accent-gold)',
+                  color: 'var(--accent-gold)',
+                  padding: '6px 14px',
+                  borderRadius: '20px',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  cursor: 'pointer',
+                  fontSize: '0.78rem',
+                  fontWeight: 'bold',
+                  transition: 'all 0.2s ease'
+                }}
+                title="Shuffle the 2 free daily protocols"
+              >
+                <Shuffle size={13} /> Rotate 2 Free
+              </button>
+            </div>
           </div>
 
           {/* Gemstone Core Sync Section */}
@@ -1360,76 +1426,176 @@ const [showCheckoutModal, setShowCheckoutModal] = useState(false);
                     fontSize: '0.85rem',
                     display: 'block'
                   }}
-                  onClick={() => selectedProtocol && setShowPortal(true)}
+                  onClick={() => {
+                    if (!selectedProtocol) return;
+                    if (!isProtocolUnlocked(selectedProtocol)) {
+                      setShowSubscriptionPage(true);
+                      toast.error("🔒 Subscription required to synchronize with this protocol ($11/mo).");
+                      return;
+                    }
+                    setShowPortal(true);
+                  }}
                   disabled={!selectedProtocol}
                 >
-                  {selectedProtocol ? t('coreButtonSync') : t('coreButtonSelect')}
+                  {selectedProtocol ? (isProtocolUnlocked(selectedProtocol) ? t('coreButtonSync') : '🔒 Unlock Protocol ($11/mo)') : t('coreButtonSelect')}
                 </button>
               </div>
             </div>
           </div>
 
           <div style={{ display: 'grid', gridTemplateColumns: isMobileLayout ? '1fr' : 'repeat(2, 1fr)', gap: '1.5rem', maxWidth: '1000px', margin: '0 auto' }}>
-            {activeProtocols.map((protocol) => (
-              <div 
-                key={protocol.id}
-                className={`glass card-hover ${selectedProtocol === protocol.id ? 'protocol-selected' : ''}`} 
-                style={{
-                  padding: isMobileLayout ? '1.5rem' : '2.5rem', 
-                  borderBottom: `6px solid ${protocol.borderColor}`,
-                  cursor: 'pointer',
-                  position: 'relative',
-                  transition: 'all 0.3s ease',
-                  border: selectedProtocol === protocol.id ? `2px solid ${protocol.color}` : '1px solid var(--glass-border)',
-                  borderRadius: '20px'
-                }}
-                onClick={() => setSelectedProtocol(protocol.id)}
-              >
-                <div style={{
-                  height: '160px', 
-                  overflow: 'hidden', 
-                  borderRadius: '12px', 
-                  marginBottom: '1rem',
-                  border: '1px solid rgba(255,255,255,0.1)',
-                  position: 'relative'
-                }}>
-                  <img 
-                    src={`/assets/${protocol.video[0]}`} 
-                    alt={protocol.name} 
-                    style={{
-                      width: '100%', 
-                      height: '100%', 
-                      objectFit: 'cover',
-                      transition: 'transform 0.5s ease'
-                    }} 
-                  />
-                  {protocol.isImmersive && (
-                    <div style={{
-                      position: 'absolute',
-                      top: '10px',
-                      left: '10px',
-                      background: 'var(--accent-gold)',
-                      color: '#000',
-                      fontSize: '0.6rem',
-                      fontWeight: 'bold',
-                      padding: '3px 8px',
-                      borderRadius: '20px',
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '4px',
-                      boxShadow: '0 4px 12px rgba(0,0,0,0.5)'
-                    }}>
-                      <Clock size={10} /> {protocol.duration / 60} {t('protocolMin')}
+            {activeProtocols.map((protocol) => {
+              const isFree = freeProtocolIds.includes(protocol.id);
+              const unlocked = isProtocolUnlocked(protocol.id);
+              const protoName = (t('name_' + protocol.id) && t('name_' + protocol.id) !== 'name_' + protocol.id) ? t('name_' + protocol.id) : protocol.name;
+              const protoDesc = (t('desc_' + protocol.id) && t('desc_' + protocol.id) !== 'desc_' + protocol.id) ? t('desc_' + protocol.id) : protocol.desc;
+
+              return (
+                <div 
+                  key={protocol.id}
+                  className={`glass card-hover ${selectedProtocol === protocol.id ? 'protocol-selected' : ''}`} 
+                  style={{
+                    padding: isMobileLayout ? '1.5rem' : '2.5rem', 
+                    borderBottom: `6px solid ${protocol.borderColor}`,
+                    cursor: 'pointer',
+                    position: 'relative',
+                    transition: 'all 0.3s ease',
+                    border: selectedProtocol === protocol.id ? `2px solid ${protocol.color}` : '1px solid var(--glass-border)',
+                    borderRadius: '20px'
+                  }}
+                  onClick={() => {
+                    setSelectedProtocol(protocol.id);
+                    if (!unlocked) {
+                      const freeNames = activeProtocols.filter(p => freeProtocolIds.includes(p.id)).map(p => p.name).join(' & ');
+                      toast((tToast) => (
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                          <div style={{ fontWeight: 'bold', color: 'var(--accent-gold)' }}>
+                            🔒 Sanctuary Member Protocol ($11/mo)
+                          </div>
+                          <div style={{ fontSize: '0.8rem', color: '#fff' }}>
+                            2 protocols are open free at a time. Today's Free Protocols are <strong>${freeNames}</strong>.
+                          </div>
+                          <button
+                            onClick={() => {
+                              toast.dismiss(tToast.id);
+                              setShowSubscriptionPage(true);
+                            }}
+                            style={{
+                              marginTop: '4px',
+                              padding: '6px 12px',
+                              borderRadius: '14px',
+                              background: 'var(--accent-gold)',
+                              color: '#000',
+                              border: 'none',
+                              fontWeight: 'bold',
+                              cursor: 'pointer',
+                              fontSize: '0.78rem'
+                            }}
+                          >
+                            Unlock All 8 Protocols ($11/mo)
+                          </button>
+                        </div>
+                      ), { duration: 5500, icon: '✨' });
+                    }
+                  }}
+                >
+                  <div style={{
+                    height: '160px', 
+                    overflow: 'hidden', 
+                    borderRadius: '12px', 
+                    marginBottom: '1rem',
+                    border: '1px solid rgba(255,255,255,0.1)',
+                    position: 'relative'
+                  }}>
+                    <img 
+                      src={`/assets/${protocol.video[0]}`} 
+                      alt={protoName} 
+                      onError={(e) => {
+                        e.currentTarget.onerror = null;
+                        e.currentTarget.src = '/assets/energy-portal.png';
+                      }}
+                      style={{
+                        width: '100%', 
+                        height: '100%', 
+                        objectFit: 'cover',
+                        filter: unlocked ? 'none' : 'brightness(0.75) contrast(1.1)',
+                        transition: 'transform 0.5s ease'
+                      }} 
+                    />
+
+                    {/* Free vs Locked Status Pill */}
+                    {isFree ? (
+                      <div style={{
+                        position: 'absolute',
+                        top: '10px',
+                        right: '10px',
+                        background: 'rgba(80, 227, 194, 0.25)',
+                        backdropFilter: 'blur(8px)',
+                        border: '1px solid #50e3c2',
+                        color: '#50e3c2',
+                        fontSize: '0.62rem',
+                        fontWeight: 'bold',
+                        padding: '3px 8px',
+                        borderRadius: '20px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '4px',
+                        boxShadow: '0 0 12px rgba(80, 227, 194, 0.4)'
+                      }}>
+                        <Sparkles size={10} /> FREE TODAY
+                      </div>
+                    ) : !unlocked ? (
+                      <div style={{
+                        position: 'absolute',
+                        top: '10px',
+                        right: '10px',
+                        background: 'rgba(0, 0, 0, 0.75)',
+                        backdropFilter: 'blur(8px)',
+                        border: '1px solid var(--accent-gold)',
+                        color: 'var(--accent-gold)',
+                        fontSize: '0.62rem',
+                        fontWeight: 'bold',
+                        padding: '3px 8px',
+                        borderRadius: '20px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '4px'
+                      }}>
+                        🔒 $11/MO TIER
+                      </div>
+                    ) : null}
+
+                    {/* Duration Badge */}
+                    {protocol.isImmersive && (
+                      <div style={{
+                        position: 'absolute',
+                        top: '10px',
+                        left: '10px',
+                        background: 'var(--accent-gold)',
+                        color: '#000',
+                        fontSize: '0.6rem',
+                        fontWeight: 'bold',
+                        padding: '3px 8px',
+                        borderRadius: '20px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '4px',
+                        boxShadow: '0 4px 12px rgba(0,0,0,0.5)'
+                      }}>
+                        <Clock size={10} /> {protocol.duration / 60} {t('protocolMin')}
+                      </div>
+                    )}
+                  </div>
+                  <h4 style={{ fontSize: '1.25rem', marginBottom: '0.5rem', color: protocol.color }}>{protoName}</h4>
+                  <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', lineHeight: '1.4' }}>{protoDesc}</p>
+                  {selectedProtocol === protocol.id && (
+                    <div style={{ marginTop: '1rem', color: protocol.color, fontWeight: '700', fontSize: '0.8rem' }}>
+                      {unlocked ? t('protocolSelected') : '🔒 SUBSCRIBER EXCLUSIVE'}
                     </div>
                   )}
                 </div>
-                <h4 style={{ fontSize: '1.25rem', marginBottom: '0.5rem', color: protocol.color }}>{t('name_' + protocol.id)}</h4>
-                <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', lineHeight: '1.4' }}>{t('desc_' + protocol.id)}</p>
-                {selectedProtocol === protocol.id && (
-                  <div style={{ marginTop: '1rem', color: protocol.color, fontWeight: '700', fontSize: '0.8rem' }}>{t('protocolSelected')}</div>
-                )}
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
       </section>

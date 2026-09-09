@@ -26,6 +26,10 @@ export const translations = {
     desc_reiki: "Immersive 15-minute guided Reiki healing journey. Master Healer Carissa Bright's gentle voice leads you through universal life force energy alignment and deep restoration.",
     name_celestial: "Celestial Fantasia",
     desc_celestial: "15-minute cinematic \"Zodiac Awakening\" — Master Healer Carissa Bright guides you through a Fantasia-inspired orchestra of gemstones, constellations, and healing aura.",
+    "name_black-tourmaline": "Tourmaline Grounding Shield",
+    "desc_black-tourmaline": "Advanced 10-minute root chakra stabilization. Anchors erratic energetic surges into the core of Gaia for impenetrable psychic shielding.",
+    "name_celestial-orchestra": "Celestial Orchestra (Carissa Bright)",
+    "desc_celestial-orchestra": "15-minute cinematic \"Zodiac Awakening\" — Master Healer Carissa Bright guides you through a Fantasia-inspired orchestra of gemstones, constellations, and healing aura.",
     
     // Navigation
     navPhilosophy: "Philosophy",

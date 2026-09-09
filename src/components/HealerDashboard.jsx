@@ -457,6 +457,13 @@ const HealerDashboard = ({ onClose, onJoinPortal, healerAppsEnabled = false, onT
   ];
 
   const [applications, setApplications] = useState([]); // Healer Job Applications
+  const [selectedAppForReview, setSelectedAppForReview] = useState(null); // Full Application Info Modal
+  const [interviewModalApp, setInterviewModalApp] = useState(null); // Interview Scheduling Modal
+  const [interviewDate, setInterviewDate] = useState('');
+  const [interviewTime, setInterviewTime] = useState('10:00 AM');
+  const [interviewer, setInterviewer] = useState('Carissa Bright');
+  const [interviewFormat, setInterviewFormat] = useState('Live Video Sanctuary');
+  const [interviewNotes, setInterviewNotes] = useState('');
 
   useEffect(() => {
     // Set random presence on mount to keep it dynamic and pure
@@ -692,6 +699,113 @@ const HealerDashboard = ({ onClose, onJoinPortal, healerAppsEnabled = false, onT
     if (filter === 'all') return true;
     return b.status === filter;
   });
+
+  const handleApproveApplication = (app) => {
+    const updated = applications.map(a => a.id === app.id ? { ...a, status: 'Approved' } : a);
+    setApplications(updated);
+    localStorage.setItem('aura_applications', JSON.stringify(updated));
+    
+    if (isFirebaseConfigured()) {
+      db.updateApplicationStatus(app.id, 'Approved')
+        .then(() => {
+          if (app.userId) {
+            db.updateRole(app.userId, 'healer')
+              .then(() => toast.success("Applicant role promoted to healer in cloud."))
+              .catch(err => console.error("Failed to update role:", err));
+          }
+        })
+        .catch(err => {
+          console.error("Failed to approve application in Firestore:", err);
+          toast.error("Failed to sync approval in cloud.");
+        });
+    } else {
+      // Create User Account (Automated)
+      const newUser = {
+          name: app.name,
+          username: app.name.toLowerCase().replace(/\s+/g, '_'),
+          email: app.email,
+          password: app.password || 'healer2026',
+          role: 'healer',
+          subscription: 'healing',
+          birthDate: app.birthDate,
+          status: 'Active',
+          joined: new Date().toISOString()
+      };
+      
+      const clients = JSON.parse(localStorage.getItem('aura_clients') || '[]');
+      if (!clients.find(c => c.email === app.email)) {
+          clients.push(newUser);
+          localStorage.setItem('aura_clients', JSON.stringify(clients));
+      }
+
+      const newMember = { 
+          name: app.name, 
+          email: app.email, 
+          status: 'Active', 
+          role: 'Healer',
+          joined: new Date().toISOString()
+      };
+      const updatedTeam = [...(JSON.parse(localStorage.getItem('aura_team') || '[]')), newMember];
+      localStorage.setItem('aura_team', JSON.stringify(updatedTeam));
+      setTeamMembers(updatedTeam);
+    }
+    
+    toast.success(app.name + ' approved! Onboarding invitation sent.');
+    logTransaction('[ADMIN] Application Approved', app.name, app.email, 'User promoted to Healer and account created.');
+    if (selectedAppForReview && selectedAppForReview.id === app.id) {
+      setSelectedAppForReview(prev => prev ? { ...prev, status: 'Approved' } : null);
+    }
+  };
+
+  const handleRejectApplication = (app) => {
+    const updated = applications.map(a => a.id === app.id ? { ...a, status: 'Rejected' } : a);
+    setApplications(updated);
+    localStorage.setItem('aura_applications', JSON.stringify(updated));
+    
+    if (isFirebaseConfigured()) {
+      db.updateApplicationStatus(app.id, 'Rejected')
+        .then(() => toast.success("Application marked Rejected in cloud."))
+        .catch(err => console.error("Failed to reject application in Firestore:", err));
+    }
+    toast.error('Application for ' + app.name + ' declined.');
+    logTransaction('[ADMIN] Application Declined', app.name, app.email, 'Application status updated to Rejected.');
+    if (selectedAppForReview && selectedAppForReview.id === app.id) {
+      setSelectedAppForReview(prev => prev ? { ...prev, status: 'Rejected' } : null);
+    }
+  };
+
+  const handleSaveInterview = (e) => {
+    e.preventDefault();
+    if (!interviewModalApp) return;
+    
+    const updatedApp = {
+      ...interviewModalApp,
+      status: 'Interview Scheduled',
+      interviewDate: interviewDate || new Date(Date.now() + 86400000).toISOString().split('T')[0],
+      interviewTime: interviewTime || '10:00 AM',
+      interviewer: interviewer || 'Carissa Bright',
+      interviewFormat: interviewFormat || 'Live Video Sanctuary',
+      interviewNotes: interviewNotes || '',
+      meetingLink: 'https://reikiandsage.com/portal/interview-' + (interviewModalApp.id || Date.now())
+    };
+
+    const updated = applications.map(a => a.id === interviewModalApp.id ? updatedApp : a);
+    setApplications(updated);
+    localStorage.setItem('aura_applications', JSON.stringify(updated));
+
+    if (isFirebaseConfigured()) {
+      db.updateApplicationStatus(interviewModalApp.id, 'Interview Scheduled')
+        .catch(err => console.error("Failed to update status in cloud:", err));
+    }
+
+    toast.success('✨ Interview scheduled with ' + interviewModalApp.name + ' on ' + updatedApp.interviewDate + ' at ' + updatedApp.interviewTime + '!');
+    logTransaction('[ADMIN] Interview Scheduled', interviewModalApp.name, interviewModalApp.email, 'Scheduled on ' + updatedApp.interviewDate + ' at ' + updatedApp.interviewTime + ' with ' + updatedApp.interviewer);
+
+    if (selectedAppForReview && selectedAppForReview.id === interviewModalApp.id) {
+      setSelectedAppForReview(updatedApp);
+    }
+    setInterviewModalApp(null);
+  };
 
   const handleExportApplications = () => {
     const headers = ['ID', 'Name', 'Email', 'Status', 'Date', 'Motivation', 'Experience'];
@@ -1056,130 +1170,155 @@ const HealerDashboard = ({ onClose, onJoinPortal, healerAppsEnabled = false, onT
 
           {activeTab === 'applications' && (
             <div className="fade-in">
-              <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem'}}>
+              <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', flexWrap: 'wrap', gap: '1rem'}}>
                 <div>
                   <h3>Healer Applications</h3>
                   <p style={{fontSize: '0.9rem', color: 'var(--text-muted)'}}>
-                    Review candidates seeking to join the Healing Team.
+                    Review candidates seeking to join the Healing Team, examine credentials, and schedule interviews.
                   </p>
                 </div>
-                <button 
-                    onClick={handleExportApplications}
-                    className="btn"
-                    style={{
-                        background: 'rgba(212, 175, 55, 0.1)', 
-                        border: '1px solid var(--accent-gold)', 
-                        color: 'var(--accent-gold)',
-                        padding: '0.5rem 1rem',
-                        fontSize: '0.85rem'
-                    }}
-                >
-                    Export CSV
-                </button>
+                <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+                  <button 
+                      onClick={handleExportApplications}
+                      className="btn"
+                      style={{
+                          background: 'rgba(212, 175, 55, 0.1)', 
+                          border: '1px solid var(--accent-gold)', 
+                          color: 'var(--accent-gold)',
+                          padding: '0.5rem 1rem',
+                          fontSize: '0.85rem'
+                      }}
+                  >
+                      Export CSV
+                  </button>
+                </div>
               </div>
               
               <div className="booking-list">
                  {applications.length === 0 ? (
                      <div style={{padding: '2rem', textAlign: 'center', opacity: 0.6}}>No applications received yet.</div>
                  ) : (
-                     applications.map(app => (
-                        <div key={app.id} className="booking-card" style={{borderColor: app.status === 'Pending' ? 'var(--accent-gold)' : 'transparent', opacity: app.status === 'Pending' ? 1 : 0.7}}>
-                            <div className="booking-info">
-                                <h3>{app.name}</h3>
-                                <p style={{fontSize: '0.85rem', color: 'var(--accent-gold)'}}>{app.email}</p>
-                                <div style={{marginTop: '0.5rem', fontSize: '0.9rem'}}>
-                                    <strong>Motivation:</strong> {app.motivation}
+                     applications.map(app => {
+                       const isScheduled = app.status === 'Interview Scheduled';
+                       return (
+                        <div 
+                          key={app.id} 
+                          className="booking-card" 
+                          style={{
+                            borderColor: isScheduled ? '#50e3c2' : (app.status === 'Pending' ? 'var(--accent-gold)' : 'rgba(255,255,255,0.1)'), 
+                            opacity: app.status === 'Rejected' ? 0.6 : 1,
+                            position: 'relative'
+                          }}
+                        >
+                            <div className="booking-info" style={{ flex: 1 }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
+                                  <h3 style={{ margin: 0 }}>{app.name}</h3>
+                                  <span className={'status-badge ' + (app.status || 'pending').toLowerCase().replace(/\s+/g, '-')} style={{
+                                      background: app.status === 'Approved' ? '#2ecc71' : app.status === 'Rejected' ? '#e74c3c' : (isScheduled ? '#50e3c2' : '#f1c40f'),
+                                      color: 'black',
+                                      fontWeight: 'bold',
+                                      fontSize: '0.72rem',
+                                      padding: '2px 8px',
+                                      borderRadius: '12px'
+                                  }}>
+                                      {app.status}
+                                  </span>
                                 </div>
-                                <div style={{marginTop: '0.5rem', fontSize: '0.9rem', fontStyle: 'italic'}}>
-                                    <strong>Experience:</strong> {app.experience}
+                                <p style={{fontSize: '0.85rem', color: 'var(--accent-gold)', margin: '4px 0'}}>{app.email}</p>
+                                
+                                {isScheduled && (
+                                  <div style={{
+                                    marginTop: '0.6rem',
+                                    padding: '8px 12px',
+                                    borderRadius: '8px',
+                                    background: 'rgba(80, 227, 194, 0.12)',
+                                    border: '1px solid #50e3c2',
+                                    color: '#50e3c2',
+                                    fontSize: '0.82rem',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: '8px',
+                                    maxWidth: '550px'
+                                  }}>
+                                    <span>📅 <strong>Interview Scheduled:</strong> {app.interviewDate} at {app.interviewTime} with {app.interviewer || 'Carissa Bright'}</span>
+                                    {app.interviewFormat && <span style={{ opacity: 0.8 }}>({app.interviewFormat})</span>}
+                                  </div>
+                                )}
+
+                                <div style={{marginTop: '0.5rem', fontSize: '0.88rem'}}>
+                                    <strong>Motivation:</strong> {app.motivation || 'Dedicated to spiritual wellness & service.'}
                                 </div>
-                                <div style={{marginTop: '0.5rem', fontSize: '0.8rem', opacity: 0.6}}>
-                                    Applied: {app.date}
+                                <div style={{marginTop: '0.4rem', fontSize: '0.88rem', color: 'rgba(255,255,255,0.8)'}}>
+                                    <strong>Experience:</strong> {app.experience || 'Reiki Practitioner'}
+                                </div>
+                                <div style={{marginTop: '0.4rem', fontSize: '0.78rem', opacity: 0.6}}>
+                                    Applied: {app.date || 'Recent'}
                                 </div>
                             </div>
-                            <div className="booking-actions" style={{flexDirection: 'column', alignItems: 'flex-end', gap: '5px'}}>
-                                <span className={`status-badge ${app.status.toLowerCase()}`} style={{
-                                    background: app.status === 'Approved' ? '#2ecc71' : app.status === 'Rejected' ? '#e74c3c' : '#f1c40f',
-                                    color: 'black'
-                                }}>
-                                    {app.status}
-                                </span>
-                                {app.status === 'Pending' && (
-                                    <div style={{display: 'flex', gap: '5px', marginTop: '5px'}}>
+
+                            <div className="booking-actions" style={{flexDirection: 'column', alignItems: 'flex-end', gap: '8px', justifyContent: 'center'}}>
+                                <button 
+                                    type="button"
+                                    onClick={() => setSelectedAppForReview(app)}
+                                    style={{
+                                        background: 'rgba(255,255,255,0.08)',
+                                        border: '1px solid rgba(255,255,255,0.25)',
+                                        color: '#fff',
+                                        padding: '6px 14px',
+                                        borderRadius: '16px',
+                                        fontSize: '0.8rem',
+                                        fontWeight: 'bold',
+                                        cursor: 'pointer',
+                                        display: 'inline-flex',
+                                        alignItems: 'center',
+                                        gap: '6px'
+                                    }}
+                                >
+                                    🔍 Open &amp; View Info
+                                </button>
+
+                                {(app.status === 'Pending' || isScheduled) && (
+                                  <button
+                                    type="button"
+                                    onClick={() => {
+                                      setInterviewModalApp(app);
+                                      setInterviewDate(app.interviewDate || new Date(Date.now() + 86400000).toISOString().split('T')[0]);
+                                      setInterviewTime(app.interviewTime || '10:00 AM');
+                                      setInterviewer(app.interviewer || 'Carissa Bright');
+                                      setInterviewFormat(app.interviewFormat || 'Live Video Sanctuary');
+                                      setInterviewNotes(app.interviewNotes || '');
+                                    }}
+                                    style={{
+                                      background: 'rgba(80, 227, 194, 0.15)',
+                                      border: '1px solid #50e3c2',
+                                      color: '#50e3c2',
+                                      padding: '6px 14px',
+                                      borderRadius: '16px',
+                                      fontSize: '0.8rem',
+                                      fontWeight: 'bold',
+                                      cursor: 'pointer',
+                                      display: 'inline-flex',
+                                      alignItems: 'center',
+                                      gap: '6px'
+                                    }}
+                                  >
+                                    📅 {isScheduled ? 'Reschedule Interview' : 'Set Up Interview'}
+                                  </button>
+                                )}
+
+                                {(app.status === 'Pending' || isScheduled) && (
+                                    <div style={{display: 'flex', gap: '6px', marginTop: '4px'}}>
                                         <button 
                                             className="accept-btn"
-                                            onClick={() => {
-                                                const updated = applications.map(a => a.id === app.id ? { ...a, status: 'Approved' } : a);
-                                                setApplications(updated);
-                                                localStorage.setItem('aura_applications', JSON.stringify(updated));
-                                                
-                                                if (isFirebaseConfigured()) {
-                                                  db.updateApplicationStatus(app.id, 'Approved')
-                                                    .then(() => {
-                                                      if (app.userId) {
-                                                        db.updateRole(app.userId, 'healer')
-                                                          .then(() => toast.success("Applicant role promoted to healer in cloud."))
-                                                          .catch(err => console.error("Failed to update role:", err));
-                                                      }
-                                                    })
-                                                    .catch(err => {
-                                                      console.error("Failed to approve application in Firestore:", err);
-                                                      toast.error("Failed to sync approval in cloud.");
-                                                    });
-                                                } else {
-                                                  // Create User Account (Automated)
-                                                  const newUser = {
-                                                      name: app.name,
-                                                      username: app.name.toLowerCase().replace(/\s+/g, '_'),
-                                                      email: app.email,
-                                                      password: app.password, // PCI Masked in logs, but stored here for first login
-                                                      role: 'healer',
-                                                      subscription: 'healing',
-                                                      birthDate: app.birthDate,
-                                                      status: 'Active',
-                                                      joined: new Date().toISOString()
-                                                  };
-                                                  
-                                                  const clients = JSON.parse(localStorage.getItem('aura_clients') || '[]');
-                                                  if (!clients.find(c => c.email === app.email)) {
-                                                      clients.push(newUser);
-                                                      localStorage.setItem('aura_clients', JSON.stringify(clients));
-                                                  }
-
-                                                  // Create Team Member record for dashboard visibility
-                                                  const newMember = { 
-                                                      name: app.name, 
-                                                      email: app.email, 
-                                                      status: 'Active',
-                                                      role: 'Healer',
-                                                      joined: new Date().toISOString()
-                                                  };
-                                                  const updatedTeam = [...(JSON.parse(localStorage.getItem('aura_team') || '[]')), newMember];
-                                                  localStorage.setItem('aura_team', JSON.stringify(updatedTeam));
-                                                  setTeamMembers(updatedTeam);
-                                                }
-                                                
-                                                toast.success(`${app.name} promoted to Healing Team. Account created.`);
-                                                logTransaction('[ADMIN] Application Approved', app.name, app.email, 'User promoted to Healer and account created.');
-                                             }}
+                                            style={{ padding: '6px 14px', fontSize: '0.8rem' }}
+                                            onClick={() => handleApproveApplication(app)}
                                         >
                                             Approve
                                         </button>
                                         <button 
                                             className="decline-btn"
-                                            onClick={() => {
-                                                const updated = applications.map(a => a.id === app.id ? { ...a, status: 'Rejected' } : a);
-                                                setApplications(updated);
-                                                localStorage.setItem('aura_applications', JSON.stringify(updated));
-                                                
-                                                if (isFirebaseConfigured()) {
-                                                  db.updateApplicationStatus(app.id, 'Rejected')
-                                                    .then(() => toast.success("Application marked Rejected in cloud."))
-                                                    .catch(err => console.error("Failed to reject application in Firestore:", err));
-                                                }
-                                                
-                                                toast.success('Application rejected.');
-                                            }}
+                                            style={{ padding: '6px 14px', fontSize: '0.8rem' }}
+                                            onClick={() => handleRejectApplication(app)}
                                         >
                                             Reject
                                         </button>
@@ -1187,7 +1326,8 @@ const HealerDashboard = ({ onClose, onJoinPortal, healerAppsEnabled = false, onT
                                 )}
                             </div>
                         </div>
-                     ))
+                       );
+                     })
                  )}
               </div>
             </div>
@@ -2756,6 +2896,329 @@ const HealerDashboard = ({ onClose, onJoinPortal, healerAppsEnabled = false, onT
                     </div>
                 )}
               </AnimatePresence>
+
+        {/* Full Application Info Review Modal */}
+        {selectedAppForReview && (
+          <div className="booking-overlay fade-in" style={{ zIndex: 11000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1.5rem', backdropFilter: 'blur(20px)' }}>
+            <div className="glass" style={{ width: '100%', maxWidth: '680px', maxHeight: '90vh', overflowY: 'auto', background: '#0a0d1a', border: '1.5px solid var(--accent-gold)', borderRadius: '24px', padding: '2rem', color: '#fff', position: 'relative', boxShadow: '0 25px 80px rgba(0,0,0,0.95)' }}>
+              <button
+                type="button"
+                onClick={() => setSelectedAppForReview(null)}
+                style={{ position: 'absolute', top: '1.25rem', right: '1.25rem', background: 'rgba(255,255,255,0.08)', border: 'none', color: '#fff', borderRadius: '50%', width: '36px', height: '36px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+              >
+                <X size={18} />
+              </button>
+
+              <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '1.25rem' }}>
+                <div style={{ width: '48px', height: '48px', borderRadius: '50%', background: 'rgba(212, 175, 55, 0.2)', border: '1px solid var(--accent-gold)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.25rem', fontWeight: 'bold', color: 'var(--accent-gold)' }}>
+                  {selectedAppForReview.name.charAt(0)}
+                </div>
+                <div>
+                  <h2 style={{ fontFamily: 'Playfair Display, serif', fontSize: '1.6rem', margin: 0, color: '#fff' }}>{selectedAppForReview.name}</h2>
+                  <div style={{ fontSize: '0.85rem', color: 'var(--accent-gold)' }}>{selectedAppForReview.email}</div>
+                </div>
+                <div style={{ marginLeft: 'auto', marginRight: '40px' }}>
+                  <span className={'status-badge ' + (selectedAppForReview.status || 'pending').toLowerCase().replace(/\s+/g, '-')} style={{
+                    background: selectedAppForReview.status === 'Approved' ? '#2ecc71' : selectedAppForReview.status === 'Rejected' ? '#e74c3c' : (selectedAppForReview.status === 'Interview Scheduled' ? '#50e3c2' : '#f1c40f'),
+                    color: 'black',
+                    fontWeight: 'bold',
+                    fontSize: '0.78rem',
+                    padding: '4px 10px',
+                    borderRadius: '12px'
+                  }}>
+                    {selectedAppForReview.status}
+                  </span>
+                </div>
+              </div>
+
+              {/* Scheduled Interview Banner if any */}
+              {selectedAppForReview.status === 'Interview Scheduled' && (
+                <div style={{ background: 'rgba(80, 227, 194, 0.12)', border: '1px solid #50e3c2', borderRadius: '14px', padding: '1rem', marginBottom: '1.5rem' }}>
+                  <div style={{ fontWeight: 'bold', color: '#50e3c2', fontSize: '0.9rem', marginBottom: '4px' }}>
+                    📅 Scheduled Candidate Interview
+                  </div>
+                  <div style={{ fontSize: '0.84rem', color: '#fff' }}>
+                    <strong>Date &amp; Time:</strong> {selectedAppForReview.interviewDate} at {selectedAppForReview.interviewTime}
+                  </div>
+                  <div style={{ fontSize: '0.84rem', color: '#fff', marginTop: '2px' }}>
+                    <strong>Interviewer:</strong> {selectedAppForReview.interviewer || 'Carissa Bright'} • <strong>Format:</strong> {selectedAppForReview.interviewFormat || 'Live Video Sanctuary'}
+                  </div>
+                  {selectedAppForReview.meetingLink && (
+                    <div style={{ fontSize: '0.78rem', color: '#50e3c2', marginTop: '4px' }}>
+                      <strong>Meeting Link:</strong> <a href={selectedAppForReview.meetingLink} target="_blank" rel="noopener noreferrer" style={{ color: '#50e3c2', textDecoration: 'underline' }}>{selectedAppForReview.meetingLink}</a>
+                    </div>
+                  )}
+                  {selectedAppForReview.interviewNotes && (
+                    <div style={{ fontSize: '0.78rem', color: 'rgba(255,255,255,0.7)', marginTop: '4px', fontStyle: 'italic' }}>
+                      Notes: {selectedAppForReview.interviewNotes}
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Information Grid */}
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '1rem', marginBottom: '1.25rem' }}>
+                <div style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '14px', padding: '1rem' }}>
+                  <div style={{ fontSize: '0.72rem', color: 'var(--accent-gold)', textTransform: 'uppercase', letterSpacing: '1px', fontWeight: 'bold', marginBottom: '4px' }}>Date Applied</div>
+                  <div style={{ fontSize: '0.9rem', color: '#fff' }}>{selectedAppForReview.date || 'Recent Submission'}</div>
+                </div>
+                <div style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '14px', padding: '1rem' }}>
+                  <div style={{ fontSize: '0.72rem', color: 'var(--accent-gold)', textTransform: 'uppercase', letterSpacing: '1px', fontWeight: 'bold', marginBottom: '4px' }}>Birth Date / Astrological</div>
+                  <div style={{ fontSize: '0.9rem', color: '#fff' }}>{selectedAppForReview.birthDate || 'Recorded on Intake'}</div>
+                </div>
+              </div>
+
+              {/* Motivation */}
+              <div style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '14px', padding: '1.25rem', marginBottom: '1.25rem' }}>
+                <div style={{ fontSize: '0.75rem', color: 'var(--accent-gold)', textTransform: 'uppercase', letterSpacing: '1px', fontWeight: 'bold', marginBottom: '6px' }}>Sacred Calling &amp; Motivation</div>
+                <p style={{ fontSize: '0.88rem', color: 'rgba(255,255,255,0.85)', lineHeight: '1.6', margin: 0 }}>
+                  {selectedAppForReview.motivation || 'Deeply committed to holding high-frequency sanctuary space and serving seekers.'}
+                </p>
+              </div>
+
+              {/* Experience & Certifications */}
+              <div style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '14px', padding: '1.25rem', marginBottom: '1.75rem' }}>
+                <div style={{ fontSize: '0.75rem', color: 'var(--accent-gold)', textTransform: 'uppercase', letterSpacing: '1px', fontWeight: 'bold', marginBottom: '6px' }}>Lineage &amp; Healing Experience</div>
+                <p style={{ fontSize: '0.88rem', color: 'rgba(255,255,255,0.85)', lineHeight: '1.6', margin: 0 }}>
+                  {selectedAppForReview.experience || 'Certified Usui Reiki Master with established clinical and meditation experience.'}
+                </p>
+              </div>
+
+              {/* Action Buttons in Modal */}
+              <div style={{ display: 'flex', justifyContent: 'space-between', gap: '10px', flexWrap: 'wrap', borderTop: '1px solid rgba(255,255,255,0.1)', paddingTop: '1.25rem' }}>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setInterviewModalApp(selectedAppForReview);
+                    setInterviewDate(selectedAppForReview.interviewDate || new Date(Date.now() + 86400000).toISOString().split('T')[0]);
+                    setInterviewTime(selectedAppForReview.interviewTime || '10:00 AM');
+                    setInterviewer(selectedAppForReview.interviewer || 'Carissa Bright');
+                    setInterviewFormat(selectedAppForReview.interviewFormat || 'Live Video Sanctuary');
+                    setInterviewNotes(selectedAppForReview.interviewNotes || '');
+                  }}
+                  style={{
+                    background: 'rgba(80, 227, 194, 0.15)',
+                    border: '1.5px solid #50e3c2',
+                    color: '#50e3c2',
+                    padding: '8px 18px',
+                    borderRadius: '20px',
+                    fontSize: '0.85rem',
+                    fontWeight: 'bold',
+                    cursor: 'pointer',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '6px'
+                  }}
+                >
+                  📅 {selectedAppForReview.status === 'Interview Scheduled' ? 'Reschedule Interview' : 'Set Up Interview Next'}
+                </button>
+
+                <div style={{ display: 'flex', gap: '8px' }}>
+                  {selectedAppForReview.status !== 'Approved' && (
+                    <button
+                      type="button"
+                      className="accept-btn"
+                      style={{ padding: '8px 18px', fontSize: '0.85rem' }}
+                      onClick={() => handleApproveApplication(selectedAppForReview)}
+                    >
+                      Approve &amp; Activate
+                    </button>
+                  )}
+                  {selectedAppForReview.status !== 'Rejected' && (
+                    <button
+                      type="button"
+                      className="decline-btn"
+                      style={{ padding: '8px 18px', fontSize: '0.85rem' }}
+                      onClick={() => handleRejectApplication(selectedAppForReview)}
+                    >
+                      Decline
+                    </button>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Schedule Interview Modal */}
+        {interviewModalApp && (
+          <div className="booking-overlay fade-in" style={{ zIndex: 11500, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1.5rem', backdropFilter: 'blur(20px)' }}>
+            <div className="glass" style={{ width: '100%', maxWidth: '520px', background: '#0a0d1a', border: '1.5px solid #50e3c2', borderRadius: '24px', padding: '2rem', color: '#fff', position: 'relative', boxShadow: '0 25px 80px rgba(0,0,0,0.95)' }}>
+              <button
+                type="button"
+                onClick={() => setInterviewModalApp(null)}
+                style={{ position: 'absolute', top: '1.25rem', right: '1.25rem', background: 'rgba(255,255,255,0.08)', border: 'none', color: '#fff', borderRadius: '50%', width: '36px', height: '36px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+              >
+                <X size={18} />
+              </button>
+
+              <div style={{ textAlign: 'center', marginBottom: '1.5rem' }}>
+                <div style={{ fontSize: '0.75rem', color: '#50e3c2', letterSpacing: '2px', textTransform: 'uppercase', fontWeight: 'bold', marginBottom: '4px' }}>
+                  ✦ Sanctuary Council Interview ✦
+                </div>
+                <h3 style={{ fontFamily: 'Playfair Display, serif', fontSize: '1.5rem', margin: '0 0 4px 0', color: '#fff' }}>
+                  Set Up Interview: {interviewModalApp.name}
+                </h3>
+                <p style={{ fontSize: '0.82rem', color: 'rgba(255,255,255,0.6)', margin: 0 }}>
+                  {interviewModalApp.email}
+                </p>
+              </div>
+
+              <form onSubmit={handleSaveInterview} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                <div>
+                  <label style={{ display: 'block', fontSize: '0.75rem', color: 'var(--accent-gold)', fontWeight: 'bold', marginBottom: '4px' }}>
+                    INTERVIEW DATE:
+                  </label>
+                  <input
+                    type="date"
+                    value={interviewDate}
+                    onChange={(e) => setInterviewDate(e.target.value)}
+                    required
+                    style={{
+                      width: '100%',
+                      padding: '10px 14px',
+                      borderRadius: '12px',
+                      background: 'rgba(255,255,255,0.06)',
+                      border: '1px solid rgba(255,255,255,0.2)',
+                      color: '#fff',
+                      fontSize: '0.9rem'
+                    }}
+                  />
+                </div>
+
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                  <div>
+                    <label style={{ display: 'block', fontSize: '0.75rem', color: 'var(--accent-gold)', fontWeight: 'bold', marginBottom: '4px' }}>
+                      TIME:
+                    </label>
+                    <select
+                      value={interviewTime}
+                      onChange={(e) => setInterviewTime(e.target.value)}
+                      style={{
+                        width: '100%',
+                        padding: '10px 14px',
+                        borderRadius: '12px',
+                        background: '#151928',
+                        border: '1px solid rgba(255,255,255,0.2)',
+                        color: '#fff',
+                        fontSize: '0.88rem'
+                      }}
+                    >
+                      <option value="9:00 AM">9:00 AM</option>
+                      <option value="10:00 AM">10:00 AM</option>
+                      <option value="11:30 AM">11:30 AM</option>
+                      <option value="1:00 PM">1:00 PM</option>
+                      <option value="2:30 PM">2:30 PM</option>
+                      <option value="4:00 PM">4:00 PM</option>
+                      <option value="5:30 PM">5:30 PM</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label style={{ display: 'block', fontSize: '0.75rem', color: 'var(--accent-gold)', fontWeight: 'bold', marginBottom: '4px' }}>
+                      INTERVIEWER:
+                    </label>
+                    <select
+                      value={interviewer}
+                      onChange={(e) => setInterviewer(e.target.value)}
+                      style={{
+                        width: '100%',
+                        padding: '10px 14px',
+                        borderRadius: '12px',
+                        background: '#151928',
+                        border: '1px solid rgba(255,255,255,0.2)',
+                        color: '#fff',
+                        fontSize: '0.88rem'
+                      }}
+                    >
+                      <option value="Carissa Bright">Carissa Bright</option>
+                      <option value="Jason Mounts">Jason Mounts</option>
+                      <option value="Joint Council (Carissa &amp; Jason)">Joint Council</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div>
+                  <label style={{ display: 'block', fontSize: '0.75rem', color: 'var(--accent-gold)', fontWeight: 'bold', marginBottom: '4px' }}>
+                    MEETING FORMAT:
+                  </label>
+                  <select
+                    value={interviewFormat}
+                    onChange={(e) => setInterviewFormat(e.target.value)}
+                    style={{
+                      width: '100%',
+                      padding: '10px 14px',
+                      borderRadius: '12px',
+                      background: '#151928',
+                      border: '1px solid rgba(255,255,255,0.2)',
+                      color: '#fff',
+                      fontSize: '0.88rem'
+                    }}
+                  >
+                    <option value="Live Video Sanctuary">Live Video Sanctuary Portal</option>
+                    <option value="Phone Call">Direct Phone Call</option>
+                    <option value="Google Meet / Zoom">Google Meet / Video Room</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label style={{ display: 'block', fontSize: '0.75rem', color: 'var(--accent-gold)', fontWeight: 'bold', marginBottom: '4px' }}>
+                    COUNCIL INTERVIEW NOTES:
+                  </label>
+                  <textarea
+                    value={interviewNotes}
+                    onChange={(e) => setInterviewNotes(e.target.value)}
+                    placeholder="Focus questions, energy vibration check, verification of independent contractor status..."
+                    rows={3}
+                    style={{
+                      width: '100%',
+                      padding: '10px 14px',
+                      borderRadius: '12px',
+                      background: 'rgba(255,255,255,0.06)',
+                      border: '1px solid rgba(255,255,255,0.2)',
+                      color: '#fff',
+                      fontSize: '0.85rem',
+                      resize: 'none'
+                    }}
+                  />
+                </div>
+
+                <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '0.5rem' }}>
+                  <button
+                    type="button"
+                    onClick={() => setInterviewModalApp(null)}
+                    style={{
+                      padding: '10px 18px',
+                      borderRadius: '20px',
+                      background: 'rgba(255,255,255,0.08)',
+                      border: '1px solid rgba(255,255,255,0.2)',
+                      color: '#fff',
+                      fontSize: '0.85rem',
+                      cursor: 'pointer'
+                    }}
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    className="btn btn-primary"
+                    style={{
+                      padding: '10px 22px',
+                      borderRadius: '20px',
+                      fontSize: '0.85rem',
+                      fontWeight: 'bold',
+                      background: '#50e3c2',
+                      borderColor: '#50e3c2',
+                      color: '#000'
+                    }}
+                  >
+                    Confirm &amp; Schedule Interview
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
         </div>
       </div>
     );

@@ -111,13 +111,9 @@ export const protocols = [
     active: true,
     duration: 600,
     video: [
-      'citrine_resonance.png',
       'citrine_macro.png',
       'citrine_aura.png',
-      'sage_protocol_golden_glow_1770425143306.png',
-      'sage_protocol_sunbeam_forest_1770425220455.png',
-      'sage_protocol_emerald_forest_1770425178657.png',
-      'sage_protocol_fire_warmth_1770441180290.png',
+      'solar_chakra.jpg',
       'crystal-resonance.png'
     ],
     audio: '/assets/audio/protocols/citrine_meditation_music.mp3',
@@ -134,13 +130,10 @@ export const protocols = [
     active: true,
     duration: 600,
     video: [
-      'sage_resonance.png',
-      'sage_macro.png',
-      'sage_aura.png',
       'sage_sacred_purify_1770423875666.png',
-      'sage_protocol_purge_1770423911044.png',
-      'sage_protocol_crystal_cave_1770441218348.png',
-      'sage_protocol_cosmic_alignment_1770424972911.png',
+      'sage_protocol_dewy_sage_1770425226526.png',
+      'sage_smoke_ethereal_cleansing_1770423820855.png',
+      'sage_protocol_beach_sunset_1770441204371.png',
       'compassion-glow.png'
     ],
     audio: '/assets/audio/protocols/sage_meditation_music.mp3',
@@ -157,16 +150,13 @@ export const protocols = [
     active: true,
     duration: 600,
     video: [
-      'tourmaline_resonance.png',
-      'tourmaline_macro.png',
-      'tourmaline_aura.png',
-      'earth_grounding_roots_sacred_1770423859987.png',
+      'root_chakra.jpg',
       'sage_protocol_crystal_cave_1770441218348.png',
       'sage_sacred_purify_1770423875666.png',
       'energy-portal.png'
     ],
-    audio: '/assets/audio/protocols/tourmaline_meditation_music.mp3',
-    voice: '/assets/tourmaline_meditation_voice.mp3',
+    audio: '/assets/audio/protocols/rose_meditation_music.mp3',
+    voice: '/assets/reiki_meditation_voice.mp3',
     desc: 'Advanced 10-minute root chakra stabilization. Anchors erratic energetic surges into the core of Gaia for impenetrable psychic shielding.',
     tier: 'basic'
   },
@@ -179,8 +169,10 @@ export const protocols = [
     active: true,
     duration: 900,
     video: [
-      'celestial_resonance.png',
-      'hero-energy.png'
+      'sage_protocol_cosmic_alignment_1770424972911.png',
+      'crown_chakra.jpg',
+      'hero-energy.png',
+      'energy-portal.png'
     ],
     audio: '/assets/audio/protocols/celestial_meditation_music.mp3',
     voice: '/assets/celestial_meditation_voice.mp3',
