@@ -1,21 +1,22 @@
-import React, { useState, useRef } from 'react';
+import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Play, Pause, Volume2, VolumeX, Sparkles, Heart, Award, Shield } from 'lucide-react';
-import { toast } from 'react-hot-toast';
+import { Play, Pause, Sparkles, Heart, Sliders } from 'lucide-react';
 
 /**
  * FreeCarissaMeditation — Free Home Screen Guided Meditation Player
  * Featuring Master Healer Carissa Bright's voice & 528Hz Solfeggio ambience.
  * Open & Free for ALL visitors and Free Tier users.
  */
-const FreeCarissaMeditation = ({ onOpenSubscription, onOpenGuidedMeditation, onOpenMicroPractices }) => {
-  const [isPlaying, setIsPlaying] = useState(false);
-  const [volume, setVolume] = useState(0.8);
-  const audioCtxRef = useRef(null);
-  const oscRef = useRef(null);
-
+const FreeCarissaMeditation = ({ 
+  onOpenSubscription, 
+  onOpenHeartGrounding,
+  onOpenGuidedMeditation, 
+  onOpenMicroPractices 
+}) => {
   const toggleMeditation = () => {
-    if (onOpenGuidedMeditation) {
+    if (onOpenHeartGrounding) {
+      onOpenHeartGrounding();
+    } else if (onOpenGuidedMeditation) {
       onOpenGuidedMeditation();
     } else if (onOpenSubscription) {
       onOpenSubscription();
@@ -42,7 +43,7 @@ const FreeCarissaMeditation = ({ onOpenSubscription, onOpenGuidedMeditation, onO
           <img
             src="/assets/heart_chakra.jpg"
             alt="Carissa Bright Guided Meditation"
-            style={{ width: '100%', height: '220px', objectFit: 'cover' }}
+            style={{ width: '100%', height: '230px', objectFit: 'cover' }}
           />
           <div style={{
             position: 'absolute',
@@ -56,11 +57,12 @@ const FreeCarissaMeditation = ({ onOpenSubscription, onOpenGuidedMeditation, onO
               whileHover={{ scale: 1.1 }}
               whileTap={{ scale: 0.95 }}
               onClick={toggleMeditation}
+              aria-label="Play 5-Minute Heart Grounding"
               style={{
                 width: '64px',
                 height: '64px',
                 borderRadius: '50%',
-                background: isPlaying ? '#ff4757' : 'var(--accent-gold)',
+                background: 'var(--accent-gold)',
                 border: 'none',
                 color: '#000',
                 display: 'flex',
@@ -70,7 +72,7 @@ const FreeCarissaMeditation = ({ onOpenSubscription, onOpenGuidedMeditation, onO
                 boxShadow: '0 0 25px var(--accent-gold)'
               }}
             >
-              {isPlaying ? <Pause size={28} color="#fff" /> : <Play size={28} color="#000" style={{ marginLeft: '4px' }} />}
+              <Play size={28} color="#000" style={{ marginLeft: '4px' }} />
             </motion.button>
           </div>
           <div style={{ position: 'absolute', top: '12px', left: '12px', background: 'rgba(0,0,0,0.7)', padding: '4px 10px', borderRadius: '12px', fontSize: '0.72rem', color: '#50e3c2', fontWeight: 'bold', border: '1px solid #50e3c2' }}>
@@ -87,10 +89,10 @@ const FreeCarissaMeditation = ({ onOpenSubscription, onOpenGuidedMeditation, onO
             5-Minute Grounding &amp; Heart Alignment
           </h3>
           <div style={{ fontSize: '0.85rem', color: '#50e3c2', fontWeight: 'bold', marginBottom: '0.75rem' }}>
-            Guided by Master Healer Carissa Bright • 528Hz Solfeggio Tone
+            Unique 5-Min Video • 528Hz Soft Frequency &amp; Meditation Music Controls
           </div>
           <p style={{ fontSize: '0.85rem', color: 'rgba(255,255,255,0.75)', lineHeight: '1.6', marginBottom: '1.25rem' }}>
-            Experience Master Healer Carissa Bright's signature voice grounding transmission paired with organic 528Hz Solfeggio acoustic resonance. Completely free for all visitors.
+            Experience Master Healer Carissa Bright's dedicated 5-minute video transmission with organic 528Hz Solfeggio acoustic resonance, gentle breath guidance, and independent sound level sliders. Completely free for all visitors.
           </p>
 
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.85rem', flexWrap: 'wrap' }}>
@@ -107,8 +109,8 @@ const FreeCarissaMeditation = ({ onOpenSubscription, onOpenGuidedMeditation, onO
                 gap: '8px'
               }}
             >
-              {isPlaying ? <Pause size={18} /> : <Play size={18} />}
-              {isPlaying ? 'Pause Free Guided Session' : 'Play Free Guided Session'}
+              <Play size={18} />
+              Play Free 5-Min Session
             </button>
 
             {onOpenMicroPractices && (
@@ -129,7 +131,7 @@ const FreeCarissaMeditation = ({ onOpenSubscription, onOpenGuidedMeditation, onO
                   transition: 'all 0.2s ease'
                 }}
               >
-                <Heart size={16} /> 5 Micro Heart Practices (1–2 min)
+                <Heart size={16} /> 5 Micro Heart Practices
               </button>
             )}
 

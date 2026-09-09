@@ -49,6 +49,7 @@ const VoiceReflectionStudio = safeLazy(() => import('./components/VoiceReflectio
 const AIAvatarDropBox = safeLazy(() => import('./components/AIAvatarDropBox'));
 const FreeCarissaMeditation = safeLazy(() => import('./components/FreeCarissaMeditation'));
 const MicroHeartPractices = safeLazy(() => import('./components/MicroHeartPractices'));
+const HeartGroundingPortal = safeLazy(() => import('./components/HeartGroundingPortal'));
 import DuckingAudioPlayer from './components/DuckingAudioPlayer';
 import { protocolSoundEngine } from './utils/ProtocolSoundEngine';
 import BillingForm from './components/BillingForm';
@@ -203,6 +204,7 @@ function AppContent() {
   const [showScience, setShowScience] = useState(false); // Science Modal
   const [showMeditationModal, setShowMeditationModal] = useState(false); // Guided Meditation Modal
   const [showMicroPractices, setShowMicroPractices] = useState(false); // 5 Micro Heart Practices
+  const [showHeartGroundingModal, setShowHeartGroundingModal] = useState(false); // 5-Minute Grounding & Heart Alignment Modal
   const [showHealerDashboard, setShowHealerDashboard] = useState(false); // Admin access
   const [showAdminLogin, setShowAdminLogin] = useState(false); // NEW: Staff/Admin login
   const [showLegalModal, setShowLegalModal] = useState(null); // 'terms' | 'privacy' | 'disclaimer' | null
@@ -2496,6 +2498,12 @@ const [showCheckoutModal, setShowCheckoutModal] = useState(false);
           }} />}
           {showMyStories && <MyStoriesPortal onClose={() => setShowMyStories(false)} user={user} />}
           {showMeditationModal && renderMeditationModal()}
+          {showHeartGroundingModal && (
+            <HeartGroundingPortal onClose={() => setShowHeartGroundingModal(false)} />
+          )}
+          {showMicroPractices && (
+            <MicroHeartPractices onClose={() => setShowMicroPractices(false)} />
+          )}
         </Suspense>
 
         {/* Device Bezel Simulator Wrapper */}
@@ -3390,6 +3398,7 @@ const [showCheckoutModal, setShowCheckoutModal] = useState(false);
       <Suspense fallback={null}>
         <FreeCarissaMeditation 
           onOpenSubscription={() => setShowSubscriptionPage(true)} 
+          onOpenHeartGrounding={() => setShowHeartGroundingModal(true)}
           onOpenGuidedMeditation={() => setShowMeditationModal(true)}
           onOpenMicroPractices={() => setShowMicroPractices(true)}
         />
@@ -3747,6 +3756,15 @@ const [showCheckoutModal, setShowCheckoutModal] = useState(false);
               onOpenSoundBaths={() => setShowSoundBaths(true)}
               onOpenVoiceStudio={() => setShowVoiceReflectionStudio(true)}
             />
+          )}
+        </AnimatePresence>
+      </Suspense>
+
+      {/* 5-Minute Grounding & Heart Alignment Portal */}
+      <Suspense fallback={null}>
+        <AnimatePresence>
+          {showHeartGroundingModal && (
+            <HeartGroundingPortal onClose={() => setShowHeartGroundingModal(false)} />
           )}
         </AnimatePresence>
       </Suspense>

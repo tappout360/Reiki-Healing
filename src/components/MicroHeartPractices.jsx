@@ -1,6 +1,9 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Heart, Sparkles, Wind, Shield, Sun, Play, Pause, RotateCcw, X, CheckCircle } from 'lucide-react';
+import { 
+  Heart, Sparkles, Wind, Shield, Sun, Play, Pause, 
+  RotateCcw, X, CheckCircle, ChevronDown, Volume2, VolumeX, Sliders 
+} from 'lucide-react';
 import { toast } from 'react-hot-toast';
 
 export const MICRO_PRACTICES = [
@@ -54,8 +57,8 @@ export const MICRO_PRACTICES = [
   },
   {
     id: 'heart_seal',
-    title: 'Heart Seal',
-    subtitle: 'Protective Biofield Boundary',
+    title: 'Centered Stillness',
+    subtitle: 'Protective Biofield Boundary & Seal',
     duration: 60, // 1 min
     inhale: 4,
     exhale: 4,
@@ -72,33 +75,47 @@ export const MicroHeartPractices = ({ onClose }) => {
   const [secondsRemaining, setSecondsRemaining] = useState(MICRO_PRACTICES[0].duration);
   const [breathPhase, setBreathPhase] = useState('inhale'); // 'inhale' | 'exhale'
   const [breathCountdown, setBreathCountdown] = useState(MICRO_PRACTICES[0].inhale);
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [volume, setVolume] = useState(0.25); // Soft default
+  const [isMuted, setIsMuted] = useState(false);
 
   const audioCtxRef = useRef(null);
   const oscRef = useRef(null);
   const gainRef = useRef(null);
+  const filterRef = useRef(null);
 
-  // Sound generator
+  // Soft Warm Sound Generator with Lowpass Filter
   const startTone = (freq) => {
     try {
       const AudioCtx = window.AudioContext || window.webkitAudioContext;
       const ctx = new AudioCtx();
       audioCtxRef.current = ctx;
 
+      const now = ctx.currentTime;
       const osc = ctx.createOscillator();
       const gain = ctx.createGain();
+      const filter = ctx.createBiquadFilter();
+
+      // Soft Warm Lowpass Filter: eliminates harsh high buzz
+      filter.type = 'lowpass';
+      filter.frequency.setValueAtTime(Math.min(520, freq * 1.1), now);
+      filter.Q.setValueAtTime(0.707, now);
 
       osc.type = 'sine';
-      osc.frequency.setValueAtTime(freq, ctx.currentTime);
+      osc.frequency.setValueAtTime(freq, now);
 
-      gain.gain.setValueAtTime(0.001, ctx.currentTime);
-      gain.gain.linearRampToValueAtTime(0.04, ctx.currentTime + 1.5);
+      const targetGain = isMuted ? 0.0001 : Math.max(0.0001, volume * 0.08);
+      gain.gain.setValueAtTime(0.0001, now);
+      gain.gain.linearRampToValueAtTime(targetGain, now + 1.2);
 
-      osc.connect(gain);
+      osc.connect(filter);
+      filter.connect(gain);
       gain.connect(ctx.destination);
-      osc.start();
+      osc.start(now);
 
       oscRef.current = osc;
       gainRef.current = gain;
+      filterRef.current = filter;
     } catch {
       // audio context fallback
     }
@@ -107,20 +124,31 @@ export const MicroHeartPractices = ({ onClose }) => {
   const stopTone = () => {
     if (gainRef.current && audioCtxRef.current) {
       try {
-        gainRef.current.gain.linearRampToValueAtTime(0.0001, audioCtxRef.current.currentTime + 0.5);
+        gainRef.current.gain.linearRampToValueAtTime(0.0001, audioCtxRef.current.currentTime + 0.4);
         setTimeout(() => {
           if (oscRef.current) {
-            oscRef.current.stop();
+            try { oscRef.current.stop(); } catch {}
             oscRef.current = null;
           }
-        }, 500);
+        }, 450);
       } catch {
         // cleanup
       }
     }
   };
 
-  // Practice selection
+  // Dynamically adjust frequency volume
+  useEffect(() => {
+    if (gainRef.current && audioCtxRef.current) {
+      const now = audioCtxRef.current.currentTime;
+      const targetGain = isMuted ? 0.0001 : Math.max(0.0001, volume * 0.08);
+      try {
+        gainRef.current.gain.linearRampToValueAtTime(targetGain, now + 0.1);
+      } catch {}
+    }
+  }, [volume, isMuted]);
+
+  // Practice selection via dropdown
   const selectPractice = (practice) => {
     stopTone();
     setActivePractice(practice);
@@ -128,6 +156,7 @@ export const MicroHeartPractices = ({ onClose }) => {
     setSecondsRemaining(practice.duration);
     setBreathPhase('inhale');
     setBreathCountdown(practice.inhale);
+    setIsDropdownOpen(false);
   };
 
   const togglePlay = () => {
@@ -205,36 +234,37 @@ export const MicroHeartPractices = ({ onClose }) => {
       position: 'fixed',
       inset: 0,
       zIndex: 10000,
-      background: 'rgba(5, 5, 10, 0.95)',
+      background: 'rgba(5, 5, 10, 0.96)',
       backdropFilter: 'blur(20px)',
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',
-      padding: '1.25rem',
+      padding: '1rem',
       overflowY: 'auto'
     }}>
       <div style={{
         width: '100%',
-        maxWidth: '640px',
-        background: '#090a12',
-        border: '1px solid rgba(212, 175, 55, 0.35)',
+        maxWidth: '620px',
+        background: '#090a14',
+        border: '1.5px solid rgba(212, 175, 55, 0.4)',
         borderRadius: '26px',
         padding: '2rem 1.75rem',
         color: '#fff',
-        boxShadow: '0 25px 70px rgba(0, 0, 0, 0.9), 0 0 40px rgba(212, 175, 55, 0.08)',
+        boxShadow: '0 25px 70px rgba(0, 0, 0, 0.95), 0 0 40px rgba(212, 175, 55, 0.1)',
         position: 'relative'
       }}>
-        {/* Close */}
+        {/* Close Button */}
         {onClose && (
           <button
             onClick={() => { stopTone(); onClose(); }}
             type="button"
+            aria-label="Close"
             style={{
               position: 'absolute',
               top: '1.25rem',
               right: '1.25rem',
               background: 'rgba(255,255,255,0.08)',
-              border: 'none',
+              border: '1px solid rgba(255,255,255,0.15)',
               color: '#fff',
               borderRadius: '50%',
               width: '36px',
@@ -242,14 +272,16 @@ export const MicroHeartPractices = ({ onClose }) => {
               cursor: 'pointer',
               display: 'flex',
               alignItems: 'center',
-              justifyContent: 'center'
+              justifyContent: 'center',
+              zIndex: 10,
+              transition: 'all 0.2s ease'
             }}
           >
             <X size={18} />
           </button>
         )}
 
-        {/* Title */}
+        {/* Title Header */}
         <div style={{ textAlign: 'center', marginBottom: '1.5rem' }}>
           <span style={{ fontSize: '0.75rem', color: 'var(--accent-gold)', letterSpacing: '2px', textTransform: 'uppercase', fontWeight: 'bold' }}>
             ✦ Light Daily Energy Care ✦
@@ -262,44 +294,180 @@ export const MicroHeartPractices = ({ onClose }) => {
           </p>
         </div>
 
-        {/* Practice Selection Pills */}
-        <div style={{
-          display: 'flex',
-          gap: '8px',
-          overflowX: 'auto',
-          paddingBottom: '10px',
-          marginBottom: '1.75rem',
-          scrollbarWidth: 'none'
-        }}>
-          {MICRO_PRACTICES.map((p) => {
-            const PIcon = p.icon;
-            const isSelected = p.id === activePractice.id;
-            return (
-              <button
-                key={p.id}
-                type="button"
-                onClick={() => selectPractice(p)}
+        {/* Practice Selection Dropdown Window (Replaces overflowing pills) */}
+        <div style={{ position: 'relative', marginBottom: '1.5rem', zIndex: 30 }}>
+          <label style={{ 
+            display: 'block', 
+            fontSize: '0.75rem', 
+            color: 'var(--accent-gold)', 
+            fontWeight: 'bold', 
+            textTransform: 'uppercase', 
+            letterSpacing: '1px', 
+            marginBottom: '6px' 
+          }}>
+            Select Alignment Practice:
+          </label>
+          
+          {/* Dropdown Trigger Window */}
+          <button
+            type="button"
+            onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+            style={{
+              width: '100%',
+              padding: '12px 16px',
+              background: 'rgba(255, 255, 255, 0.05)',
+              border: '1.5px solid rgba(212, 175, 55, 0.45)',
+              borderRadius: '16px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              cursor: 'pointer',
+              color: '#fff',
+              textAlign: 'left',
+              transition: 'all 0.2s ease',
+              boxShadow: isDropdownOpen ? '0 0 20px rgba(212, 175, 55, 0.25)' : 'none'
+            }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', minWidth: 0 }}>
+              <div style={{
+                width: '36px',
+                height: '36px',
+                borderRadius: '10px',
+                background: `${activePractice.color}20`,
+                border: `1px solid ${activePractice.color}`,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                flexShrink: 0
+              }}>
+                <IconComponent size={18} color={activePractice.color} />
+              </div>
+              <div style={{ minWidth: 0 }}>
+                <div style={{ fontWeight: '700', fontSize: '0.92rem', color: '#fff', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <span>{activePractice.title}</span>
+                  <span style={{ 
+                    fontSize: '0.7rem', 
+                    padding: '2px 8px', 
+                    borderRadius: '10px', 
+                    background: 'rgba(212, 175, 55, 0.2)', 
+                    color: 'var(--accent-gold)',
+                    fontWeight: 'bold'
+                  }}>
+                    {Math.round(activePractice.duration / 60 * 10) / 10} min
+                  </span>
+                </div>
+                <div style={{ fontSize: '0.78rem', color: 'rgba(255,255,255,0.6)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                  {activePractice.subtitle} • {activePractice.frequency}Hz
+                </div>
+              </div>
+            </div>
+
+            <motion.div
+              animate={{ rotate: isDropdownOpen ? 180 : 0 }}
+              transition={{ duration: 0.2 }}
+              style={{ flexShrink: 0, marginLeft: '8px', color: 'var(--accent-gold)' }}
+            >
+              <ChevronDown size={20} />
+            </motion.div>
+          </button>
+
+          {/* Expandable Dropdown Menu Window */}
+          <AnimatePresence>
+            {isDropdownOpen && (
+              <motion.div
+                initial={{ opacity: 0, y: -10, scale: 0.98 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                exit={{ opacity: 0, y: -10, scale: 0.98 }}
+                transition={{ duration: 0.18 }}
                 style={{
-                  padding: '8px 14px',
-                  borderRadius: '20px',
-                  background: isSelected ? 'rgba(212, 175, 55, 0.2)' : 'rgba(255,255,255,0.04)',
-                  border: isSelected ? '1px solid var(--accent-gold)' : '1px solid rgba(255,255,255,0.1)',
-                  color: isSelected ? 'var(--accent-gold)' : 'rgba(255,255,255,0.7)',
-                  fontSize: '0.78rem',
-                  fontWeight: '600',
-                  whiteSpace: 'nowrap',
-                  cursor: 'pointer',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '6px',
-                  transition: 'all 0.2s ease'
+                  position: 'absolute',
+                  top: '100%',
+                  left: 0,
+                  right: 0,
+                  marginTop: '8px',
+                  background: '#0e111d',
+                  border: '1.5px solid rgba(212, 175, 55, 0.5)',
+                  borderRadius: '18px',
+                  boxShadow: '0 15px 40px rgba(0,0,0,0.9), 0 0 25px rgba(212,175,55,0.15)',
+                  overflow: 'hidden',
+                  zIndex: 50,
+                  maxHeight: '320px',
+                  overflowY: 'auto'
                 }}
               >
-                <PIcon size={14} color={isSelected ? 'var(--accent-gold)' : 'rgba(255,255,255,0.6)'} />
-                {p.title}
-              </button>
-            );
-          })}
+                {MICRO_PRACTICES.map((p, idx) => {
+                  const PIcon = p.icon;
+                  const isSelected = p.id === activePractice.id;
+                  return (
+                    <div
+                      key={p.id}
+                      onClick={() => selectPractice(p)}
+                      style={{
+                        padding: '12px 16px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        cursor: 'pointer',
+                        background: isSelected ? 'rgba(212, 175, 55, 0.15)' : 'transparent',
+                        borderBottom: idx === MICRO_PRACTICES.length - 1 ? 'none' : '1px solid rgba(255,255,255,0.06)',
+                        transition: 'all 0.15s ease'
+                      }}
+                      onMouseEnter={(e) => {
+                        if (!isSelected) e.currentTarget.style.background = 'rgba(255,255,255,0.04)';
+                      }}
+                      onMouseLeave={(e) => {
+                        if (!isSelected) e.currentTarget.style.background = 'transparent';
+                      }}
+                    >
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '12px', minWidth: 0 }}>
+                        <div style={{
+                          width: '32px',
+                          height: '32px',
+                          borderRadius: '8px',
+                          background: `${p.color}20`,
+                          border: `1px solid ${p.color}`,
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          flexShrink: 0
+                        }}>
+                          <PIcon size={16} color={p.color} />
+                        </div>
+                        <div style={{ minWidth: 0 }}>
+                          <div style={{ 
+                            fontWeight: isSelected ? '700' : '600', 
+                            fontSize: '0.88rem', 
+                            color: isSelected ? 'var(--accent-gold)' : '#fff',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '8px'
+                          }}>
+                            <span>{idx + 1}. {p.title}</span>
+                            <span style={{
+                              fontSize: '0.68rem',
+                              padding: '1px 6px',
+                              borderRadius: '8px',
+                              background: 'rgba(255,255,255,0.08)',
+                              color: 'rgba(255,255,255,0.7)'
+                            }}>
+                              {p.duration < 120 ? `${p.duration}s` : `${p.duration / 60} min`}
+                            </span>
+                          </div>
+                          <div style={{ fontSize: '0.74rem', color: 'rgba(255,255,255,0.55)', marginTop: '2px' }}>
+                            {p.subtitle} • {p.frequency}Hz
+                          </div>
+                        </div>
+                      </div>
+
+                      {isSelected && (
+                        <CheckCircle size={18} color="var(--accent-gold)" style={{ flexShrink: 0, marginLeft: '8px' }} />
+                      )}
+                    </div>
+                  );
+                })}
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
 
         {/* Active Practice Card & Breathing Pulsar */}
@@ -307,17 +475,17 @@ export const MicroHeartPractices = ({ onClose }) => {
           background: 'rgba(255, 255, 255, 0.02)',
           border: '1px solid rgba(255, 255, 255, 0.06)',
           borderRadius: '20px',
-          padding: '2rem 1.5rem',
+          padding: '1.75rem 1.25rem',
           textAlign: 'center',
-          marginBottom: '1.5rem',
+          marginBottom: '1.25rem',
           position: 'relative'
         }}>
           {/* Animated Pulsing Sphere */}
           <div style={{
             position: 'relative',
-            width: '140px',
-            height: '140px',
-            margin: '0 auto 1.5rem',
+            width: '130px',
+            height: '130px',
+            margin: '0 auto 1.25rem',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center'
@@ -351,10 +519,10 @@ export const MicroHeartPractices = ({ onClose }) => {
                 ease: 'easeInOut'
               }}
               style={{
-                width: '80px',
-                height: '80px',
+                width: '76px',
+                height: '76px',
                 borderRadius: '50%',
-                background: 'rgba(0, 0, 0, 0.8)',
+                background: 'rgba(0, 0, 0, 0.85)',
                 border: `2px solid ${activePractice.color}`,
                 display: 'flex',
                 alignItems: 'center',
@@ -363,34 +531,34 @@ export const MicroHeartPractices = ({ onClose }) => {
                 boxShadow: `0 0 25px ${activePractice.color}40`
               }}
             >
-              <IconComponent size={32} color={activePractice.color} />
+              <IconComponent size={30} color={activePractice.color} />
             </motion.div>
           </div>
 
           {/* Breath Instruction */}
-          <div style={{ marginBottom: '1rem' }}>
+          <div style={{ marginBottom: '0.85rem' }}>
             <div style={{
-              fontSize: '1rem',
+              fontSize: '0.95rem',
               fontWeight: '700',
               color: activePractice.color,
               textTransform: 'uppercase',
               letterSpacing: '2px',
               marginBottom: '4px'
             }}>
-              {isPlaying ? (breathPhase === 'inhale' ? `✦ Inhale Light (${breathCountdown}s) ✦` : `✦ Exhale & Release (${breathCountdown}s) ✦`) : 'Centered Stillness'}
+              {isPlaying ? (breathPhase === 'inhale' ? `✦ Inhale Light (${breathCountdown}s) ✦` : `✦ Exhale & Release (${breathCountdown}s) ✦`) : activePractice.title}
             </div>
-            <p style={{ fontSize: '0.85rem', color: 'rgba(255,255,255,0.75)', lineHeight: '1.6', maxWidth: '440px', margin: '0 auto' }}>
+            <p style={{ fontSize: '0.83rem', color: 'rgba(255,255,255,0.75)', lineHeight: '1.5', maxWidth: '440px', margin: '0 auto' }}>
               {activePractice.instruction}
             </p>
           </div>
 
           {/* Time Remaining */}
-          <div style={{ fontSize: '1.5rem', fontFamily: 'monospace', fontWeight: 'bold', color: '#fff', marginBottom: '1.25rem' }}>
+          <div style={{ fontSize: '1.5rem', fontFamily: 'monospace', fontWeight: 'bold', color: '#fff', marginBottom: '1rem' }}>
             {formatTime(secondsRemaining)}
           </div>
 
-          {/* Control Buttons */}
-          <div style={{ display: 'flex', justifyContent: 'center', gap: '12px', alignItems: 'center' }}>
+          {/* Transport Controls */}
+          <div style={{ display: 'flex', justifyContent: 'center', gap: '12px', alignItems: 'center', marginBottom: '1.25rem' }}>
             <button
               type="button"
               onClick={togglePlay}
@@ -432,6 +600,60 @@ export const MicroHeartPractices = ({ onClose }) => {
             >
               <RotateCcw size={16} />
             </button>
+          </div>
+
+          {/* Soft Healing Frequency Volume Slider */}
+          <div style={{
+            background: 'rgba(0,0,0,0.35)',
+            border: '1px solid rgba(255,255,255,0.08)',
+            borderRadius: '12px',
+            padding: '8px 14px',
+            maxWidth: '380px',
+            margin: '0 auto',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '10px'
+          }}>
+            <button
+              type="button"
+              onClick={() => setIsMuted(!isMuted)}
+              style={{
+                background: 'transparent',
+                border: 'none',
+                color: isMuted ? '#ff7675' : 'var(--accent-gold)',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                padding: 0
+              }}
+              title={isMuted ? 'Unmute Frequency' : 'Mute Frequency'}
+            >
+              {isMuted ? <VolumeX size={16} /> : <Volume2 size={16} />}
+            </button>
+
+            <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.68rem', color: 'rgba(255,255,255,0.6)', marginBottom: '3px' }}>
+                <span>Soft {activePractice.frequency}Hz Frequency</span>
+                <span>{isMuted ? 'Muted' : `${Math.round(volume * 100)}%`}</span>
+              </div>
+              <input
+                type="range"
+                min="0"
+                max="1"
+                step="0.01"
+                value={volume}
+                onChange={(e) => {
+                  setVolume(parseFloat(e.target.value));
+                  if (isMuted) setIsMuted(false);
+                }}
+                style={{
+                  width: '100%',
+                  accentColor: 'var(--accent-gold)',
+                  cursor: 'pointer',
+                  height: '4px'
+                }}
+              />
+            </div>
           </div>
         </div>
 
