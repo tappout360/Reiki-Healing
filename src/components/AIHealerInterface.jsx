@@ -464,7 +464,7 @@ const AIHealerInterface = ({ user, onClose, onOpenBooking, onOpenLogin, onApply 
                         Open Login Portal
                     </button>
                 )}
-                {msg.hasAction === 'apply' && (
+                {msg.hasAction === 'apply' && onApply && (
                     <button 
                       onClick={() => { onClose(); onApply(); }}
                       style={{

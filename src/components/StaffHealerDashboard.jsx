@@ -7,8 +7,30 @@ import {
 } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 
-const StaffHealerDashboard = ({ user, onLogout, onLaunchVideoRoom }) => {
+const StaffHealerDashboard = ({ user, onLogout, onLaunchVideoRoom, healerAppsEnabled: propAppsEnabled, onToggleHealerApps }) => {
   const [activeTab, setActiveTab] = useState('sessions'); // 'sessions' | 'schedule' | 'earnings' | 'payouts' | 'compliance'
+
+  const [appsEnabled, setAppsEnabled] = useState(() => {
+    if (typeof propAppsEnabled === 'boolean') return propAppsEnabled;
+    return localStorage.getItem('aura_applications_enabled') !== 'false';
+  });
+
+  useEffect(() => {
+    if (typeof propAppsEnabled === 'boolean') {
+      setAppsEnabled(propAppsEnabled);
+    }
+  }, [propAppsEnabled]);
+
+  const toggleApps = () => {
+    const nextVal = !appsEnabled;
+    setAppsEnabled(nextVal);
+    localStorage.setItem('aura_applications_enabled', String(nextVal));
+    if (onToggleHealerApps) {
+      onToggleHealerApps(nextVal);
+    }
+    window.dispatchEvent(new Event('storage'));
+    toast.success(`Healer applications are now ${nextVal ? 'OPEN' : 'PAUSED'} across all platforms.`);
+  };
 
   // Bookings & Session State
   const [bookings, setBookings] = useState([]);
@@ -200,7 +222,37 @@ const StaffHealerDashboard = ({ user, onLogout, onLaunchVideoRoom }) => {
             </h1>
           </div>
 
-          <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
+          <div style={{ display: 'flex', gap: '1rem', alignItems: 'center', flexWrap: 'wrap' }}>
+            <div style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '10px',
+              background: 'rgba(255,255,255,0.05)',
+              padding: '0.4rem 0.8rem',
+              borderRadius: '20px',
+              border: '1px solid rgba(255,255,255,0.1)'
+            }}>
+              <span style={{ fontSize: '0.78rem', color: 'rgba(255,255,255,0.7)' }}>
+                Applications Intake:
+              </span>
+              <button
+                onClick={toggleApps}
+                style={{
+                  background: appsEnabled ? 'var(--accent-gold)' : 'rgba(255,255,255,0.15)',
+                  color: appsEnabled ? '#000' : '#fff',
+                  border: 'none',
+                  padding: '0.3rem 0.75rem',
+                  borderRadius: '12px',
+                  fontSize: '0.75rem',
+                  fontWeight: 'bold',
+                  cursor: 'pointer',
+                  transition: 'all 0.2s ease'
+                }}
+                title="Toggle public healer application links on/off across all platforms"
+              >
+                {appsEnabled ? '🟢 OPEN (ON)' : '🔴 PAUSED (OFF)'}
+              </button>
+            </div>
             <button
               onClick={onLogout}
               style={{
@@ -638,6 +690,46 @@ const StaffHealerDashboard = ({ user, onLogout, onLaunchVideoRoom }) => {
 
               <div style={{ background: 'rgba(46,204,113,0.1)', border: '1px solid rgba(46,204,113,0.3)', padding: '1rem', borderRadius: '12px', color: '#2ecc71', fontSize: '0.82rem', display: 'flex', alignItems: 'center', gap: '8px' }}>
                 <CheckCircle size={16} /> Verified Independent Contractor Status Active
+              </div>
+
+              {/* Platform Healer Applications Setting */}
+              <div style={{
+                marginTop: '1.5rem',
+                background: 'rgba(0,0,0,0.4)',
+                border: '1px solid rgba(212,175,55,0.25)',
+                padding: '1.5rem',
+                borderRadius: '16px',
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                flexWrap: 'wrap',
+                gap: '1rem'
+              }}>
+                <div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--accent-gold)', fontWeight: 'bold', marginBottom: '0.35rem' }}>
+                    <Settings size={18} /> Public Healer Applications Intake
+                  </div>
+                  <p style={{ margin: 0, fontSize: '0.8rem', color: 'rgba(255,255,255,0.7)', maxWidth: '540px' }}>
+                    Turn on or off the public "Apply to be a Healer" links across desktop, mobile, tablet, and AI Chatbot. When toggled OFF, all application forms vanish across all platforms immediately.
+                  </p>
+                </div>
+                <button
+                  onClick={toggleApps}
+                  style={{
+                    background: appsEnabled ? 'var(--accent-gold)' : 'rgba(255,255,255,0.15)',
+                    color: appsEnabled ? '#000' : '#fff',
+                    border: 'none',
+                    padding: '0.65rem 1.4rem',
+                    borderRadius: '20px',
+                    fontSize: '0.85rem',
+                    fontWeight: 'bold',
+                    cursor: 'pointer',
+                    boxShadow: appsEnabled ? '0 0 15px rgba(212,175,55,0.3)' : 'none',
+                    transition: 'all 0.2s ease'
+                  }}
+                >
+                  {appsEnabled ? '🟢 Intake Active (ON)' : '🔴 Intake Paused (OFF)'}
+                </button>
               </div>
             </div>
           </div>

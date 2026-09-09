@@ -7,7 +7,8 @@ export const AppFooter = ({
   onOpenAdminLogin,
   onOpenHealerApp,
   user,
-  onOpenLoginModal
+  onOpenLoginModal,
+  healerAppsEnabled = (typeof window !== 'undefined' ? localStorage.getItem('aura_applications_enabled') !== 'false' : true)
 }) => {
   return (
     <footer style={{
@@ -56,19 +57,23 @@ export const AppFooter = ({
           <span onClick={() => onOpenLegalModal('disclaimer')} style={{ cursor: 'pointer', textDecoration: 'underline' }}>Disclaimer</span>
           <span>•</span>
           <span onClick={onOpenAdminLogin} style={{ cursor: 'pointer', textDecoration: 'underline' }}>Staff Portal</span>
-          <span>•</span>
-          <span
-            onClick={() => {
-              if (!user) {
-                onOpenLoginModal();
-              } else {
-                onOpenHealerApp();
-              }
-            }}
-            style={{ cursor: 'pointer', textDecoration: 'underline', color: 'var(--accent-gold)' }}
-          >
-            Apply as Healer
-          </span>
+          {healerAppsEnabled && (
+            <>
+              <span>•</span>
+              <span
+                onClick={() => {
+                  if (!user) {
+                    onOpenLoginModal();
+                  } else {
+                    onOpenHealerApp();
+                  }
+                }}
+                style={{ cursor: 'pointer', textDecoration: 'underline', color: 'var(--accent-gold)' }}
+              >
+                Apply as Healer
+              </span>
+            </>
+          )}
         </div>
       </div>
     </footer>

@@ -237,7 +237,12 @@ const [activeSession, setActiveSession] = useState(null); // Active Live Session
 const [showLivePortal, setShowLivePortal] = useState(false);
 const [showJoinPortalModal, setShowJoinPortalModal] = useState(false);
 const [showMyStories, setShowMyStories] = useState(false);
-const [healerAppsEnabled, setHealerAppsEnabled] = useState(localStorage.getItem('aura_applications_enabled') !== 'false');
+const [healerAppsEnabled, setHealerAppsEnabled] = useState(() => {
+  if (typeof window !== 'undefined') {
+    return localStorage.getItem('aura_applications_enabled') !== 'false';
+  }
+  return true;
+});
 const [showCheckoutModal, setShowCheckoutModal] = useState(false);
   const [meditationConsent, setMeditationConsent] = useState(true);
   const [meditationConsentPending, setMeditationConsentPending] = useState(true);
@@ -245,6 +250,8 @@ const [showCheckoutModal, setShowCheckoutModal] = useState(false);
   // NEW: Tablet/Mobile App Shell States
   const [viewMode, setViewMode] = useState(() => {
     if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('aura_view_mode');
+      if (saved && ['desktop', 'tablet', 'mobile'].includes(saved)) return saved;
       const w = window.innerWidth;
       if (w <= 768) return 'mobile';
       if (w <= 1023) return 'tablet';
@@ -286,6 +293,38 @@ const [showCheckoutModal, setShowCheckoutModal] = useState(false);
       toast.success("Protocol status updated locally.");
     }
   };
+
+  const handleToggleHealerApps = (val) => {
+    setHealerAppsEnabled(val);
+    localStorage.setItem('aura_applications_enabled', String(val));
+    window.dispatchEvent(new Event('storage'));
+  };
+
+  const handleSetViewMode = (mode) => {
+    setViewMode(mode);
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('aura_view_mode', mode);
+      window.dispatchEvent(new Event('storage'));
+    }
+  };
+
+  // Sync healer applications status and view mode across tabs and components
+  useEffect(() => {
+    const handleStorageChange = (e) => {
+      if (!e || !e.key || e.key === 'aura_applications_enabled') {
+        const stored = localStorage.getItem('aura_applications_enabled');
+        setHealerAppsEnabled(stored !== 'false');
+      }
+      if (!e || !e.key || e.key === 'aura_view_mode') {
+        const storedMode = localStorage.getItem('aura_view_mode');
+        if (storedMode && ['desktop', 'tablet', 'mobile'].includes(storedMode)) {
+          setViewMode(storedMode);
+        }
+      }
+    };
+    window.addEventListener('storage', handleStorageChange);
+    return () => window.removeEventListener('storage', handleStorageChange);
+  }, []);
 
   // Auto-reset selectedProtocol if it becomes deactivated
   useEffect(() => {
@@ -1855,18 +1894,21 @@ const [showCheckoutModal, setShowCheckoutModal] = useState(false);
   };
 
   const renderLayoutSwitcher = () => {
-    if (viewMode !== 'desktop') return null;
     const activeLabel = {
       desktop: '💻 Desktop',
       tablet: '📟 Tablet',
       mobile: '📱 Mobile'
-    }[viewMode];
+    }[viewMode] || '💻 Desktop';
 
     return (
       <div 
-        className="layout-switcher-dropdown desktop-only"
+        className="layout-switcher-dropdown"
         style={{
-          fontFamily: "'Inter', sans-serif"
+          fontFamily: "'Inter', sans-serif",
+          position: 'fixed',
+          bottom: '2rem',
+          left: '2rem',
+          zIndex: 10006
         }}
       >
         <button
@@ -1914,7 +1956,7 @@ const [showCheckoutModal, setShowCheckoutModal] = useState(false);
                 flexDirection: 'column',
                 gap: '4px',
                 boxShadow: '0 20px 40px rgba(0,0,0,0.5)',
-                zIndex: 10003
+                zIndex: 10007
               }}
             >
               {[
@@ -1925,7 +1967,7 @@ const [showCheckoutModal, setShowCheckoutModal] = useState(false);
                 <button
                   key={item.mode}
                   onClick={() => {
-                    setViewMode(item.mode);
+                    handleSetViewMode(item.mode);
                     setShowLayoutDropdown(false);
                   }}
                   style={{
@@ -2102,15 +2144,23 @@ const [showCheckoutModal, setShowCheckoutModal] = useState(false);
                 <span onClick={() => setShowLegalModal('disclaimer')} style={{ cursor: 'pointer', textDecoration: 'underline' }}>Disclaimer</span>
                 <span>|</span>
                 <span onClick={() => setShowAdminLogin(true)} style={{ cursor: 'pointer', textDecoration: 'underline' }}>Staff</span>
+                {healerAppsEnabled && (
+                  <>
+                    <span>|</span>
+                    <span onClick={() => {
+                      if (!user) {
+                        toast.error("Please log in to apply.");
+                        setShowLoginModal(true);
+                      } else {
+                        setShowHealerApp(true);
+                      }
+                    }} style={{ cursor: 'pointer', textDecoration: 'underline' }}>Apply as Healer</span>
+                  </>
+                )}
                 <span>|</span>
-                <span onClick={() => {
-                  if (!user) {
-                    toast.error("Please log in to apply.");
-                    setShowLoginModal(true);
-                  } else {
-                    setShowHealerApp(true);
-                  }
-                }} style={{ cursor: 'pointer', textDecoration: 'underline' }}>Apply as Healer</span>
+                <span onClick={() => handleSetViewMode('desktop')} style={{ cursor: 'pointer', textDecoration: 'underline', color: 'var(--accent-gold)', fontWeight: '600' }}>
+                  💻 Desktop Version
+                </span>
               </div>
             </footer>
           </>
@@ -2154,6 +2204,14 @@ const [showCheckoutModal, setShowCheckoutModal] = useState(false);
                 user={user} 
                 onClose={() => setActiveTab('home')} 
                 inlineMode={true}
+                onApply={healerAppsEnabled ? () => setShowHealerApp(true) : undefined}
+                onOpenBooking={() => {
+                  setActiveTab('home');
+                  setTimeout(() => {
+                    document.getElementById('mobile-service')?.scrollIntoView({ behavior: 'smooth' });
+                  }, 100);
+                }}
+                onOpenLogin={() => setShowLoginModal(true)}
               />
             </Suspense>
           </div>
@@ -2223,6 +2281,25 @@ const [showCheckoutModal, setShowCheckoutModal] = useState(false);
               {theme === 'dark' ? <Sun size={18} /> : <Moon size={18} />}
             </button>
             <button 
+              onClick={() => handleSetViewMode('desktop')}
+              style={{
+                background: 'rgba(255, 255, 255, 0.08)',
+                border: '1px solid rgba(255, 255, 255, 0.2)',
+                color: '#fff',
+                padding: '0.3rem 0.6rem',
+                borderRadius: '15px',
+                fontSize: '0.65rem',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '4px',
+                fontWeight: '500',
+                cursor: 'pointer'
+              }}
+              title="Switch to Desktop View"
+            >
+              💻 Desktop
+            </button>
+            <button 
               onClick={() => setShowJoinPortalModal(true)}
               style={{
                 background: 'rgba(212, 175, 55, 0.15)',
@@ -2247,7 +2324,8 @@ const [showCheckoutModal, setShowCheckoutModal] = useState(false);
                 onClick={() => {
                   const isDemo = !isFirebaseConfigured();
                   const isOwner = user.role === 'owner' && (isDemo || ['carissabright@gmail.com', 'jasonmounts77@yahoo.com'].includes(user.email?.toLowerCase()));
-                  if (isOwner) {
+                  const isStaffHealer = user.role === 'healer';
+                  if (isOwner || isStaffHealer) {
                     setShowHealerDashboard(true);
                   } else {
                     setActiveTab('dashboard');
@@ -2614,16 +2692,42 @@ const [showCheckoutModal, setShowCheckoutModal] = useState(false);
             />
           )}
           {showScience && <ScienceModal onClose={() => setShowScience(false)} />}
-          {showHealerDashboard && (
+          {showLegalModal && (
+            <LegalModal
+              initialTab={showLegalModal}
+              onClose={() => setShowLegalModal(null)}
+            />
+          )}
+          {showHealerDashboard && user?.role === 'healer' && (
+            <StaffHealerDashboard
+              user={user}
+              onLogout={() => {
+                setShowHealerDashboard(false);
+                setUser(null);
+                localStorage.removeItem('user_profile');
+                toast.success('Signed out of Staff Dashboard');
+              }}
+              healerAppsEnabled={healerAppsEnabled}
+              onToggleHealerApps={handleToggleHealerApps}
+              onLaunchVideoRoom={(bookingSession) => {
+                setShowHealerDashboard(false);
+                setActiveSession(bookingSession);
+                setShowLivePortal(true);
+              }}
+            />
+          )}
+          {showHealerDashboard && user?.role !== 'healer' && (
             <HealerDashboard 
               onClose={() => setShowHealerDashboard(false)} 
+              healerAppsEnabled={healerAppsEnabled}
+              onToggleHealerApps={handleToggleHealerApps}
+              protocols={protocolList}
+              onToggleProtocol={handleToggleProtocol}
               onJoinPortal={(session) => {
                 setShowHealerDashboard(false);
                 setActiveSession(session);
                 setShowLivePortal(true);
               }}
-              protocols={protocolList}
-              onToggleProtocol={handleToggleProtocol}
             />
           )}
           {showSubscriptionPage && <SubscriptionPage onClose={() => setShowSubscriptionPage(false)} user={user} onUpdateUser={handleUpdateUser} />}
@@ -2655,7 +2759,32 @@ const [showCheckoutModal, setShowCheckoutModal] = useState(false);
               }}
             />
           )}
-          {showHealerApp && <HealerApplicationModal onClose={() => setShowHealerApp(false)} user={user} />}
+          {showUserFullDashboard && user && (
+            <UserDashboard 
+              gamificationState={gamificationState}
+              user={user}
+              onClose={() => setShowUserFullDashboard(false)}
+              onUpdateUser={handleUpdateUser}
+              onNavigateToBooking={() => {
+                setShowUserFullDashboard(false);
+                setBookingType('portable');
+                setActiveTab('home');
+                setTimeout(() => {
+                  document.getElementById('mobile-service')?.scrollIntoView({ behavior: 'smooth' });
+                }, 100);
+              }}
+              onNavigateToProtocols={() => {
+                setShowUserFullDashboard(false);
+                setActiveTab('protocols');
+              }}
+              onJoinLivePortal={(session) => {
+                setShowUserFullDashboard(false);
+                setActiveSession(session);
+                setShowLivePortal(true);
+              }}
+            />
+          )}
+          {showHealerApp && healerAppsEnabled && <HealerApplicationModal onClose={() => setShowHealerApp(false)} user={user} />}
           {showLivePortal && <LiveResonancePortal session={activeSession} onClose={() => setShowLivePortal(false)} user={user} />}
           {showJoinPortalModal && <JoinPortalModal onClose={() => setShowJoinPortalModal(false)} onJoin={(session) => {
             setActiveSession(session);
@@ -2669,6 +2798,37 @@ const [showCheckoutModal, setShowCheckoutModal] = useState(false);
           )}
           {showMicroPractices && (
             <MicroHeartPractices onClose={() => setShowMicroPractices(false)} />
+          )}
+          {showSoundBaths && (
+            <SonicSoundBaths onClose={() => setShowSoundBaths(false)} />
+          )}
+          {showBiofieldPulse && (
+            <BiofieldPulse 
+              onClose={() => setShowBiofieldPulse(false)} 
+              onOpenProtocol={(protoId) => {
+                const proto = protocols.find(p => p.id === protoId) || protocols[0];
+                setSelectedProtocol(proto);
+                setShowPortal(true);
+              }}
+              onOpenSoundBaths={() => setShowSoundBaths(true)}
+              onOpenVoiceStudio={() => setShowVoiceReflectionStudio(true)}
+            />
+          )}
+          {showVoiceReflectionStudio && (
+            <VoiceReflectionStudio 
+              onClose={() => setShowVoiceReflectionStudio(false)}
+              onSubmitted={() => setShowMyStories(true)}
+            />
+          )}
+          {showAvatarDropBox && (
+            <AIAvatarDropBox
+              user={user}
+              onClose={() => setShowAvatarDropBox(false)}
+              onAvatarUpdated={(newAvatarUrl) => {
+                setUser(prev => ({ ...(prev || {}), avatar: newAvatarUrl }));
+                toast.success('Avatar updated across Sanctuary!');
+              }}
+            />
           )}
         </Suspense>
 
@@ -3706,7 +3866,7 @@ const [showCheckoutModal, setShowCheckoutModal] = useState(false);
               onClose={() => setShowAIInterface(false)} 
               onOpenBooking={() => setBookingType('portable')}
               onOpenLogin={() => setShowLoginModal(true)}
-              onApply={() => setShowHealerApp(true)}
+              onApply={healerAppsEnabled ? () => setShowHealerApp(true) : undefined}
             />
           )
         )}
@@ -3843,6 +4003,8 @@ const [showCheckoutModal, setShowCheckoutModal] = useState(false);
                 localStorage.removeItem('user_profile');
                 toast.success('Signed out of Staff Dashboard');
               }}
+              healerAppsEnabled={healerAppsEnabled}
+              onToggleHealerApps={handleToggleHealerApps}
               onLaunchVideoRoom={(bookingSession) => {
                 setShowHealerDashboard(false);
                 setActiveSession(bookingSession);
@@ -3854,10 +4016,9 @@ const [showCheckoutModal, setShowCheckoutModal] = useState(false);
             <HealerDashboard 
               onClose={() => setShowHealerDashboard(false)} 
               healerAppsEnabled={healerAppsEnabled}
-              onToggleHealerApps={(val) => {
-                setHealerAppsEnabled(val);
-                localStorage.setItem('aura_applications_enabled', val);
-              }}
+              onToggleHealerApps={handleToggleHealerApps}
+              protocols={protocolList}
+              onToggleProtocol={handleToggleProtocol}
               onJoinPortal={(session) => {
                 setShowHealerDashboard(false);
                 setActiveSession(session);

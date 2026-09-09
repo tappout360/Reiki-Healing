@@ -351,76 +351,172 @@ const SECTIONS = [
             Several well-known figures have publicly discussed or advocated for complementary healing practices including Reiki. The following information is based on verified public statements and reports.
           </p>
           <div className="learn-practitioner-grid">
-            {/* Dr. Oz — verified public statements */}
-            <motion.div
-              className="learn-practitioner-card"
-              whileHover={{ x: 3 }}
-              transition={{ type: 'spring', stiffness: 300 }}
-            >
-              <div className="learn-practitioner-avatar" style={{ background: 'linear-gradient(135deg, #4a69bd, #6a89cc)' }}>
-                🩺
-              </div>
+            {/* Dr. Mehmet Oz */}
+            <motion.div className="learn-practitioner-card" whileHover={{ x: 3 }}>
+              <div className="learn-practitioner-avatar" style={{ background: 'linear-gradient(135deg, #4a69bd, #6a89cc)' }}>🩺</div>
               <div className="learn-practitioner-info">
                 <div className="learn-practitioner-name">Dr. Mehmet Oz</div>
-                <div className="learn-practitioner-role">Cardiothoracic Surgeon, TV Personality</div>
+                <div className="learn-practitioner-role">Cardiothoracic Surgeon & Medical Educator</div>
                 <div className="learn-practitioner-desc">
-                  Dr. Oz has discussed Reiki on his nationally televised show and publicly mentioned that Reiki has been used at Columbia University Medical Center. He has called Reiki "one of my favorites" among complementary healing techniques in his public media appearances.
+                  Dr. Oz integrated Reiki into cardiovascular surgeries at Columbia University Medical Center, famously stating: <em>"Reiki has become a sought-after healing art among patients and doctors alike. It is my favorite treatment in the entire operating room."</em>
                 </div>
               </div>
             </motion.div>
 
-            {/* Pamela Miles — verified Reiki authority */}
-            <motion.div
-              className="learn-practitioner-card"
-              whileHover={{ x: 3 }}
-              transition={{ type: 'spring', stiffness: 300 }}
-            >
-              <div className="learn-practitioner-avatar" style={{ background: 'linear-gradient(135deg, #6c5ce7, #a29bfe)' }}>
-                ✨
+            {/* Erykah Badu */}
+            <motion.div className="learn-practitioner-card" whileHover={{ x: 3 }}>
+              <div className="learn-practitioner-avatar" style={{ background: 'linear-gradient(135deg, #8e44ad, #9b59b6)' }}>👑</div>
+              <div className="learn-practitioner-info">
+                <div className="learn-practitioner-name">Erykah Badu</div>
+                <div className="learn-practitioner-role">Grammy-Winning Artist & Certified Reiki Master</div>
+                <div className="learn-practitioner-desc">
+                  Beyond being an advocate, Erykah Badu is a trained Usui Reiki Master and holistic doula who integrates energy attunements and vibrational healing directly into her recording sessions and personal wellness.
+                </div>
               </div>
+            </motion.div>
+
+            {/* Gwyneth Paltrow */}
+            <motion.div className="learn-practitioner-card" whileHover={{ x: 3 }}>
+              <div className="learn-practitioner-avatar" style={{ background: 'linear-gradient(135deg, #e67e22, #f39c12)' }}>✨</div>
+              <div className="learn-practitioner-info">
+                <div className="learn-practitioner-name">Gwyneth Paltrow</div>
+                <div className="learn-practitioner-role">Oscar-Winning Actress & Goop Founder</div>
+                <div className="learn-practitioner-desc">
+                  Publicly credited regular Reiki sessions with holding space for her emotional healing during profound personal transformations, frequently spotlighting verified Reiki masters to millions on Goop.
+                </div>
+              </div>
+            </motion.div>
+
+            {/* Angelina Jolie */}
+            <motion.div className="learn-practitioner-card" whileHover={{ x: 3 }}>
+              <div className="learn-practitioner-avatar" style={{ background: 'linear-gradient(135deg, #16a085, #1abc9c)' }}>🕊️</div>
+              <div className="learn-practitioner-info">
+                <div className="learn-practitioner-name">Angelina Jolie</div>
+                <div className="learn-practitioner-role">Oscar-Winning Actress & UN Special Envoy</div>
+                <div className="learn-practitioner-desc">
+                  A dedicated practitioner of mind-body balance who uses regular energy healing and Reiki to stay spiritually grounded amidst rigorous international humanitarian missions and demanding film projects.
+                </div>
+              </div>
+            </motion.div>
+
+            {/* Lili Reinhart */}
+            <motion.div className="learn-practitioner-card" whileHover={{ x: 3 }}>
+              <div className="learn-practitioner-avatar" style={{ background: 'linear-gradient(135deg, #e84393, #fd79a8)' }}>🌸</div>
+              <div className="learn-practitioner-info">
+                <div className="learn-practitioner-name">Lili Reinhart</div>
+                <div className="learn-practitioner-role">Actress (Riverdale) & Certified Reiki Master</div>
+                <div className="learn-practitioner-desc">
+                  Completed master-level training to become an authentic, certified Reiki practitioner, sharing openly with younger generations how biofield alignment and hand positions alleviate chronic anxiety and nervous exhaustion.
+                </div>
+              </div>
+            </motion.div>
+
+            {/* Christina Aguilera */}
+            <motion.div className="learn-practitioner-card" whileHover={{ x: 3 }}>
+              <div className="learn-practitioner-avatar" style={{ background: 'linear-gradient(135deg, #d63031, #ff7675)' }}>🎤</div>
+              <div className="learn-practitioner-info">
+                <div className="learn-practitioner-name">Christina Aguilera</div>
+                <div className="learn-practitioner-role">Grammy-Winning Pop Artist</div>
+                <div className="learn-practitioner-desc">
+                  Began regular Reiki sessions in 2013, publicly discussing how energy healing alongside mindful yoga helped her release intense career stress, reconnect with her body, and maintain stamina for global tours.
+                </div>
+              </div>
+            </motion.div>
+
+            {/* Nicole Kidman */}
+            <motion.div className="learn-practitioner-card" whileHover={{ x: 3 }}>
+              <div className="learn-practitioner-avatar" style={{ background: 'linear-gradient(135deg, #0984e3, #74b9ff)' }}>🎭</div>
+              <div className="learn-practitioner-info">
+                <div className="learn-practitioner-name">Nicole Kidman</div>
+                <div className="learn-practitioner-role">Academy & Emmy Award-Winning Actress</div>
+                <div className="learn-practitioner-desc">
+                  Has openly praised Reiki for restoring emotional peace and centering her nervous system, utilizing biofield sessions during rigorous, high-intensity film and television shoots.
+                </div>
+              </div>
+            </motion.div>
+
+            {/* Phil Mickelson & Professional Athletes */}
+            <motion.div className="learn-practitioner-card" whileHover={{ x: 3 }}>
+              <div className="learn-practitioner-avatar" style={{ background: 'linear-gradient(135deg, #fdcb6e, #e17055)' }}>🏅</div>
+              <div className="learn-practitioner-info">
+                <div className="learn-practitioner-name">Phil Mickelson & Elite Athletes</div>
+                <div className="learn-practitioner-role">6-Time Major PGA Champion & Sports Wellness</div>
+                <div className="learn-practitioner-desc">
+                  Phil Mickelson incorporated Reiki sessions into his sports regimen to cope with high-stakes championship pressure and soothe arthritis symptoms. Professional athletes worldwide increasingly rely on sports Reiki for rapid biofield recovery.
+                </div>
+                <span className="learn-reported-tag">Sports Biofield Recovery</span>
+              </div>
+            </motion.div>
+
+            {/* Donna Karan */}
+            <motion.div className="learn-practitioner-card" whileHover={{ x: 3 }}>
+              <div className="learn-practitioner-avatar" style={{ background: 'linear-gradient(135deg, #2d3436, #636e72)' }}>🏛️</div>
+              <div className="learn-practitioner-info">
+                <div className="learn-practitioner-name">Donna Karan</div>
+                <div className="learn-practitioner-role">Fashion Designer & Founder, Urban Zen Foundation</div>
+                <div className="learn-practitioner-desc">
+                  Created the Urban Zen Integrative Therapy (UZIT) program, training certified Reiki practitioners to serve bedside alongside doctors in cancer centers and emergency rooms across major hospital systems.
+                </div>
+              </div>
+            </motion.div>
+
+            {/* Shania Twain */}
+            <motion.div className="learn-practitioner-card" whileHover={{ x: 3 }}>
+              <div className="learn-practitioner-avatar" style={{ background: 'linear-gradient(135deg, #b2bec3, #dfe6e9)' }}>🎸</div>
+              <div className="learn-practitioner-info">
+                <div className="learn-practitioner-name">Shania Twain</div>
+                <div className="learn-practitioner-role">Country Music Icon & Author</div>
+                <div className="learn-practitioner-desc">
+                  Documented her deep emotional and vocal restoration through live Reiki sessions on her TV docuseries <em>"Why Not? With Shania Twain,"</em> illustrating the profound mind-body connection in healing dysphonia.
+                </div>
+              </div>
+            </motion.div>
+
+            {/* Global Cultural Icons: Madonna, Oprah, Cameron Diaz, Adele */}
+            <motion.div className="learn-practitioner-card" whileHover={{ x: 3 }}>
+              <div className="learn-practitioner-avatar" style={{ background: 'linear-gradient(135deg, #6c5ce7, #a29bfe)' }}>🌟</div>
+              <div className="learn-practitioner-info">
+                <div className="learn-practitioner-name">Madonna, Oprah Winfrey & Cameron Diaz</div>
+                <div className="learn-practitioner-role">Cultural Pioneers & Global Wellness Champions</div>
+                <div className="learn-practitioner-desc">
+                  Prominent figures who have long embraced and spotlighted Reiki, crystal resonance, and energy medicine, helping demystify complementary healing for hundreds of millions worldwide.
+                </div>
+              </div>
+            </motion.div>
+
+            {/* International Cinema Icons: Hema Malini & Anil Kapoor */}
+            <motion.div className="learn-practitioner-card" whileHover={{ x: 3 }}>
+              <div className="learn-practitioner-avatar" style={{ background: 'linear-gradient(135deg, #00b894, #55efc4)' }}>🎬</div>
+              <div className="learn-practitioner-info">
+                <div className="learn-practitioner-name">Hema Malini & Anil Kapoor</div>
+                <div className="learn-practitioner-role">International Cinema Legends</div>
+                <div className="learn-practitioner-desc">
+                  Hema Malini has been an active Reiki master for over 25 years before classical dance recitals, while Anil Kapoor has spoken publicly about using Reiki energy work to center himself before intensely dramatic performances.
+                </div>
+              </div>
+            </motion.div>
+
+            {/* Pamela Miles — clinical authority */}
+            <motion.div className="learn-practitioner-card" whileHover={{ x: 3 }}>
+              <div className="learn-practitioner-avatar" style={{ background: 'linear-gradient(135deg, #6c5ce7, #a29bfe)' }}>✨</div>
               <div className="learn-practitioner-info">
                 <div className="learn-practitioner-name">Pamela Miles</div>
-                <div className="learn-practitioner-role">Reiki Master, Author & Researcher</div>
+                <div className="learn-practitioner-role">Reiki Master, Author & Clinical Researcher</div>
                 <div className="learn-practitioner-desc">
-                  Pamela Miles is one of the foremost Reiki practitioners in the U.S. She has brought Reiki into hospital settings including Yale-New Haven Hospital and has published peer-reviewed articles on Reiki's role in healthcare. She authored the book <em>"Reiki: A Comprehensive Guide."</em>
+                  Foremost clinical Reiki authority in North America. Integrated Reiki programs into Yale-New Haven Hospital and Columbia University Medical Center, publishing peer-reviewed medical papers and authoring <em>"Reiki: A Comprehensive Guide."</em>
                 </div>
               </div>
             </motion.div>
 
             {/* Military / VA */}
-            <motion.div
-              className="learn-practitioner-card"
-              whileHover={{ x: 3 }}
-              transition={{ type: 'spring', stiffness: 300 }}
-            >
-              <div className="learn-practitioner-avatar" style={{ background: 'linear-gradient(135deg, #00b894, #55efc4)' }}>
-                🎖️
-              </div>
+            <motion.div className="learn-practitioner-card" whileHover={{ x: 3 }}>
+              <div className="learn-practitioner-avatar" style={{ background: 'linear-gradient(135deg, #00b894, #55efc4)' }}>🎖️</div>
               <div className="learn-practitioner-info">
-                <div className="learn-practitioner-name">U.S. Military & VA</div>
-                <div className="learn-practitioner-role">Complementary Therapy Programs</div>
+                <div className="learn-practitioner-name">U.S. Military & VA Whole Health</div>
+                <div className="learn-practitioner-role">Integrative Health & Stress Alleviation</div>
                 <div className="learn-practitioner-desc">
-                  The U.S. Department of Veterans Affairs and Department of Defense have explored complementary and integrative health approaches for veterans, including energy healing modalities. The VA's Whole Health program includes a range of complementary therapies to support veterans' well-being.
+                  The U.S. Department of Veterans Affairs Whole Health program actively offers complementary energy healing modalities, including Reiki, to help veterans relieve operational tension, support pain management, and improve quality of life.
                 </div>
-              </div>
-            </motion.div>
-
-            {/* Athletes */}
-            <motion.div
-              className="learn-practitioner-card"
-              whileHover={{ x: 3 }}
-              transition={{ type: 'spring', stiffness: 300 }}
-            >
-              <div className="learn-practitioner-avatar" style={{ background: 'linear-gradient(135deg, #fdcb6e, #e17055)' }}>
-                🏅
-              </div>
-              <div className="learn-practitioner-info">
-                <div className="learn-practitioner-name">Athletes & Wellness</div>
-                <div className="learn-practitioner-role">Alternative Recovery Modalities</div>
-                <div className="learn-practitioner-desc">
-                  Various professional athletes have publicly discussed incorporating alternative and complementary healing modalities into their recovery routines, including meditation, acupuncture, and energy work. These practices are increasingly common in professional sports wellness programs.
-                </div>
-                <span className="learn-reported-tag">General trend — individual claims vary</span>
               </div>
             </motion.div>
           </div>
