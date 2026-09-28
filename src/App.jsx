@@ -2160,10 +2160,10 @@ const [showCheckoutModal, setShowCheckoutModal] = useState(false);
             {renderHeroSection(true)}
             {renderDailyResonance(true)}
             {showInstallBanner && renderInstallBanner()}
-            {renderSchedulingSection(true)}
-            {renderPhilosophySection(true)}
-            {renderGuidedMeditationSection(true)}
             {renderVoicesOfSanctuarySection(true)}
+            {renderPhilosophySection(true)}
+            {renderSchedulingSection(true)}
+            {renderGuidedMeditationSection(true)}
             
             {/* Mobile Footer */}
             <footer style={{ padding: '2rem 1.5rem 8rem 1.5rem', textAlign: 'center', borderTop: '1px solid rgba(255,255,255,0.05)', marginTop: 'auto', background: 'rgba(0,0,0,0.1)' }}>
@@ -3610,9 +3610,9 @@ const [showCheckoutModal, setShowCheckoutModal] = useState(false);
 
       {showInstallBanner && renderInstallBanner()}
 
+      {renderVoicesOfSanctuarySection(false)}
+
       {renderPhilosophySection(false)}
-      
-      {renderGuidedMeditationSection(false)}
 
       <section id="mobile-service" style={{background: 'var(--bg-section-alt)'}}>
         <div className="container">
@@ -3654,6 +3654,8 @@ const [showCheckoutModal, setShowCheckoutModal] = useState(false);
 
       {renderProtocolsSection(false)}
 
+      {renderGuidedMeditationSection(false)}
+
       <section id="learning-section" style={{ backgroundColor: 'var(--bg-primary)', padding: '4rem 0', borderTop: '1px solid rgba(255,255,255,0.05)' }}>
         <div className="container" style={{ maxWidth: '1200px', margin: '0 auto' }}>
           <Suspense fallback={<LoadingSpinner />}>
@@ -3661,8 +3663,6 @@ const [showCheckoutModal, setShowCheckoutModal] = useState(false);
           </Suspense>
         </div>
       </section>
-
-      {renderVoicesOfSanctuarySection(false)}
 
       {/* Science Modal */}
       <Suspense fallback={<LoadingSpinner />}>
