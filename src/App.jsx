@@ -10,6 +10,7 @@ import { Toaster, toast } from 'react-hot-toast'
 import { UserDashboardInline } from './components/UserDashboardInline'
 import { auth, db, isFirebaseConfigured } from './lib/firebase'
 import { loadGamificationState, saveGamificationState, processSessionComplete, syncToFirestore } from './utils/gamification'
+import { seedMockData } from './utils/mockDataSeeder'
 import './App.css'
 import './components/AuraGuide.css'
 
@@ -272,6 +273,11 @@ const [showCheckoutModal, setShowCheckoutModal] = useState(false);
     }
     return protocols;
   });
+
+  // Ensure high-trust mock testing data exists across all dashboards and flows
+  useEffect(() => {
+    seedMockData();
+  }, []);
 
   const handleToggleProtocol = (id) => {
     const updated = protocolList.map(p => p.id === id ? { ...p, active: !p.active } : p);
@@ -2795,6 +2801,9 @@ const [showCheckoutModal, setShowCheckoutModal] = useState(false);
                 setUser(loggedInUser);
                 localStorage.setItem('user_profile', JSON.stringify(loggedInUser));
                 setShowLoginModal(false);
+                if (loggedInUser.role === 'healer' || loggedInUser.role === 'owner' || loggedInUser.role === 'admin') {
+                  setShowHealerDashboard(true);
+                }
                 toast.success(`Welcome back, ${loggedInUser.name}!`);
               }}
               onClose={() => setShowLoginModal(false)}
@@ -3967,6 +3976,9 @@ const [showCheckoutModal, setShowCheckoutModal] = useState(false);
             onLoginSuccess={(profile) => {
               setUser(profile);
               setShowLoginModal(false);
+              if (profile?.role === 'healer' || profile?.role === 'owner' || profile?.role === 'admin') {
+                setShowHealerDashboard(true);
+              }
               
               // Smooth scroll to top of homepage per user request
               setTimeout(() => {

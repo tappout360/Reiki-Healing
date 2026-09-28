@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
+import { toast } from 'react-hot-toast';
 import { auth, db, isFirebaseConfigured } from '../lib/firebase';
+import { TEST_CREDENTIALS, seedMockData } from '../utils/mockDataSeeder';
 
 const AdminLogin = ({ onLogin, onClose }) => {
   const [email, setEmail] = useState('');
@@ -71,13 +73,30 @@ const AdminLogin = ({ onLogin, onClose }) => {
         setTimeout(() => {
           setLoading(false);
           const healerUser = {
-            name: 'Certified Practitioner',
+            name: normalizedEmail.includes('elena') ? 'Elena Rostova, RMT' : 'Certified Practitioner',
             email: normalizedEmail,
             role: 'healer',
             subscription: 'healing',
             status: 'Active'
           };
           localStorage.setItem('user_profile', JSON.stringify(healerUser));
+          onLogin();
+        }, 600);
+        return;
+      }
+
+      // Seeker Testing Bypass
+      if ((normalizedEmail.includes('seeker') || normalizedEmail.includes('sarah')) && isDevPassword) {
+        setTimeout(() => {
+          setLoading(false);
+          const seekerUser = {
+            name: 'Sarah Mitchell',
+            email: normalizedEmail,
+            role: 'seeker',
+            subscription: 'seeker',
+            status: 'Active'
+          };
+          localStorage.setItem('user_profile', JSON.stringify(seekerUser));
           onLogin();
         }, 600);
         return;
@@ -200,6 +219,136 @@ const AdminLogin = ({ onLogin, onClose }) => {
         <div style={{marginBottom: '2rem'}}>
           <h2 style={{color: 'var(--accent-ethereal)', fontFamily: 'Playfair Display', fontSize: '2rem', marginBottom: '0.5rem'}}>Sanctuary Access</h2>
           <div style={{width: '40px', height: '2px', background: 'var(--accent-gold)', margin: '0 auto'}}></div>
+        </div>
+
+        {/* One-Tap Testing Credentials Panel */}
+        <div style={{
+          background: 'rgba(255,255,255,0.04)',
+          border: '1px solid rgba(212,175,55,0.25)',
+          borderRadius: '14px',
+          padding: '1rem',
+          marginBottom: '1.5rem',
+          textAlign: 'left'
+        }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.65rem' }}>
+            <span style={{ fontSize: '0.72rem', color: 'var(--accent-gold)', fontWeight: 'bold', letterSpacing: '1px', textTransform: 'uppercase' }}>
+              ✦ Quick Testing Credentials
+            </span>
+            <button
+              type="button"
+              onClick={() => {
+                const res = seedMockData({ force: true });
+                toast.success(res.message || 'Mock data refreshed!');
+              }}
+              style={{
+                background: 'rgba(80,227,194,0.15)',
+                border: '1px solid rgba(80,227,194,0.4)',
+                color: '#50e3c2',
+                fontSize: '0.7rem',
+                borderRadius: '8px',
+                padding: '2px 8px',
+                cursor: 'pointer',
+                fontWeight: 'bold'
+              }}
+              title="Click to populate full mock bookings, healers, applications & payouts"
+            >
+              ✦ Re-Seed All Data
+            </button>
+          </div>
+
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px' }}>
+            <button
+              type="button"
+              onClick={() => {
+                setEmail(TEST_CREDENTIALS.masterOwner.email);
+                setPassword(TEST_CREDENTIALS.masterOwner.password);
+                toast.success('Loaded Master Owner: Jason Mounts');
+              }}
+              style={{
+                background: email === TEST_CREDENTIALS.masterOwner.email ? 'rgba(212,175,55,0.25)' : 'rgba(255,255,255,0.05)',
+                border: '1px solid ' + (email === TEST_CREDENTIALS.masterOwner.email ? 'var(--accent-gold)' : 'rgba(255,255,255,0.1)'),
+                color: '#fff',
+                borderRadius: '8px',
+                padding: '0.5rem',
+                fontSize: '0.72rem',
+                cursor: 'pointer',
+                textAlign: 'left',
+                transition: 'all 0.2s ease'
+              }}
+            >
+              <div style={{ color: 'var(--accent-gold)', fontWeight: 'bold' }}>👑 Jason (Owner)</div>
+              <div style={{ fontSize: '0.65rem', opacity: 0.7 }}>Master Console</div>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => {
+                setEmail(TEST_CREDENTIALS.masterHealer.email);
+                setPassword(TEST_CREDENTIALS.masterHealer.password);
+                toast.success('Loaded Master Healer: Carissa Bright');
+              }}
+              style={{
+                background: email === TEST_CREDENTIALS.masterHealer.email ? 'rgba(212,175,55,0.25)' : 'rgba(255,255,255,0.05)',
+                border: '1px solid ' + (email === TEST_CREDENTIALS.masterHealer.email ? 'var(--accent-gold)' : 'rgba(255,255,255,0.1)'),
+                color: '#fff',
+                borderRadius: '8px',
+                padding: '0.5rem',
+                fontSize: '0.72rem',
+                cursor: 'pointer',
+                textAlign: 'left',
+                transition: 'all 0.2s ease'
+              }}
+            >
+              <div style={{ color: 'var(--accent-gold)', fontWeight: 'bold' }}>🌿 Carissa (Healer)</div>
+              <div style={{ fontSize: '0.65rem', opacity: 0.7 }}>Review & Bookings</div>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => {
+                setEmail(TEST_CREDENTIALS.staffHealer.email);
+                setPassword(TEST_CREDENTIALS.staffHealer.password);
+                toast.success('Loaded Certified Healer: Elena Rostova');
+              }}
+              style={{
+                background: email === TEST_CREDENTIALS.staffHealer.email ? 'rgba(80,227,194,0.25)' : 'rgba(255,255,255,0.05)',
+                border: '1px solid ' + (email === TEST_CREDENTIALS.staffHealer.email ? '#50e3c2' : 'rgba(255,255,255,0.1)'),
+                color: '#fff',
+                borderRadius: '8px',
+                padding: '0.5rem',
+                fontSize: '0.72rem',
+                cursor: 'pointer',
+                textAlign: 'left',
+                transition: 'all 0.2s ease'
+              }}
+            >
+              <div style={{ color: '#50e3c2', fontWeight: 'bold' }}>✦ Elena (Staff Healer)</div>
+              <div style={{ fontSize: '0.65rem', opacity: 0.7 }}>Healer OS & Video</div>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => {
+                setEmail(TEST_CREDENTIALS.verifiedSeeker.email);
+                setPassword(TEST_CREDENTIALS.verifiedSeeker.password);
+                toast.success('Loaded Verified Seeker: Sarah Mitchell');
+              }}
+              style={{
+                background: email === TEST_CREDENTIALS.verifiedSeeker.email ? 'rgba(162,155,254,0.25)' : 'rgba(255,255,255,0.05)',
+                border: '1px solid ' + (email === TEST_CREDENTIALS.verifiedSeeker.email ? '#a29bfe' : 'rgba(255,255,255,0.1)'),
+                color: '#fff',
+                borderRadius: '8px',
+                padding: '0.5rem',
+                fontSize: '0.72rem',
+                cursor: 'pointer',
+                textAlign: 'left',
+                transition: 'all 0.2s ease'
+              }}
+            >
+              <div style={{ color: '#a29bfe', fontWeight: 'bold' }}>💫 Sarah (Seeker)</div>
+              <div style={{ fontSize: '0.65rem', opacity: 0.7 }}>Sanctuary Client</div>
+            </button>
+          </div>
         </div>
 
         <form onSubmit={handleSubmit} style={{display: 'flex', flexDirection: 'column', gap: '1rem'}}>

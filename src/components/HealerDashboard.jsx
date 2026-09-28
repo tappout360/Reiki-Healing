@@ -534,7 +534,7 @@ const HealerDashboard = ({ onClose, onJoinPortal, healerAppsEnabled = false, onT
     } else {
       // Load data from simulated database
       const savedBookings = JSON.parse(localStorage.getItem('aura_bookings') || '[]');
-      setBookings(savedBookings.sort((a, b) => b.id - a.id));
+      setBookings(savedBookings.sort((a, b) => (b.bookingDate || '').localeCompare(a.bookingDate || '')));
       
       const savedClients = JSON.parse(localStorage.getItem('aura_clients') || '[]');
       setClients(savedClients.sort((a, b) => (a.name || '').localeCompare(b.name || '')));
