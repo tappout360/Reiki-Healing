@@ -244,8 +244,6 @@ const [healerAppsEnabled, setHealerAppsEnabled] = useState(() => {
   return true;
 });
 const [showCheckoutModal, setShowCheckoutModal] = useState(false);
-  const [meditationConsent, setMeditationConsent] = useState(true);
-  const [meditationConsentPending, setMeditationConsentPending] = useState(true);
 
   // NEW: Tablet/Mobile App Shell States
   const [viewMode, setViewMode] = useState(() => {
@@ -358,7 +356,9 @@ const [showCheckoutModal, setShowCheckoutModal] = useState(false);
       try {
         const parsed = JSON.parse(saved);
         if (Array.isArray(parsed) && parsed.length === 2) return parsed;
-      } catch {}
+      } catch (err) {
+        console.warn('Could not parse free protocols cache:', err);
+      }
     }
     return ['rose', 'sage'];
   });

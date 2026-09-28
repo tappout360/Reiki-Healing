@@ -4,7 +4,6 @@ import {
   X, Play, Pause, Volume2, VolumeX, RotateCcw, 
   Sparkles, Heart, Shield, Sliders, Music, Radio 
 } from 'lucide-react';
-import { toast } from 'react-hot-toast';
 
 /**
  * HeartGroundingPortal — Dedicated 5-Minute Grounding & Heart Alignment Sanctuary
@@ -98,15 +97,17 @@ export const HeartGroundingPortal = ({ onClose, onExploreProtocols }) => {
         freqGainRef.current.gain.linearRampToValueAtTime(0.0001, now + 0.8);
         setTimeout(() => {
           if (oscRef.current) {
-            try { oscRef.current.stop(); } catch {}
+            try { oscRef.current.stop(); } catch (_e) { /* ignore */ }
             oscRef.current = null;
           }
           if (oscSubRef.current) {
-            try { oscSubRef.current.stop(); } catch {}
+            try { oscSubRef.current.stop(); } catch (_e) { /* ignore */ }
             oscSubRef.current = null;
           }
         }, 850);
-      } catch {}
+      } catch (_e) {
+        /* audio stop safely ignored */
+      }
     }
   };
 
@@ -117,7 +118,9 @@ export const HeartGroundingPortal = ({ onClose, onExploreProtocols }) => {
       const target = freqMuted ? 0.0001 : Math.max(0.0001, freqVolume * 0.12);
       try {
         freqGainRef.current.gain.linearRampToValueAtTime(target, now + 0.15);
-      } catch {}
+      } catch (_e) {
+        /* dynamic ramp error ignored */
+      }
     }
   }, [freqVolume, freqMuted]);
 

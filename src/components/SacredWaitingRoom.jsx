@@ -25,7 +25,7 @@ const SacredWaitingRoom = ({ session, user, onConsentAcknowledged, onClose }) =>
   const toggleDroneAudio = () => {
     if (dronePlaying) {
       if (droneOscRef.current) {
-        try { droneOscRef.current.stop(); } catch (e) { /* ignore */ }
+        try { droneOscRef.current.stop(); } catch (_e) { /* ignore */ }
         droneOscRef.current = null;
       }
       setDronePlaying(false);
@@ -87,7 +87,7 @@ const SacredWaitingRoom = ({ session, user, onConsentAcknowledged, onClose }) =>
 
     // Clean up drone, camera, and meter
     if (droneOscRef.current) {
-      try { droneOscRef.current.stop(); } catch (e) { /* ignore */ }
+      try { droneOscRef.current.stop(); } catch (_e) { /* ignore */ }
     }
     if (videoRef.current && videoRef.current.srcObject) {
       videoRef.current.srcObject.getTracks().forEach(t => t.stop());
@@ -112,8 +112,8 @@ const SacredWaitingRoom = ({ session, user, onConsentAcknowledged, onClose }) =>
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(consentData)
       }).catch(() => {});
-    } catch (e) {
-      console.warn('Consent logging notice:', e);
+    } catch (_e) {
+      console.warn('Consent logging notice:', _e);
     }
 
     toast.success('Entering Sacred Sanctuary...');
@@ -121,12 +121,13 @@ const SacredWaitingRoom = ({ session, user, onConsentAcknowledged, onClose }) =>
   };
 
   useEffect(() => {
+    const videoNode = videoRef.current;
     return () => {
       if (droneOscRef.current) {
-        try { droneOscRef.current.stop(); } catch (e) { /* ignore */ }
+        try { droneOscRef.current.stop(); } catch (_e) { /* ignore */ }
       }
-      if (videoRef.current && videoRef.current.srcObject) {
-        videoRef.current.srcObject.getTracks().forEach(t => t.stop());
+      if (videoNode && videoNode.srcObject) {
+        videoNode.srcObject.getTracks().forEach(t => t.stop());
       }
       if (meterIntervalRef.current) {
         clearInterval(meterIntervalRef.current);

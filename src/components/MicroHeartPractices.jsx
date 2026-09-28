@@ -127,11 +127,11 @@ export const MicroHeartPractices = ({ onClose }) => {
         gainRef.current.gain.linearRampToValueAtTime(0.0001, audioCtxRef.current.currentTime + 0.4);
         setTimeout(() => {
           if (oscRef.current) {
-            try { oscRef.current.stop(); } catch {}
+            try { oscRef.current.stop(); } catch (_e) { /* ignore */ }
             oscRef.current = null;
           }
         }, 450);
-      } catch {
+      } catch (_e) {
         // cleanup
       }
     }
@@ -144,7 +144,9 @@ export const MicroHeartPractices = ({ onClose }) => {
       const targetGain = isMuted ? 0.0001 : Math.max(0.0001, volume * 0.08);
       try {
         gainRef.current.gain.linearRampToValueAtTime(targetGain, now + 0.1);
-      } catch {}
+      } catch (_e) {
+        // ramp error ignored
+      }
     }
   }, [volume, isMuted]);
 
