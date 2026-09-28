@@ -3,7 +3,7 @@ import { motion } from 'framer-motion';
 import { Camera, Mic, Volume2, VolumeX, ShieldCheck, Heart, Sparkles, Check, Play, UserCheck } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 
-const SacredWaitingRoom = ({ session, user, onConsentAcknowledged }) => {
+const SacredWaitingRoom = ({ session, user, onConsentAcknowledged, onClose }) => {
   const [intention, setIntention] = useState('');
   const [disclaimerChecked, setDisclaimerChecked] = useState(false);
   const [dronePlaying, setDronePlaying] = useState(false);
@@ -163,8 +163,29 @@ const SacredWaitingRoom = ({ session, user, onConsentAcknowledged }) => {
         zIndex: 0
       }} />
 
-      {/* Sound Ambient Toggle */}
+      {/* Header Actions */}
       <div style={{ position: 'relative', zIndex: 2 }}>
+        {onClose && (
+          <button
+            onClick={onClose}
+            type="button"
+            style={{
+              position: 'absolute',
+              top: '-0.5rem',
+              left: 0,
+              background: 'rgba(255,255,255,0.06)',
+              border: '1px solid rgba(255,255,255,0.18)',
+              color: 'rgba(255,255,255,0.8)',
+              padding: '6px 14px',
+              borderRadius: '20px',
+              cursor: 'pointer',
+              fontSize: '0.75rem',
+              transition: 'all 0.2s ease'
+            }}
+          >
+            ← Sanctuary
+          </button>
+        )}
         <button
           onClick={toggleDroneAudio}
           type="button"

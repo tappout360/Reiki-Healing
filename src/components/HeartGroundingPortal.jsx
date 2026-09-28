@@ -13,8 +13,9 @@ import { toast } from 'react-hot-toast';
  * - Layered ambient meditation music bed with independent volume control
  * - Dual volume sliders (Frequency Volume + Meditation Music Volume)
  */
-export const HeartGroundingPortal = ({ onClose }) => {
+export const HeartGroundingPortal = ({ onClose, onExploreProtocols }) => {
   const [isPlaying, setIsPlaying] = useState(true);
+  const [isCompleted, setIsCompleted] = useState(false);
   const [freqVolume, setFreqVolume] = useState(0.25); // Soft default
   const [musicVolume, setMusicVolume] = useState(0.60); // Comfortable music level
   const [freqMuted, setFreqMuted] = useState(false);
@@ -269,7 +270,7 @@ export const HeartGroundingPortal = ({ onClose }) => {
             onEnded={() => {
               setIsPlaying(false);
               stopSoftFrequency();
-              toast.success('✨ 5-Minute Heart & Grounding Alignment complete.');
+              setIsCompleted(true);
             }}
             style={{ width: '100%', height: '100%', objectFit: 'contain', display: 'block' }}
           />
@@ -498,7 +499,178 @@ export const HeartGroundingPortal = ({ onClose }) => {
           >
             <RotateCcw size={18} />
           </button>
+
+          <button
+            type="button"
+            onClick={() => {
+              setIsPlaying(false);
+              stopSoftFrequency();
+              if (videoRef.current) videoRef.current.pause();
+              setIsCompleted(true);
+            }}
+            style={{
+              padding: '10px 18px',
+              borderRadius: '20px',
+              background: 'rgba(80, 227, 194, 0.12)',
+              border: '1px solid rgba(80, 227, 194, 0.35)',
+              color: '#50e3c2',
+              fontSize: '0.8rem',
+              fontWeight: '600',
+              cursor: 'pointer',
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '6px'
+            }}
+            title="Complete alignment and enter stillness"
+          >
+            <Sparkles size={14} /> Complete Session
+          </button>
         </div>
+
+        {/* Sacred Completion View */}
+        <AnimatePresence>
+          {isCompleted && (
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              transition={{ duration: 0.5, ease: 'easeOut' }}
+              style={{
+                position: 'absolute',
+                inset: 0,
+                background: 'rgba(8, 10, 20, 0.98)',
+                backdropFilter: 'blur(30px)',
+                borderRadius: '26px',
+                zIndex: 100,
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                justifyContent: 'center',
+                padding: '2.5rem',
+                textAlign: 'center'
+              }}
+            >
+              <motion.div
+                animate={{ scale: [1, 1.08, 1] }}
+                transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
+                style={{
+                  width: '84px',
+                  height: '84px',
+                  borderRadius: '50%',
+                  background: 'radial-gradient(circle, rgba(212, 175, 55, 0.35) 0%, rgba(80, 227, 194, 0.15) 100%)',
+                  border: '1.5px solid var(--accent-gold)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  marginBottom: '1.5rem',
+                  boxShadow: '0 0 35px rgba(212, 175, 55, 0.4)'
+                }}
+              >
+                <Heart size={40} color="var(--accent-gold)" fill="rgba(212, 175, 55, 0.25)" />
+              </motion.div>
+
+              <div style={{
+                fontSize: '0.8rem',
+                color: 'var(--accent-gold)',
+                letterSpacing: '3px',
+                textTransform: 'uppercase',
+                fontWeight: 'bold',
+                marginBottom: '0.75rem'
+              }}>
+                ✦ Alignment Complete ✦
+              </div>
+
+              <h2 style={{
+                fontFamily: "'Playfair Display', serif",
+                fontSize: '2.3rem',
+                color: '#fff',
+                margin: '0 0 1rem 0',
+                lineHeight: '1.3'
+              }}>
+                You are held. You are loved. You belong.
+              </h2>
+
+              <p style={{
+                color: 'rgba(255, 255, 255, 0.82)',
+                fontSize: '1rem',
+                lineHeight: '1.7',
+                maxWidth: '560px',
+                margin: '0 auto 2.25rem auto'
+              }}>
+                Take a slow, deep breath into your heart center. The stillness you feel is always accessible within you. Carry this sacred peace into the rest of your day.
+              </p>
+
+              <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap', justifyContent: 'center' }}>
+                <button
+                  type="button"
+                  onClick={() => {
+                    stopSoftFrequency();
+                    onClose();
+                  }}
+                  className="btn btn-primary"
+                  style={{
+                    padding: '0.85rem 2.2rem',
+                    fontSize: '0.95rem',
+                    fontWeight: 'bold',
+                    borderRadius: '30px',
+                    boxShadow: '0 4px 20px rgba(212, 175, 55, 0.35)',
+                    cursor: 'pointer'
+                  }}
+                >
+                  Return to Sanctuary
+                </button>
+
+                {onExploreProtocols && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      stopSoftFrequency();
+                      onClose();
+                      onExploreProtocols();
+                    }}
+                    style={{
+                      padding: '0.85rem 1.8rem',
+                      fontSize: '0.95rem',
+                      borderRadius: '30px',
+                      background: 'rgba(255, 255, 255, 0.08)',
+                      border: '1px solid rgba(212, 175, 55, 0.4)',
+                      color: 'var(--accent-gold)',
+                      fontWeight: '600',
+                      cursor: 'pointer'
+                    }}
+                  >
+                    Explore Sacred Protocols
+                  </button>
+                )}
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsCompleted(false);
+                    if (videoRef.current) {
+                      videoRef.current.currentTime = 0;
+                      setElapsedSeconds(0);
+                      setIsPlaying(true);
+                      videoRef.current.play();
+                      startSoftFrequency();
+                    }
+                  }}
+                  style={{
+                    padding: '0.85rem 1.5rem',
+                    fontSize: '0.9rem',
+                    borderRadius: '30px',
+                    background: 'none',
+                    border: '1px solid rgba(255, 255, 255, 0.2)',
+                    color: 'rgba(255, 255, 255, 0.7)',
+                    cursor: 'pointer'
+                  }}
+                >
+                  Replay Alignment
+                </button>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
 
         {/* Wellness safe-harbor compliance */}
         <div style={{

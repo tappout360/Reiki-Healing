@@ -48,13 +48,13 @@ export const translations = {
     navStaff: "Staff",
     
     // Hero Section
-    heroTitle: "Experience the convergence of ancient wisdom and futuristic energy medicine.",
-    heroSub: "Our advanced Reiki system harmonizes your biofield with surgical precision.",
-    heroCTAStart: "Start Your Journey",
+    heroTitle: "Experience the timeless grace of ancient wisdom and restorative energy alignment.",
+    heroSub: "Our sacred sanctuary gently harmonizes your inner field with warmth, clarity, and peace.",
+    heroCTAStart: "✦ Begin Free Daily Alignment (5 Min) ✦",
     heroCTAScience: "See the Science",
-    heroAlreadyAccount: "Already have an account?",
+    heroAlreadyAccount: "Already registered?",
     heroLogin: "Log In",
-    logIntoProfile: "Log into Profile",
+    logIntoProfile: "Enter Your Sanctuary",
     
     // Daily Resonance
     dailyResonance: "DAILY RESONANCE",

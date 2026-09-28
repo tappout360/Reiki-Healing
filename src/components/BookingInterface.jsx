@@ -41,6 +41,7 @@ const BookingInterface = ({ type, onClose }) => {
   const [addressVerified, setAddressVerified] = useState(false);
   const [distanceError, setDistanceError] = useState('');
   const [waiverAccepted, setWaiverAccepted] = useState(false);
+  const [confirmedBooking, setConfirmedBooking] = useState(null);
 
   const verifyAddress = async (addrQuery) => {
     if (!addrQuery.trim()) return;
@@ -327,7 +328,8 @@ const BookingInterface = ({ type, onClose }) => {
       await db.addBooking(newBooking);
       toast.dismiss();
       toast.success(`✨ Session Confirmed & Receipt Generated! Saved to your dashboard.`);
-      onClose();
+      setConfirmedBooking(newBooking);
+      setStep(3);
     } catch (err) {
       toast.dismiss();
       toast.error(err.message || t('bookingToastFailed'));
@@ -693,6 +695,131 @@ const BookingInterface = ({ type, onClose }) => {
             >
               {loading ? t('bookingRoutingStripe') : t('bookingProceedStripe')}
             </button>
+          </div>
+        )}
+
+        {step === 3 && confirmedBooking && (
+          <div className="fade-in" style={{ textAlign: 'center', padding: '0.5rem 0' }}>
+            <div style={{
+              width: '68px',
+              height: '68px',
+              borderRadius: '50%',
+              background: 'radial-gradient(circle, rgba(212,175,55,0.25) 0%, rgba(212,175,55,0.05) 70%)',
+              border: '1px solid rgba(212,175,55,0.5)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              fontSize: '2rem',
+              color: '#D4AF37',
+              margin: '0 auto 1.25rem',
+              boxShadow: '0 0 30px rgba(212,175,55,0.2)'
+            }}>
+              ✦
+            </div>
+
+            <h2 className="booking-header" style={{ marginBottom: '0.4rem', fontSize: '1.6rem' }}>
+              Sacred Session Reserved
+            </h2>
+            <p style={{ fontSize: '0.85rem', color: '#c9bfa8', maxWidth: '420px', margin: '0 auto 1.5rem', lineHeight: '1.5' }}>
+              Your energy exchange is honored. Your appointment has been secured in our sacred sanctuary.
+            </p>
+
+            {/* Receipt Summary Card */}
+            <div style={{
+              background: 'rgba(255, 255, 255, 0.03)',
+              border: '1px solid rgba(212, 175, 55, 0.25)',
+              borderRadius: '16px',
+              padding: '1.25rem 1.5rem',
+              textAlign: 'left',
+              marginBottom: '1.5rem',
+              fontSize: '0.85rem'
+            }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid rgba(255,255,255,0.06)', paddingBottom: '0.6rem', marginBottom: '0.75rem' }}>
+                <span style={{ color: 'rgba(255,255,255,0.6)' }}>Reservation Code</span>
+                <span style={{ color: 'var(--accent-gold, #D4AF37)', fontWeight: '600', fontFamily: 'monospace' }}>
+                  #{confirmedBooking.id.slice(-6).toUpperCase()}
+                </span>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.6rem' }}>
+                <span style={{ color: 'rgba(255,255,255,0.6)' }}>Modality</span>
+                <span style={{ color: '#fff', fontWeight: '500' }}>{confirmedBooking.serviceType}</span>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.6rem' }}>
+                <span style={{ color: 'rgba(255,255,255,0.6)' }}>Date & Time</span>
+                <span style={{ color: '#fff', fontWeight: '500' }}>{confirmedBooking.bookingDate} at {confirmedBooking.bookingTime}</span>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.6rem' }}>
+                <span style={{ color: 'rgba(255,255,255,0.6)' }}>Reserved For</span>
+                <span style={{ color: '#fff', fontWeight: '500' }}>{confirmedBooking.customerName}</span>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', borderTop: '1px solid rgba(255,255,255,0.06)', paddingTop: '0.6rem' }}>
+                <span style={{ color: 'rgba(255,255,255,0.6)' }}>Energy Exchange</span>
+                <span style={{ color: 'var(--accent-gold, #D4AF37)', fontWeight: '600' }}>
+                  ${confirmedBooking.depositAmount} USD
+                </span>
+              </div>
+            </div>
+
+            {/* Preparation Guidance */}
+            <div style={{
+              background: 'rgba(212, 175, 55, 0.05)',
+              border: '1px solid rgba(212, 175, 55, 0.18)',
+              borderRadius: '12px',
+              padding: '1rem',
+              textAlign: 'left',
+              marginBottom: '1.75rem',
+              fontSize: '0.78rem',
+              lineHeight: '1.5',
+              color: '#d6cdbd'
+            }}>
+              <div style={{ fontWeight: '600', color: 'var(--accent-gold, #D4AF37)', marginBottom: '0.4rem', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <span>✦</span> Preparation for Your Alignment
+              </div>
+              <ul style={{ margin: 0, paddingLeft: '1.2rem', opacity: 0.9 }}>
+                <li>Arrive 5 minutes early in a quiet, peaceful sanctuary space.</li>
+                <li>Wear loose, comfortable clothing and drink a glass of pure water.</li>
+                <li>If joining via live video, please use headphones for optimal binaural harmonics.</li>
+              </ul>
+            </div>
+
+            {/* Action Buttons */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+              <button
+                type="button"
+                onClick={() => {
+                  const details = `Reiki & Sage Reservation: ${confirmedBooking.serviceType} on ${confirmedBooking.bookingDate} at ${confirmedBooking.bookingTime}. Code: #${confirmedBooking.id.slice(-6).toUpperCase()}`;
+                  navigator.clipboard?.writeText(details);
+                  toast.success("Reservation details copied to clipboard!");
+                }}
+                className="btn-secondary"
+                style={{
+                  padding: '0.85rem 1.5rem',
+                  borderRadius: '12px',
+                  background: 'rgba(255,255,255,0.05)',
+                  border: '1px solid rgba(255,255,255,0.15)',
+                  color: '#fff',
+                  cursor: 'pointer',
+                  fontSize: '0.85rem'
+                }}
+              >
+                Copy Reservation Details
+              </button>
+
+              <button
+                type="button"
+                onClick={onClose}
+                className="btn-primary"
+                style={{
+                  width: '100%',
+                  padding: '0.9rem 1.5rem',
+                  borderRadius: '12px',
+                  fontSize: '0.9rem',
+                  fontWeight: '600'
+                }}
+              >
+                Return to Sanctuary
+              </button>
+            </div>
           </div>
         )}
       </div>

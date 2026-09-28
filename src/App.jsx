@@ -1010,8 +1010,8 @@ const [showCheckoutModal, setShowCheckoutModal] = useState(false);
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8 }}
             >
-              <p style={{ fontSize: isMobileLayout ? '1.05rem' : '1.25rem', color: 'var(--text-muted)', marginBottom: '2.5rem', maxWidth: isMobileLayout ? '100%' : '500px' }}>
-                Experience the convergence of ancient wisdom and futuristic energy medicine. Our advanced Reiki system harmonizes your biofield with surgical precision.
+              <p style={{ fontSize: isMobileLayout ? '1.05rem' : '1.25rem', color: 'var(--text-muted)', marginBottom: '2.5rem', maxWidth: isMobileLayout ? '100%' : '520px', lineHeight: '1.7' }}>
+                {t('heroSub') || "Our sacred sanctuary gently harmonizes your inner field with warmth, clarity, and peace."}
               </p>
               
               {user && !isMobileLayout && (
@@ -1039,7 +1039,7 @@ const [showCheckoutModal, setShowCheckoutModal] = useState(false);
                   </div>
                   <span style={{ fontWeight: '600', color: '#fff' }}>{user.name}</span>
                   <span style={{ color: 'var(--accent-gold)', fontSize: '0.85rem', display: 'inline-flex', alignItems: 'center', gap: '4px', opacity: 0.9 }}>
-                    — {t('logIntoProfile')} <ArrowRight size={14} />
+                    — {t('logIntoProfile') || 'Enter Your Sanctuary'} <ArrowRight size={14} />
                   </span>
                 </div>
               )}
@@ -1051,7 +1051,7 @@ const [showCheckoutModal, setShowCheckoutModal] = useState(false);
                   gap: '0.75rem',
                   width: '100%',
                   maxWidth: '380px',
-                  margin: '0 auto 1.25rem auto'
+                  margin: '0 auto 1.5rem auto'
                 }}>
                   <button
                     onClick={() => setActiveTab('ai-guide')}
@@ -1069,8 +1069,8 @@ const [showCheckoutModal, setShowCheckoutModal] = useState(false);
                     }}
                   >
                     <Sparkles size={18} />
-                    <span style={{ fontSize: '0.75rem', fontWeight: '700', letterSpacing: '0.5px' }}>CONSULT AURA</span>
-                    <span style={{ fontSize: '0.6rem', opacity: 0.7 }}>AI REIKI GUIDE</span>
+                    <span style={{ fontSize: '0.75rem', fontWeight: '700', letterSpacing: '0.5px' }}>AURA GUIDE</span>
+                    <span style={{ fontSize: '0.62rem', opacity: 0.75 }}>SPIRITUAL COMPANION</span>
                   </button>
 
                   <button
@@ -1089,71 +1089,90 @@ const [showCheckoutModal, setShowCheckoutModal] = useState(false);
                     }}
                   >
                     <Key size={18} />
-                    <span style={{ fontSize: '0.75rem', fontWeight: '700', letterSpacing: '0.5px' }}>ENTER PORTAL</span>
-                    <span style={{ fontSize: '0.6rem', opacity: 0.7 }}>SESSION CODE</span>
+                    <span style={{ fontSize: '0.75rem', fontWeight: '700', letterSpacing: '0.5px' }}>ENTER SESSION</span>
+                    <span style={{ fontSize: '0.62rem', opacity: 0.75 }}>SACRED CODE</span>
                   </button>
                 </div>
               )}
 
-              <div style={{ display: 'flex', gap: '1.25rem', flexDirection: isMobileLayout ? 'column' : 'row', alignItems: 'center', justifyContent: 'center' }}>
+              {/* Arrival Primary CTA: Free 5-Minute Session (1 tap away) */}
+              <div style={{ display: 'flex', gap: '1rem', flexDirection: isMobileLayout ? 'column' : 'row', alignItems: 'center', justifyContent: 'center', flexWrap: 'wrap' }}>
                 <button 
                   className="btn btn-primary" 
-                  style={{ display: 'flex', alignItems: 'center', gap: '10px', width: isMobileLayout ? '100%' : 'auto', justifyContent: 'center', padding: '0.8rem 1.8rem' }}
+                  style={{ 
+                    display: 'inline-flex', 
+                    alignItems: 'center', 
+                    gap: '10px', 
+                    width: isMobileLayout ? '100%' : 'auto', 
+                    justifyContent: 'center', 
+                    padding: isMobileLayout ? '0.95rem 1.8rem' : '1.05rem 2.2rem',
+                    fontSize: isMobileLayout ? '0.95rem' : '1.05rem',
+                    fontWeight: '700',
+                    borderRadius: '30px',
+                    boxShadow: '0 4px 25px rgba(212, 175, 55, 0.45)',
+                    cursor: 'pointer'
+                  }}
+                  onClick={() => setShowHeartGroundingModal(true)}
+                >
+                  <Sparkles size={20} /> ✦ Begin Free Daily Alignment (5 Min) ✦
+                </button>
+
+                <button 
+                  className="btn" 
+                  style={{ 
+                    background: 'rgba(255,255,255,0.06)', 
+                    border: '1px solid rgba(212, 175, 55, 0.35)', 
+                    color: 'var(--accent-gold)', 
+                    width: isMobileLayout ? '100%' : 'auto', 
+                    padding: '0.85rem 1.8rem',
+                    borderRadius: '30px',
+                    fontSize: '0.9rem',
+                    cursor: 'pointer'
+                  }}
                   onClick={() => {
-                    if (!user) {
-                      const newState = !showSignupFlow;
-                      setShowSignupFlow(newState);
-                      if (newState) {
-                        if (isMobileLayout) {
-                          setActiveTab('dashboard');
-                          setShowSignupFlow(true);
-                        } else {
-                          setTimeout(() => {
-                            document.getElementById('signup-flow-section')?.scrollIntoView({ behavior: 'smooth' });
-                          }, 300);
-                        }
-                      }
+                    if (isMobileLayout) {
+                      setActiveTab('protocols');
                     } else {
-                      // Logged in user: scroll to scheduling section
-                      const element = document.getElementById('mobile-service');
-                      if (element) {
-                        element.scrollIntoView({ behavior: 'smooth' });
-                      } else if (isMobileLayout) {
-                        setActiveTab('home');
-                        setTimeout(() => {
-                          document.getElementById('mobile-service')?.scrollIntoView({ behavior: 'smooth' });
-                        }, 100);
-                      }
+                      document.getElementById('mobile-service')?.scrollIntoView({ behavior: 'smooth' });
                     }
                   }}
                 >
-                  <Zap size={18} /> {user ? 'Book a Session' : (showSignupFlow ? 'Close Application' : 'Start Your Journey')}
+                  {user ? 'Book a Session' : 'Explore Healers & Protocols'}
                 </button>
-                
-                {!user && (
-                  <p style={{ opacity: 0.8, fontSize: '0.85rem' }}>
-                    Already registered?{' '}
-                    <span 
-                      onClick={() => setShowLoginModal(true)}
-                      style={{ 
-                        color: 'var(--accent-gold)', 
-                        cursor: 'pointer', 
-                        textDecoration: 'underline' 
-                      }}
-                    >
-                      Log In
-                    </span>
-                  </p>
-                )}
                 
                 <button 
                   className="btn" 
-                  style={{ background: 'transparent', border: '1px solid var(--accent-gold)', color: 'var(--accent-gold)', width: isMobileLayout ? '100%' : 'auto', padding: '0.8rem 1.8rem' }}
+                  style={{ 
+                    background: 'transparent', 
+                    border: '1px solid rgba(255,255,255,0.2)', 
+                    color: 'rgba(255,255,255,0.7)', 
+                    width: isMobileLayout ? '100%' : 'auto', 
+                    padding: '0.85rem 1.5rem',
+                    borderRadius: '30px',
+                    fontSize: '0.85rem'
+                  }}
                   onClick={() => setShowScience(true)}
                 >
                   See the Science
                 </button>
               </div>
+
+              {!user && (
+                <p style={{ marginTop: '1.25rem', opacity: 0.75, fontSize: '0.88rem' }}>
+                  Returning seeker?{' '}
+                  <span 
+                    onClick={() => setShowLoginModal(true)}
+                    style={{ 
+                      color: 'var(--accent-gold)', 
+                      cursor: 'pointer', 
+                      textDecoration: 'underline',
+                      fontWeight: '600'
+                    }}
+                  >
+                    Log In to Sanctuary
+                  </span>
+                </p>
+              )}
             </motion.div>
             
             <motion.div 
@@ -2794,7 +2813,15 @@ const [showCheckoutModal, setShowCheckoutModal] = useState(false);
           {showMyStories && <MyStoriesPortal onClose={() => setShowMyStories(false)} user={user} />}
           {showMeditationModal && renderMeditationModal()}
           {showHeartGroundingModal && (
-            <HeartGroundingPortal onClose={() => setShowHeartGroundingModal(false)} />
+            <HeartGroundingPortal 
+              onClose={() => setShowHeartGroundingModal(false)} 
+              onExploreProtocols={() => {
+                setActiveTab('protocols');
+                setTimeout(() => {
+                  document.getElementById('protocols-section')?.scrollIntoView({ behavior: 'smooth' });
+                }, 100);
+              }}
+            />
           )}
           {showMicroPractices && (
             <MicroHeartPractices onClose={() => setShowMicroPractices(false)} />
@@ -3394,60 +3421,76 @@ const [showCheckoutModal, setShowCheckoutModal] = useState(false);
                 </div>
               )}
 
-              <div style={{display: 'flex', gap: '1.5rem'}}>
+              <div style={{display: 'flex', gap: '1.25rem', alignItems: 'center', flexWrap: 'wrap'}}>
                 <button 
                   className="btn btn-primary" 
-                  style={{ display: 'flex', alignItems: 'center', gap: '10px' }}
-                  onClick={() => {
-                    if (!user) {
-                        // Toggle logic for signup flow
-                        const newState = !showSignupFlow;
-                        setShowSignupFlow(newState);
-                        if (newState) {
-                          setTimeout(() => {
-                            document.getElementById('signup-flow-section')?.scrollIntoView({ behavior: 'smooth' });
-                          }, 300);
-                        }
-                    } else if (user.subscription === 'healing' || user.role === 'owner') {
-                        // Scroll to protocols
-                        document.getElementById('protocols-section').scrollIntoView({ behavior: 'smooth' });
-                    } else {
-                        setShowSubscriptionPage(true);
-                    }
+                  style={{ 
+                    display: 'inline-flex', 
+                    alignItems: 'center', 
+                    gap: '10px',
+                    padding: '1.05rem 2.4rem',
+                    fontSize: '1.05rem',
+                    fontWeight: '700',
+                    borderRadius: '30px',
+                    boxShadow: '0 4px 25px rgba(212, 175, 55, 0.45)',
+                    cursor: 'pointer'
                   }}
+                  onClick={() => setShowHeartGroundingModal(true)}
                 >
-                  <Zap size={18} /> {user && (user.subscription === 'healing' || user.role === 'owner') 
-                    ? (language === 'es' ? 'Acceder al Santuario' : language === 'zh' ? '进入避难所' : language === 'pt' ? 'Acessar Santuário' : language === 'ja' ? 'サンクチュアリに入る' : language === 'fr' ? 'Accéder au Sanctuaire' : 'Access Sanctuary') 
-                    : user 
-                      ? (language === 'es' ? 'Actualizar Resonancia' : language === 'zh' ? '升级共鸣' : language === 'pt' ? 'Atualizar Ressonância' : language === 'ja' ? '共振のアップグレード' : language === 'fr' ? 'Améliorer la Résonance' : 'Upgrade Resonance') 
-                      : (showSignupFlow 
-                        ? (language === 'es' ? 'Cerrar Solicitud' : language === 'zh' ? '关闭申请' : language === 'pt' ? 'Fechar Inscrição' : language === 'ja' ? '閉じる' : language === 'fr' ? 'Fermer l\'inscription' : 'Close Application') 
-                        : t('heroCTAStart'))}
+                  <Sparkles size={20} /> ✦ Begin Free Daily Alignment (5 Min) ✦
                 </button>
                 
-                {!user && (
-                  <p style={{ marginTop: '1rem', opacity: 0.7, fontSize: '0.9rem' }}>
-                    {t('heroAlreadyAccount')}{' '}
-                    <span 
-                      onClick={() => setShowLoginModal(true)}
-                      style={{ 
-                        color: 'var(--accent-gold)', 
-                        cursor: 'pointer', 
-                        textDecoration: 'underline' 
-                      }}
-                    >
-                      {t('heroLogin')}
-                    </span>
-                  </p>
-                )}
                 <button 
                   className="btn" 
-                  style={{background: 'transparent', border: '1px solid var(--accent-gold)', color: 'var(--accent-gold)'}}
+                  style={{
+                    background: 'rgba(255,255,255,0.06)', 
+                    border: '1px solid rgba(212, 175, 55, 0.35)', 
+                    color: 'var(--accent-gold)',
+                    padding: '0.9rem 1.9rem',
+                    borderRadius: '30px',
+                    fontSize: '0.9rem',
+                    cursor: 'pointer'
+                  }}
+                  onClick={() => {
+                    const el = document.getElementById('mobile-service');
+                    if (el) el.scrollIntoView({ behavior: 'smooth' });
+                  }}
+                >
+                  {user ? 'Book a Session' : 'Explore Healers & Sessions'}
+                </button>
+
+                <button 
+                  className="btn" 
+                  style={{
+                    background: 'transparent', 
+                    border: '1px solid rgba(255,255,255,0.2)', 
+                    color: 'rgba(255,255,255,0.7)', 
+                    borderRadius: '30px', 
+                    padding: '0.85rem 1.6rem', 
+                    fontSize: '0.85rem'
+                  }}
                   onClick={() => setShowScience(true)}
                 >
                   {t('heroCTAScience')}
                 </button>
               </div>
+
+              {!user && (
+                <p style={{ marginTop: '1.25rem', opacity: 0.75, fontSize: '0.88rem' }}>
+                  {t('heroAlreadyAccount') || "Returning seeker?"}{' '}
+                  <span 
+                    onClick={() => setShowLoginModal(true)}
+                    style={{ 
+                      color: 'var(--accent-gold)', 
+                      cursor: 'pointer', 
+                      textDecoration: 'underline',
+                      fontWeight: '600'
+                    }}
+                  >
+                    {t('heroLogin') || "Log In to Sanctuary"}
+                  </span>
+                </p>
+              )}
               <p style={{ 
                 fontSize: '0.72rem', 
                 opacity: 0.65, 
@@ -4091,7 +4134,15 @@ const [showCheckoutModal, setShowCheckoutModal] = useState(false);
       <Suspense fallback={null}>
         <AnimatePresence>
           {showHeartGroundingModal && (
-            <HeartGroundingPortal onClose={() => setShowHeartGroundingModal(false)} />
+            <HeartGroundingPortal 
+              onClose={() => setShowHeartGroundingModal(false)} 
+              onExploreProtocols={() => {
+                setActiveTab('protocols');
+                setTimeout(() => {
+                  document.getElementById('protocols-section')?.scrollIntoView({ behavior: 'smooth' });
+                }, 100);
+              }}
+            />
           )}
         </AnimatePresence>
       </Suspense>
