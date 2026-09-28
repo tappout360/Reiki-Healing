@@ -2025,100 +2025,127 @@ const [showCheckoutModal, setShowCheckoutModal] = useState(false);
     );
   };
 
-  const renderComingSoonSection = (isMobileLayout = false) => {
-    const handlePwaInstall = () => {
-      if (window.deferredPrompt) {
-        window.deferredPrompt.prompt();
-        window.deferredPrompt.userChoice.then((choiceResult) => {
-          if (choiceResult.outcome === 'accepted') {
-            toast.success('App installed to home screen!');
-          }
-          window.deferredPrompt = null;
-        });
-      } else {
-        toast('To install, tap Share (iOS) or Menu (Android) and select "Add to Home Screen".', { icon: '📱' });
+  const renderVoicesOfSanctuarySection = (isMobileLayout = false) => {
+    const testimonials = [
+      {
+        id: 1,
+        quote: "Carissa held a space so still and sacred that my chest tightness dissolved within minutes. The 528Hz harmonic drone and guided breath brought me back to my center after months of burnout.",
+        author: "Elena R.",
+        location: "Seattle, WA",
+        modality: "1:1 Live Video Alignment",
+        rating: 5,
+        badge: "Verified Seeker"
+      },
+      {
+        id: 2,
+        quote: "I was skeptical of energy healing until my first session with Master Healer Carissa. Grounded, compassionate, professional, and zero clinical pretense. A true sanctuary in the Pacific Northwest.",
+        author: "Marcus T.",
+        location: "Bellevue, WA",
+        modality: "On-Site In-Person Session",
+        rating: 5,
+        badge: "Verified Seeker"
+      },
+      {
+        id: 3,
+        quote: "The 5-Minute Heart & Grounding practice has become my daily morning anchor. It is peaceful, gentle, and asks nothing of me except to breathe and receive. A genuine gift to the world.",
+        author: "Maya S.",
+        location: "Portland, OR",
+        modality: "Daily Heart Alignment",
+        rating: 5,
+        badge: "Daily Practice"
       }
-    };
+    ];
 
     return (
-      <section id="coming-soon" style={{ backgroundColor: 'var(--bg-section-alt)', padding: isMobileLayout ? '3rem 1rem' : '6rem 0', borderTop: '1px solid rgba(255,255,255,0.05)' }}>
-        <div className="container" style={{ textAlign: 'center', maxWidth: '1000px', margin: '0 auto' }}>
-          <span style={{ fontSize: '0.75rem', color: 'var(--accent-gold)', fontWeight: 'bold', letterSpacing: '2px', textTransform: 'uppercase', display: 'block', marginBottom: '1rem' }}>✦ Live Sanctuary Expansion Suite ✦</span>
-          <h2 style={{ fontSize: isMobileLayout ? '1.8rem' : '2.5rem', fontFamily: 'Playfair Display', color: 'var(--text-main)', marginBottom: '1.25rem' }}>Sanctuary Interactive Experience</h2>
-          <p style={{ color: 'var(--text-muted)', marginBottom: '2.5rem', fontSize: '0.9rem', lineHeight: '1.6' }}>
-            Unlock the full dimension of your spiritual journey through our live interactive healing tools:
+      <section id="sanctuary-voices" style={{ backgroundColor: 'var(--bg-section-alt)', padding: isMobileLayout ? '3.5rem 1rem' : '5.5rem 0', borderTop: '1px solid rgba(255,255,255,0.05)' }}>
+        <div className="container" style={{ textAlign: 'center', maxWidth: '1100px', margin: '0 auto' }}>
+          <span style={{ fontSize: '0.75rem', color: 'var(--accent-gold)', fontWeight: 'bold', letterSpacing: '2px', textTransform: 'uppercase', display: 'block', marginBottom: '0.75rem' }}>
+            ✦ Voices from the Sanctuary ✦
+          </span>
+          <h2 style={{ fontSize: isMobileLayout ? '1.8rem' : '2.4rem', fontFamily: 'Playfair Display, serif', color: 'var(--text-main)', marginBottom: '0.75rem' }}>
+            Held in Sacred Community
+          </h2>
+          <p style={{ color: 'var(--text-muted)', marginBottom: '2.5rem', fontSize: '0.92rem', maxWidth: '600px', margin: '0 auto 2.5rem', lineHeight: '1.6' }}>
+            Real seekers holding space, finding stillness, and sharing their lived experience in our sanctuary.
           </p>
 
-          <div style={{ display: 'grid', gridTemplateColumns: isMobileLayout ? '1fr' : 'repeat(4, 1fr)', gap: '1.5rem', textAlign: 'left' }}>
-            {/* Mobile PWA Card */}
-            <div 
-              className="glass" 
-              style={{ padding: '1.5rem', borderRadius: '20px', border: '1px solid var(--accent-gold)', background: 'linear-gradient(135deg, rgba(255,255,255,0.03) 0%, rgba(212, 175, 55, 0.05) 100%)', position: 'relative', cursor: 'pointer' }}
-              onClick={handlePwaInstall}
-            >
-              <span style={{ position: 'absolute', top: '10px', right: '10px', background: 'var(--accent-gold)', color: '#000', fontSize: '0.6rem', fontWeight: 'bold', padding: '2px 6px', borderRadius: '4px', textTransform: 'uppercase' }}>Now Live!</span>
-              <div style={{ fontSize: '1.8rem', marginBottom: '0.75rem' }}>📱</div>
-              <h4 style={{ color: 'var(--accent-gold)', marginBottom: '0.5rem', fontSize: '1rem' }}>Mobile PWA App</h4>
-              <p style={{ fontSize: '0.78rem', color: 'var(--text-muted)', lineHeight: '1.5', margin: 0 }}>
-                Install our standalone mobile sanctuary app on iOS & Android for one-tap offline access.
-              </p>
-            </div>
+          <div style={{ 
+            display: 'grid', 
+            gridTemplateColumns: isMobileLayout ? '1fr' : 'repeat(3, 1fr)', 
+            gap: '1.5rem', 
+            textAlign: 'left' 
+          }}>
+            {testimonials.map(item => (
+              <div 
+                key={item.id}
+                className="glass" 
+                style={{ 
+                  padding: '1.75rem', 
+                  borderRadius: '20px', 
+                  border: '1px solid rgba(212, 175, 55, 0.22)', 
+                  background: 'linear-gradient(135deg, rgba(255,255,255,0.03) 0%, rgba(212, 175, 55, 0.04) 100%)', 
+                  display: 'flex',
+                  flexDirection: 'column',
+                  justifyContent: 'space-between',
+                  boxShadow: '0 10px 30px rgba(0,0,0,0.25)'
+                }}
+              >
+                <div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+                    <div style={{ color: '#D4AF37', fontSize: '0.9rem', letterSpacing: '2px' }}>
+                      {'★'.repeat(item.rating)}
+                    </div>
+                    <span style={{ 
+                      fontSize: '0.68rem', 
+                      background: 'rgba(212, 175, 55, 0.12)', 
+                      color: 'var(--accent-gold)', 
+                      padding: '3px 8px', 
+                      borderRadius: '12px',
+                      border: '1px solid rgba(212, 175, 55, 0.3)',
+                      fontWeight: '500'
+                    }}>
+                      ✓ {item.badge}
+                    </span>
+                  </div>
 
-            {/* Voice Reflections Studio Card */}
-            <div 
-              className="glass" 
-              style={{ padding: '1.5rem', borderRadius: '20px', border: '1px solid var(--accent-gold)', background: 'linear-gradient(135deg, rgba(255,255,255,0.03) 0%, rgba(212, 175, 55, 0.05) 100%)', position: 'relative', cursor: 'pointer' }}
-              onClick={() => setShowVoiceReflectionStudio(true)}
-            >
-              <span style={{ position: 'absolute', top: '10px', right: '10px', background: 'var(--accent-gold)', color: '#000', fontSize: '0.6rem', fontWeight: 'bold', padding: '2px 6px', borderRadius: '4px', textTransform: 'uppercase' }}>Now Live!</span>
-              <div style={{ fontSize: '1.8rem', marginBottom: '0.75rem' }}>🎙️</div>
-              <h4 style={{ color: 'var(--accent-gold)', marginBottom: '0.5rem', fontSize: '1rem' }}>Voice Reflections</h4>
-              <p style={{ fontSize: '0.78rem', color: 'var(--text-muted)', lineHeight: '1.5', margin: 0 }}>
-                Record and share 60-second spiritual audio alignment journals with seekers and guides worldwide.
-              </p>
-            </div>
-            
-            {/* Biofield Pulse Card */}
-            <div 
-              className="glass" 
-              style={{ padding: '1.5rem', borderRadius: '20px', border: '1px solid #50e3c2', background: 'linear-gradient(135deg, rgba(255,255,255,0.03) 0%, rgba(80, 227, 194, 0.05) 100%)', position: 'relative', cursor: 'pointer' }}
-              onClick={() => setShowBiofieldPulse(true)}
-            >
-              <span style={{ position: 'absolute', top: '10px', right: '10px', background: '#50e3c2', color: '#000', fontSize: '0.6rem', fontWeight: 'bold', padding: '2px 6px', borderRadius: '4px', textTransform: 'uppercase' }}>Now Live!</span>
-              <div style={{ fontSize: '1.8rem', marginBottom: '0.75rem' }}>⌚</div>
-              <h4 style={{ color: '#50e3c2', marginBottom: '0.5rem', fontSize: '1rem' }}>Biofield Pulse</h4>
-              <p style={{ fontSize: '0.78rem', color: 'var(--text-muted)', lineHeight: '1.5', margin: 0 }}>
-                Optical heart-rate variability (HRV) sensor & aura resonance scanner to map your energy field.
-              </p>
-            </div>
+                  <p style={{ 
+                    fontStyle: 'italic', 
+                    fontSize: '0.88rem', 
+                    lineHeight: '1.6', 
+                    color: '#e0d8c8', 
+                    marginBottom: '1.5rem' 
+                  }}>
+                    "{item.quote}"
+                  </p>
+                </div>
 
-            {/* Sonic Sound Baths Card */}
-            <div 
-              className="glass" 
-              style={{ padding: '1.5rem', borderRadius: '20px', border: '1px solid #4a90e2', background: 'linear-gradient(135deg, rgba(255,255,255,0.03) 0%, rgba(74, 144, 226, 0.05) 100%)', position: 'relative', cursor: 'pointer' }}
-              onClick={() => setShowSoundBaths(true)}
-            >
-              <span style={{ position: 'absolute', top: '10px', right: '10px', background: '#4a90e2', color: '#fff', fontSize: '0.6rem', fontWeight: 'bold', padding: '2px 6px', borderRadius: '4px', textTransform: 'uppercase' }}>Now Live!</span>
-              <div style={{ fontSize: '1.8rem', marginBottom: '0.75rem' }}>🌀</div>
-              <h4 style={{ color: '#4a90e2', marginBottom: '0.5rem', fontSize: '1rem' }}>Sonic Sound Baths</h4>
-              <p style={{ fontSize: '0.78rem', color: 'var(--text-muted)', lineHeight: '1.5', margin: 0 }}>
-                Interactive 432Hz & 528Hz Solfeggio frequency generator with crystal singing bowls & rain.
-              </p>
-            </div>
+                <div style={{ borderTop: '1px solid rgba(255,255,255,0.08)', paddingTop: '1rem' }}>
+                  <div style={{ fontWeight: '600', color: '#fff', fontSize: '0.9rem' }}>
+                    {item.author}
+                  </div>
+                  <div style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.5)', marginTop: '2px' }}>
+                    {item.location} • <span style={{ color: 'var(--accent-gold)' }}>{item.modality}</span>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
 
-            {/* AI Avatar Drop-Box Card */}
-            <div 
-              className="glass" 
-              style={{ padding: '1.5rem', borderRadius: '20px', border: '1px solid #9b59b6', background: 'linear-gradient(135deg, rgba(255,255,255,0.03) 0%, rgba(155, 89, 182, 0.05) 100%)', position: 'relative', cursor: 'pointer' }}
-              onClick={() => setShowAvatarDropBox(true)}
+          <div style={{ marginTop: '2.5rem' }}>
+            <button
+              onClick={() => setShowMyStories(true)}
+              style={{
+                background: 'none',
+                border: 'none',
+                color: 'var(--accent-gold)',
+                fontSize: '0.85rem',
+                cursor: 'pointer',
+                textDecoration: 'underline',
+                opacity: 0.85
+              }}
             >
-              <span style={{ position: 'absolute', top: '10px', right: '10px', background: '#9b59b6', color: '#fff', fontSize: '0.6rem', fontWeight: 'bold', padding: '2px 6px', borderRadius: '4px', textTransform: 'uppercase' }}>Now Live!</span>
-              <div style={{ fontSize: '1.8rem', marginBottom: '0.75rem' }}>✨</div>
-              <h4 style={{ color: '#9b59b6', marginBottom: '0.5rem', fontSize: '1rem' }}>AI Avatar Drop-Box</h4>
-              <p style={{ fontSize: '0.78rem', color: 'var(--text-muted)', lineHeight: '1.5', margin: 0 }}>
-                Drag and drop robes, crystals or attire to generate high-fidelity InstantID avatar transformations.
-              </p>
-            </div>
+              ✦ Share Your Sacred Journey / Read All Community Stories →
+            </button>
           </div>
         </div>
       </section>
@@ -2136,7 +2163,7 @@ const [showCheckoutModal, setShowCheckoutModal] = useState(false);
             {renderSchedulingSection(true)}
             {renderPhilosophySection(true)}
             {renderGuidedMeditationSection(true)}
-            {renderComingSoonSection(true)}
+            {renderVoicesOfSanctuarySection(true)}
             
             {/* Mobile Footer */}
             <footer style={{ padding: '2rem 1.5rem 8rem 1.5rem', textAlign: 'center', borderTop: '1px solid rgba(255,255,255,0.05)', marginTop: 'auto', background: 'rgba(0,0,0,0.1)' }}>
@@ -3635,7 +3662,7 @@ const [showCheckoutModal, setShowCheckoutModal] = useState(false);
         </div>
       </section>
 
-      {renderComingSoonSection(false)}
+      {renderVoicesOfSanctuarySection(false)}
 
       {/* Science Modal */}
       <Suspense fallback={<LoadingSpinner />}>
