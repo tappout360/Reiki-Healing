@@ -1,132 +1,98 @@
 <p align="center">
-  <img src="public/assets/readme/hero-banner.png" alt="Reiki Healing Sanctuary — Crystal-Powered Digital Healing" width="100%" />
+  <img src="public/assets/readme/hero-banner.png" alt="Reiki & Sage Sanctuary — Sacred Energy Alignment & Live Marketplace" width="100%" />
 </p>
 
-<h1 align="center">✨ Reiki Healing Sanctuary</h1>
+<h1 align="center">✦ Reiki & Sage Sanctuary ✦</h1>
 
 <p align="center">
-  <em>Where ancient energy meets modern technology.</em>
+  <em>A high-trust boutique spiritual wellness sanctuary connecting seekers with master Reiki practitioners for daily heart alignment and 1:1 sacred live sessions.</em>
 </p>
 
 <p align="center">
-  <a href="#-live-demo"><img src="https://img.shields.io/badge/🌐_Live_Demo-Visit_Site-d4af37?style=for-the-badge" alt="Live Demo" /></a>
+  <a href="https://reikiandsage.com"><img src="https://img.shields.io/badge/🌐_Sanctuary_Live-reikiandsage.com-d4af37?style=for-the-badge" alt="Live Sanctuary" /></a>
   <img src="https://img.shields.io/badge/React-19-61dafb?style=for-the-badge&logo=react" alt="React 19" />
-  <img src="https://img.shields.io/badge/Firebase-Auth_+_Firestore-ffca28?style=for-the-badge&logo=firebase" alt="Firebase" />
-  <img src="https://img.shields.io/badge/Stripe-Checkout-635bff?style=for-the-badge&logo=stripe" alt="Stripe" />
-  <img src="https://img.shields.io/badge/Vercel-Deployed-000?style=for-the-badge&logo=vercel" alt="Vercel" />
+  <img src="https://img.shields.io/badge/Stripe-Connect_Custom_Splits-635bff?style=for-the-badge&logo=stripe" alt="Stripe Connect" />
+  <img src="https://img.shields.io/badge/Daily.co-Sacred_WebRTC-000000?style=for-the-badge&logo=webrtc" alt="Daily.co WebRTC" />
+  <img src="https://img.shields.io/badge/Compliance-FTC%2FFDA%2FHIPAA_Safe_Harbor-00b894?style=for-the-badge" alt="Safe Harbor" />
 </p>
 
 ---
 
-An immersive digital platform offering **crystal-powered Reiki healing protocols** with stunning visuals, golden energy particles, guided sessions, and a personal Sanctuary dashboard. Built for emotional balance, stress relief, heart healing, and spiritual growth.
+## ✦ The One-Page Business Definition
 
-> *Your bio-field is showing exceptional resonance today.*
+Reiki & Sage is a **boutique hybrid spiritual wellness sanctuary**, not a generic mass-market meditation utility. We blend free daily heart-centering practices with verified, high-trust 1:1 energetic alignments delivered by independent master practitioners.
 
----
-
-## 🌐 Live Demo
-
-🔗 **[www.reikiandsage.com](https://reikiandsage.com)**
-
----
-
-## 🌿 Vision
-
-**Reiki Healing Sanctuary** was born from a simple belief: *healing energy should be accessible to everyone, everywhere.*
-
-Created by a Seattle-based Reiki practitioner and developer, this platform brings the warmth of hands-on healing into an immersive digital experience — blending sacred crystal frequencies with modern web technology.
-
-Whether you're beginning your healing journey or deepening an existing practice, the Sanctuary meets you where you are.
-
----
-
-## 📸 App Preview
-
-### Sanctuary Dashboard
-> Your personal healing hub — track sessions, streaks, aura strength, and vibrational progress.
-
-<p align="center">
-  <img src="public/assets/readme/dashboard-sanctuary.png" alt="Sanctuary Dashboard — Bio-field stats, healing streaks, badges, and daily resonance" width="90%" />
-</p>
-
-### 7-Step Mystical Onboarding
-> A guided sign-up flow that calibrates your energy profile and healing intentions.
-
-<p align="center">
-  <img src="public/assets/readme/onboarding-flow.png" alt="Onboarding — Choose Your Path between Seeker and Healer tiers" width="90%" />
-</p>
+### The Boringly Perfect Core Loop
+```
+[1. Stranger Lands] 
+       ↓ (1 Tap, <10s)
+[2. Free 5-Minute Heart Grounding & Alignment] 
+       ↓ (No wall, 432Hz tone, twilight affirmation)
+[3. Emotional Resonance & Completion] 
+       ↓ ("You are held. You are loved. You belong.")
+[4. Reserved 1:1 Live Video Session ($88)] 
+       ↓ (Stripe Destination Charge: 85% to Healer, 15% to Platform)
+[5. Sacred 528Hz Drone Waiting Room & Daily.co WebRTC Session] 
+       ↓
+[6. Rated & 100% Tipped Directly to Healer]
+```
 
 ---
 
-## 🔮 Crystal Healing Protocols
+## 🌿 Core Offerings & Revenue Model
 
-<table>
-  <tr>
-    <td align="center" width="25%">
-      <img src="public/assets/readme/protocol-amethyst.png" alt="Amethyst Core Purge" width="100%" /><br/>
-      <strong>Amethyst Core Purge</strong><br/>
-      <em>Deep cleanse & spiritual clarity</em>
-    </td>
-    <td align="center" width="25%">
-      <img src="public/assets/readme/protocol-rose-quartz.png" alt="Rose Quartz Heart-Sync" width="100%" /><br/>
-      <strong>Rose Quartz Heart-Sync</strong><br/>
-      <em>Heart healing & compassion</em>
-    </td>
-    <td align="center" width="25%">
-      <img src="public/assets/readme/protocol-quartz-lattice.png" alt="Quartz Lattice Uplift" width="100%" /><br/>
-      <strong>Quartz Lattice Uplift</strong><br/>
-      <em>Energy amplification & clarity</em>
-    </td>
-    <td align="center" width="25%">
-      <img src="public/assets/readme/protocol-sage.png" alt="Sage Purification" width="100%" /><br/>
-      <strong>Sage Purification</strong><br/>
-      <em>Aura cleansing & grounding</em>
-    </td>
-  </tr>
-</table>
+| Offering | Format | Energy Exchange | Financial Flow |
+| :--- | :--- | :--- | :--- |
+| **Free Daily Alignment** | 5-Min Heart & Grounding Video + 432Hz Tone | **Free (Frictionless)** | Trust Engine & Seeker Sanctuary |
+| **Curated Protocols** | 7 Crystal Frequency Portals | 2 Free Daily / Full via Sub | Platform engagement & daily practice |
+| **1:1 Live Video Alignment** | 45-Min WebRTC Sacred Video via Daily.co | **$88 USD** | **85% Healer / 15% Platform** |
+| **1:1 On-Site Healing** | 60-Min In-Person (Seattle 50-mile radius) | **$150 USD** | 15% Online Deposit ($22.50) / Balance on arrival |
+| **Seeker Gratuity** | Post-session tipping in sacred twilight | **Custom ($5, $10, $20, $50)** | **100% Directly to Healer (0% platform rake)** |
+| **Sanctuary Membership** | Unlimited protocols, sound baths, & priority | **$29/mo or $290/yr** | Recurring Platform Revenue |
 
 ---
 
-## ⚡ Key Features
+## 🏛️ Marketplace & Contractor Framework
 
-| Feature | Description |
-|---|---|
-| 🌀 **7-Step Mystical Onboarding** | Guided sign-up that calibrates your energy profile and healing intentions |
-| 🏛️ **Sanctuary Dashboard** | Personal healing hub — stats, streaks, badges, vibrational charts |
-| 🔥 **Healing Streaks & Badges** | Daily streak tracking with milestone achievements (First Light → Master) |
-| 🤖 **Aura Guide** | AI-assisted consultation for personalized protocol recommendations |
-| 💎 **Crystal Protocols** | Amethyst Core Purge · Rose Quartz Heart-Sync · Quartz Lattice Uplift · Sage Purification |
-| 🔴 **Live Resonance Portal** | Real-time group healing sessions with guided frequency immersion |
-| 🆓 **Free Seeker Tier** | Explore foundational protocols at no cost — upgrade when you're ready |
-| 🔒 **Secure Stripe Checkout** | PCI-compliant payments — we never see your card details |
-| ⭐ **Collective Reverie** | Share and read community healing stories and testimonials |
-| 📊 **Vibrational Log** | Track your healing history with bio-field harmony charts |
+Reiki & Sage operates as a technology and sanctuary platform connecting seekers with **independent 1099 freedom-worker practitioners**, not employees.
 
----
-
-## ⚙️ Tech Stack
-
-| Layer | Technology |
-|---|---|
-| **Frontend** | React 19 · Vite 7 · Framer Motion · Recharts |
-| **Auth & Database** | Firebase Auth · Cloud Firestore |
-| **Payments** | Stripe Checkout (PCI-compliant) |
-| **Backend** | Vercel Serverless Functions |
-| **Hosting** | Vercel Edge Network |
-| **Styling** | Vanilla CSS · Glassmorphism · Custom Particle Animations |
-| **Security** | CSP Headers · Firestore Row-Level Security · HTTPS Enforced |
+### The 9-Stage Healer Activation Gate
+No practitioner can appear on the marketplace or accept bookings until passing all 9 milestones:
+1. **Application Submitted**: Attunements, lineage, and experience documented.
+2. **Carissa Sacred Interview**: Mandatory 30-minute video evaluation of grounding, boundaries, and safe harbor ethics.
+3. **Founder Approval**: Authorized in the Admin Carissa Review Console.
+4. **Master Agreement Signed**: Independent Practitioner Agreement (IPA v2026.2).
+5. **Handbook Acknowledged**: 19-section conduct, non-sexual touch, and 24-hr booking response standard.
+6. **Tax & Payout Acknowledged**: Form W-9 affirmation and electronic 1099-NEC consent.
+7. **Stripe Express Connected**: Verified bank direct-deposit with charges/payouts enabled.
+8. **Calendar Availability Configured**: Specific live video & travel radius time slots.
+9. **Live Smoke Test Completed**: 10-minute trial session with founders before public activation.
 
 ---
 
-## 🛠️ Run Locally
+## ⚙️ Architecture & Tech Stack
 
-### Prerequisites
-- Node.js 18+
-- npm 9+
-- Firebase project ([create one](https://console.firebase.google.com))
-- Stripe account ([sign up](https://stripe.com))
+| Domain | Technology | Implementation Details |
+| :--- | :--- | :--- |
+| **Client UI** | React 19, Vite 7, Framer Motion | Mobile-first responsive PWA with ≥44px touch targets |
+| **Video Telehealth** | Daily.co WebRTC SDK | Sacred room wrapper with 528Hz drone waiting room & consent gating |
+| **Audio Engine** | Web Audio API Oscillator | Dynamic 432Hz & 528Hz pure sine tone generators with master volume control |
+| **Payments** | Stripe Connect Custom & Express | Destination Charges (`transfer_data`) + Direct Tips (`application_fee: 0`) |
+| **Persistence** | MongoDB Atlas & Cloud Firestore | Dual-ledger transaction accounting with immutable audit logs |
+| **Security & Headers** | Vercel Edge Network | Strict Content Security Policy, frame-ancestors, HTTPS enforced |
 
-### Setup
+---
+
+## ⚠️ Compliance & Safe Harbor Position
+
+Reiki & Sage is dedicated to complementary spiritual wellness:
+* **FTC & FDA Safe Harbor**: Sessions and frequencies are non-medical spiritual practices. Practitioners never diagnose, treat, prescribe, or claim to cure diseases or mental health disorders.
+* **HIPAA Non-PHI Posture**: We do not store, process, or transmit Protected Health Information (PHI). Intake forms are limited to non-clinical scheduling and energetic intentions.
+* **Emergency Referral Standard**: Practitioners maintain a mandatory referral policy directing seekers to licensed physicians or emergency crisis services when clinical care is indicated.
+
+---
+
+## 🛠️ Local Development & Verification
 
 ```bash
 # Clone the repository
@@ -138,103 +104,22 @@ npm install
 
 # Configure environment variables
 cp .env.example .env.local
-# Edit .env.local with your Firebase + Stripe keys (see .env.example for details)
 
-# Start the dev server
+# Run local development server
 npm run dev
-```
 
-# The app runs at **http://localhost:4000**
-
-### Build for Production
-
-```bash
-npm run build    # Output in dist/
-npm run preview  # Preview production build locally
-```
-
-
----
-
-## 🚀 Production Deployment & Custom Domains
-
-To maximize market readiness and complete the deployment flow:
-
-### 1. Linking a Custom Domain on Vercel
-1. Go to your **Vercel Dashboard** → Select the project.
-2. Navigate to **Settings** → **Domains**.
-3. Enter your custom domain name (e.g. `reikiandsage.com` or `www.reikiandsage.com`) and click **Add**.
-4. Configure your domain provider (GoDaddy, Namecheap, Google Domains, etc.) with Vercel's nameservers or the recommended DNS records:
-   - **Root Domain**: Add an `A` record pointing to `76.76.21.21`
-   - **Subdomains**: Add a `CNAME` record pointing to `cname.vercel-dns.com`
-
-### 2. Setting Environment Variables
-Ensure the following variables are configured in the Vercel Dashboard under **Settings** → **Environment Variables** for production build success:
-- `VITE_FIREBASE_API_KEY` (client-side)
-- `VITE_FIREBASE_AUTH_DOMAIN` (client-side)
-- `VITE_FIREBASE_PROJECT_ID` (client-side)
-- `VITE_STRIPE_PUBLISHABLE_KEY` (client-side)
-- `STRIPE_SECRET_KEY` (server-side, secret)
-- `STRIPE_WEBHOOK_SECRET` (server-side, secret)
-- `RESEND_API_KEY` (server-side, secret, Resend email client key)
-
----
-
-## 📁 Project Structure
-
-```
-├── api/                    # Vercel serverless functions
-│   ├── create-checkout.js  # Stripe Checkout session creation
-│   └── stripe-webhook.js   # Stripe payment event handler
-├── public/assets/          # Static images & protocol visuals
-├── src/
-│   ├── components/         # React components
-│   │   ├── Login.jsx       # Firebase Auth login
-│   │   ├── SignupFlow.jsx   # 7-step onboarding
-│   │   ├── UserDashboard.jsx    # Sanctuary Dashboard
-│   │   ├── HealerDashboard.jsx  # Admin panel
-│   │   ├── BillingForm.jsx      # Stripe Checkout redirect
-│   │   └── ...
-│   ├── lib/firebase.js     # Firebase client (Auth + Firestore)
-│   ├── utils/              # Horoscopes, helpers
-│   └── App.jsx             # Main application
-├── firestore.rules         # Firestore security rules
-├── vercel.json             # Security headers + routing
-└── .env.example            # Environment variable template
+# Verify production bundle (Zero lint/syntax errors)
+npm run build
 ```
 
 ---
 
-## 🗺️ Roadmap
+## 👤 Founders & Governance
 
-- [ ] 🎵 Guided meditation audio tracks with binaural frequencies
-- [ ] 📱 Mobile app (React Native)
-- [ ] 📅 Healer booking & calendar integration
-- [ ] 🌍 Multi-language support (Spanish, Japanese, Portuguese)
-- [ ] ⌚ Wearable integration for heart-rate resonance feedback
-- [ ] 🎙️ Voice-recorded healing reflections
-
----
-
-## ⚠️ Disclaimer
-
-Reiki Healing Sanctuary is a **spiritual wellness platform** designed for relaxation, mindfulness, and personal growth. It is **not** a substitute for professional medical advice, diagnosis, or treatment. We do not provide medical advice or store personal health data. Always consult a qualified healthcare provider for medical concerns.
-
----
-
-## 👤 About the Creator
-
-Built with intention by a Reiki practitioner and developer based in **Seattle, WA** — blending a passion for energy healing with modern web technology to make the Sanctuary experience available to seekers everywhere.
+* **Carissa Bright**: Master Healer, Lineage Keeper, Practitioner Quality & Sacred Experience Director.
+* **Jason**: Principal Systems Architect, Financial Infrastructure & Marketplace Operations.
 
 <p align="center">
-  <a href="https://x.com/Jasontapout360">
-    <img src="https://img.shields.io/badge/𝕏-@Jasontapout360-000?style=for-the-badge&logo=x" alt="X (Twitter)" />
-  </a>
-</p>
-
----
-
-<p align="center">
-  <em>「 Healing begins when you say yes. 」</em><br/><br/>
-  <sub>© 2026 Reiki Healing Sanctuary — All rights reserved.</sub>
+  <em>「 You are held. You are loved. You belong. 」</em><br/><br/>
+  <sub>© 2026 Reiki & Sage Sanctuary — All rights reserved.</sub>
 </p>
